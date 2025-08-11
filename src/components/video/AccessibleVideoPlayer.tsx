@@ -37,6 +37,7 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
   const [showTranscript, setShowTranscript] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   
+  const [metaDuration, setMetaDuration] = useState<number>(duration || 0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const tracker = useVideoViewTracker(videoDbId, 'mp4');
@@ -46,11 +47,13 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
 
     const handleTimeUpdate = () => {
       setCurrentTime(video.currentTime);
+      setMetaDuration(video.duration || 0);
       // analytics
       tracker.reportProgress(video.currentTime, video.duration);
       if (onProgress && video.duration) {
         onProgress((video.currentTime / video.duration) * 100);
       }
+    };
     };
 
     const handleEnded = () => {
@@ -207,18 +210,15 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
         <video
           ref={videoRef}
           className="w-full h-auto bg-black"
-          poster={thumbnailUrl}
+          poster={thumbnailUrl || undefined}
           aria-describedby="video-description"
           preload="metadata"
+          src={videoUrl}
+          onLoadedMetadata={() => {
+            const v = videoRef.current;
+            if (v) setMetaDuration(v.duration || 0);
+          }}
         >
-          {/* YouTube embed alternative for demo */}
-          <iframe
-            src={videoUrl}
-            title={title}
-            className="w-full aspect-video"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
           Your browser does not support the video tag.
         </video>
 
@@ -228,7 +228,7 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
             {/* Progress Bar */}
             <div className="mb-4">
               <Slider
-                value={[duration > 0 ? (currentTime / duration) * 100 : 0]}
+                value={[metaDuration > 0 ? (currentTime / metaDuration) * 100 : 0]}
                 onValueChange={handleSeek}
                 max={100}
                 step={0.1}
@@ -270,7 +270,7 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
                 </div>
 
                 <span className="text-white text-sm font-mono">
-                  {formatTime(currentTime)} / {formatTime(duration)}
+                  {formatTime(currentTime)} / {formatTime(metaDuration || duration || 0)}
                 </span>
               </div>
 

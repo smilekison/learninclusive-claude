@@ -9,7 +9,7 @@ interface TrackerOptions {
 }
 
 export const useVideoViewTracker = (videoId?: string, source: VideoSource = 'youtube', opts: TrackerOptions = {}) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const viewIdRef = useRef<string | null>(null);
   const playingRef = useRef(false);
   const lastProgressAtRef = useRef<number>(0);
@@ -44,7 +44,7 @@ export const useVideoViewTracker = (videoId?: string, source: VideoSource = 'you
         })
         .eq('id', viewIdRef.current);
     } catch (e) {
-      // ignore
+      console.warn('[VideoAnalytics] flush failed', e);
     }
   };
 

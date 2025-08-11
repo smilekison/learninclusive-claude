@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { AccessibleVideoPlayer } from './AccessibleVideoPlayer';
-
+import AccessibleYouTubePlayer from '@/components/video/AccessibleYouTubePlayer';
 interface VideoMaterial {
   id: string;
   title: string;
@@ -22,6 +22,23 @@ interface VideoMaterial {
   tags: string[];
   created_at: string;
 }
+
+// Extract YouTube ID from various URL formats
+const extractYouTubeId = (url?: string | null): string | null => {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes('youtu.be')) return u.pathname.replace('/', '');
+    if (u.hostname.includes('youtube.com')) {
+      const v = u.searchParams.get('v');
+      if (v) return v;
+      const parts = u.pathname.split('/');
+      const idx = parts.indexOf('embed');
+      if (idx >= 0 && parts[idx + 1]) return parts[idx + 1];
+    }
+  } catch {}
+  return null;
+};
 
 interface VideoLibraryProps {
   showPublicOnly?: boolean;
@@ -46,6 +63,23 @@ export const VideoLibrary: React.FC<VideoLibraryProps> = ({ showPublicOnly = fal
   useEffect(() => {
     filterVideos();
   }, [videos, searchTerm, selectedCategory, selectedDifficulty]);
+
+  useEffect(() => {
+    const resolve = async () => {
+      setResolvedUrl(null);
+      if (!selectedVideo?.file_path) return;
+      const path = selectedVideo.file_path;
+      if (/^https?:\/\//i.test(path)) {
+        setResolvedUrl(path);
+        return;
+      }
+      const { data, error } = await supabase.storage
+        .from('videos')
+        .createSignedUrl(path, 3600);
+      if (!error && data?.signedUrl) setResolvedUrl(data.signedUrl);
+    };
+    resolve();
+  }, [selectedVideo]);
 
   const fetchVideos = async () => {
     try {
@@ -109,6 +143,7 @@ export const VideoLibrary: React.FC<VideoLibraryProps> = ({ showPublicOnly = fal
   const difficulties = Array.from(new Set(videos.map(v => v.difficulty_level).filter(Boolean)));
 
   if (selectedVideo) {
+    const ytId = extractYouTubeId(((selectedVideo as any).external_url) || selectedVideo.file_path);
     return (
       <div className="space-y-6">
         <Button 
@@ -118,14 +153,23 @@ export const VideoLibrary: React.FC<VideoLibraryProps> = ({ showPublicOnly = fal
         >
           ← Back to Library
         </Button>
-        <AccessibleVideoPlayer
-          title={selectedVideo.title}
-          description={selectedVideo.description || ''}
-          videoUrl={selectedVideo.file_path}
-          transcript={selectedVideo.transcript_text}
-          duration={selectedVideo.duration}
-          thumbnailUrl={selectedVideo.thumbnail_path}
-        />
+        {ytId ? (
+          <AccessibleYouTubePlayer
+            videoId={ytId}
+            title={selectedVideo.title}
+            videoDbId={selectedVideo.id}
+          />
+        ) : (
+          <AccessibleVideoPlayer
+            title={selectedVideo.title}
+            description={selectedVideo.description || ''}
+            videoUrl={resolvedUrl || selectedVideo.file_path}
+            transcript={selectedVideo.transcript_text}
+            duration={selectedVideo.duration}
+            thumbnailUrl={selectedVideo.thumbnail_path}
+            videoDbId={selectedVideo.id}
+          />
+        )}
       </div>
     );
   }

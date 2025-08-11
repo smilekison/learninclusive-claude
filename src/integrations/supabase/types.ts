@@ -785,6 +785,45 @@ export type Database = {
           },
         ]
       }
+      video_likes: {
+        Row: {
+          created_at: string
+          id: string
+          liked: boolean
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          liked?: boolean
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          liked?: boolean
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_likes_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "video_materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       video_materials: {
         Row: {
           audio_description_path: string | null
@@ -891,6 +930,66 @@ export type Database = {
             columns: ["uploaded_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_views: {
+        Row: {
+          completed: boolean
+          created_at: string
+          device: string | null
+          ended_at: string | null
+          id: string
+          session_id: string | null
+          source: string | null
+          started_at: string
+          updated_at: string
+          user_id: string | null
+          video_id: string
+          watch_seconds: number
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          device?: string | null
+          ended_at?: string | null
+          id?: string
+          session_id?: string | null
+          source?: string | null
+          started_at?: string
+          updated_at?: string
+          user_id?: string | null
+          video_id: string
+          watch_seconds?: number
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          device?: string | null
+          ended_at?: string | null
+          id?: string
+          session_id?: string | null
+          source?: string | null
+          started_at?: string
+          updated_at?: string
+          user_id?: string | null
+          video_id?: string
+          watch_seconds?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_views_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_views_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "video_materials"
             referencedColumns: ["id"]
           },
         ]

@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Truncate } from '@/components/ui/truncate';
+import { useVideoEngagement } from '@/hooks/useVideoEngagement';
 interface VideoData {
   id: string;
   title: string;
@@ -21,6 +22,8 @@ interface YouTubeVideoCardProps {
 }
 
 export const YouTubeVideoCard: React.FC<YouTubeVideoCardProps> = ({ video, onClick }) => {
+  const { engagement } = useVideoEngagement(video.id);
+  
   const formatViews = (views: number) => {
     if (views >= 1000000) {
       return `${(views / 1000000).toFixed(1)}M`;
@@ -101,7 +104,7 @@ export const YouTubeVideoCard: React.FC<YouTubeVideoCardProps> = ({ video, onCli
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1">
                 <Eye className="h-3 w-3" />
-                <span>{formatViews(video.views)} views</span>
+                <span>{formatViews(engagement.views)} views</span>
               </div>
               <div className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />

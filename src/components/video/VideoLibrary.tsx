@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Grid, List, Clock, Play, Eye, EyeOff } from 'lucide-react';
+import { Search, Filter, Grid, List, Clock, Play, Eye, EyeOff, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { AccessibleVideoPlayer } from './AccessibleVideoPlayer';
 import AccessibleYouTubePlayer from '@/components/video/AccessibleYouTubePlayer';
+import { VideoEngagementBar } from './VideoEngagementBar';
 interface VideoMaterial {
   id: string;
   title: string;
@@ -21,6 +22,9 @@ interface VideoMaterial {
   difficulty_level?: string;
   tags: string[];
   created_at: string;
+  views?: number;
+  likes?: number;
+  dislikes?: number;
 }
 
 // Extract YouTube ID from various URL formats
@@ -170,6 +174,9 @@ export const VideoLibrary: React.FC<VideoLibraryProps> = ({ showPublicOnly = fal
             videoDbId={selectedVideo.id}
           />
         )}
+        
+        {/* Engagement Bar */}
+        <VideoEngagementBar videoId={selectedVideo.id} className="mt-4" />
       </div>
     );
   }
@@ -322,7 +329,7 @@ export const VideoLibrary: React.FC<VideoLibraryProps> = ({ showPublicOnly = fal
                   {video.description}
                 </CardDescription>
                 
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
                   <div className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
                     {formatDuration(video.duration)}
@@ -333,6 +340,13 @@ export const VideoLibrary: React.FC<VideoLibraryProps> = ({ showPublicOnly = fal
                     </Badge>
                   )}
                 </div>
+                
+                {/* Video Engagement */}
+                <VideoEngagementBar 
+                  videoId={video.id} 
+                  className="justify-start text-xs" 
+                  showViews={true}
+                />
                 
                 {video.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-3">
@@ -385,7 +399,7 @@ export const VideoLibrary: React.FC<VideoLibraryProps> = ({ showPublicOnly = fal
                           {video.description}
                         </p>
                         
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2">
                           <div className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
                             {formatDuration(video.duration)}
@@ -399,6 +413,12 @@ export const VideoLibrary: React.FC<VideoLibraryProps> = ({ showPublicOnly = fal
                             </Badge>
                           )}
                         </div>
+                        
+                        {/* Video Engagement */}
+                        <VideoEngagementBar 
+                          videoId={video.id} 
+                          className="justify-start text-xs scale-90 origin-left" 
+                        />
                       </div>
                       
                       {video.tags.includes('featured') && (

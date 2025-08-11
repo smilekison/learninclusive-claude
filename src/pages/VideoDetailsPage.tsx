@@ -1,27 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Heart, Share2, Download, Eye, Calendar, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ArrowLeft, Eye, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { YouTubeNavbar } from '@/components/layout/YouTubeNavbar';
 import AccessibleYouTubePlayer from '@/components/video/AccessibleYouTubePlayer';
 import { AccessibleVideoPlayer } from '@/components/video/AccessibleVideoPlayer';
+import { VideoEngagementBar } from '@/components/video/VideoEngagementBar';
 import { supabase } from '@/integrations/supabase/client';
 
 interface VideoDetails {
   id: string;
   title: string;
   channel: string;
-  views: number;
   uploadDate: string;
   duration: string;
   thumbnail: string;
   category?: string;
   description: string;
-  likes: number;
-  dislikes: number;
   channelSubscribers: string;
 }
 
@@ -74,14 +71,11 @@ export const VideoDetailsPage: React.FC = () => {
         id: data.id,
         title: data.title,
         channel: data.video_format === 'youtube' ? 'YouTube' : 'Uploaded',
-        views: 0,
         uploadDate: data.created_at,
         duration: data.duration ? `${Math.floor(data.duration / 60)}:${String(data.duration % 60).padStart(2, '0')}` : '',
         thumbnail: data.thumbnail_path || '',
         category: data.category || undefined,
         description: data.description || '',
-        likes: 0,
-        dislikes: 0,
         channelSubscribers: 'N/A',
       };
       setVideo(vd);
@@ -100,15 +94,6 @@ export const VideoDetailsPage: React.FC = () => {
     })();
   }, [id]);
 
-  const formatViews = (views: number) => {
-    if (views >= 1000000) {
-      return `${(views / 1000000).toFixed(1)}M`;
-    } else if (views >= 1000) {
-      return `${(views / 1000).toFixed(1)}K`;
-    }
-    return views.toString();
-  };
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
@@ -116,13 +101,6 @@ export const VideoDetailsPage: React.FC = () => {
       month: 'long', 
       day: 'numeric' 
     });
-  };
-
-  const formatNumber = (num: number) => {
-    if (num >= 1000) {
-      return `${(num / 1000).toFixed(1)}K`;
-    }
-    return num.toString();
   };
 
   if (!video) {
@@ -194,38 +172,13 @@ export const VideoDetailsPage: React.FC = () => {
               {/* Video Stats */}
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
-                  <Eye className="h-4 w-4" />
-                  <span>{formatViews(video.views)} views</span>
-                </div>
-                <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
                   <span>{formatDate(video.uploadDate)}</span>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-3">
-                <Button className="flex items-center gap-2">
-                  <ThumbsUp className="h-4 w-4" />
-                  <span>{formatNumber(video.likes)}</span>
-                </Button>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <ThumbsDown className="h-4 w-4" />
-                  <span>{formatNumber(video.dislikes)}</span>
-                </Button>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Heart className="h-4 w-4" />
-                  Save
-                </Button>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Share2 className="h-4 w-4" />
-                  Share
-                </Button>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Download className="h-4 w-4" />
-                  Download
-                </Button>
-              </div>
+              {/* Engagement Bar */}
+              <VideoEngagementBar videoId={video.id} />
 
               <Separator />
 

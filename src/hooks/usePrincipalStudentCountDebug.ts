@@ -17,19 +17,20 @@ export const usePrincipalStudentCountDebug = () => {
     hasLoggedRef.current = true;
 
     const logStudentCount = async () => {
-      const { count, error } = await supabase
+      const { data, count, error } = await supabase
         .from('profiles')
-        .select('id', { count: 'exact', head: true })
+        .select('id, first_name, last_name', { count: 'exact' })
         .eq('role', 'student');
 
       if (error) {
-        console.error('Principal Debug: Failed to count students', error);
+        console.error('Principal Debug: Failed to fetch students', error);
         return;
       }
 
-      console.info('Principal Debug: Total students (all, regardless of class/subject):', count ?? 0);
+      const names = (data ?? []).map(p => `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim());
+      console.table((data ?? []).map(p => ({ id: p.id, name: `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim() })));
+      console.info('Principal Debug: Total students (all, regardless of class/subject):', count ?? names.length);
     };
-
     logStudentCount();
   }, [user]);
 };

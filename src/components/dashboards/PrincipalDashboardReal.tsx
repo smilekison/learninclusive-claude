@@ -15,6 +15,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Truncate } from '@/components/ui/truncate';
+import { usePrincipalAssignmentAnalytics } from '@/hooks/useAssignmentAnalytics';
+import { ChartContainer, ChartTooltipContent, ChartTooltip } from '@/components/ui/chart';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 export const PrincipalDashboardReal: React.FC = () => {
   const { user } = useAuth();
@@ -40,6 +43,17 @@ export const PrincipalDashboardReal: React.FC = () => {
   const [isTeacherDialogOpen, setIsTeacherDialogOpen] = useState(false);
   const [isClassDialogOpen, setIsClassDialogOpen] = useState(false);
   const [isReportsDialogOpen, setIsReportsDialogOpen] = useState(false);
+
+  // Assignments filters for Principal view
+  const [selectedClassId, setSelectedClassId] = useState<string>('');
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
+  const [assignmentStatus, setAssignmentStatus] = useState<'all' | 'overdue' | 'due_soon' | 'no_due_date' | 'active'>('all');
+
+  const { data: assignmentAnalytics } = usePrincipalAssignmentAnalytics({
+    classId: selectedClassId || undefined,
+    teacherId: selectedTeacherId || undefined,
+    status: assignmentStatus,
+  });
 
   // Fixed teacher creation using create_demo_user function
   const addTeacherMutation = useSupabaseMutation(
@@ -201,6 +215,110 @@ export const PrincipalDashboardReal: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Assignments Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Assignments Overview</CardTitle>
+          <CardDescription>Totals, class-wise and teacher-wise distributions with filters</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {/* Filters */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <Label>Class</Label>
+              <Select value={selectedClassId} onValueChange={setSelectedClassId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Classes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Classes</SelectItem>
+                  {classes?.map((c: any) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Teacher</Label>
+              <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Teachers" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Teachers</SelectItem>
+                  {teachers?.map((t: any) => (
+                    <SelectItem key={t.id} value={t.id}>{t.first_name} {t.last_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Status</Label>
+              <Select value={assignmentStatus} onValueChange={(v) => setAssignmentStatus(v as any)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="overdue">Overdue</SelectItem>
+                  <SelectItem value="due_soon">Due soon (7d)</SelectItem>
+                  <SelectItem value="no_due_date">No due date</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Summary */}
+          <div className="grid gap-4 md:grid-cols-4 mt-4">
+            <Card>
+              <CardHeader className="py-3"><CardTitle className="text-sm">Total</CardTitle></CardHeader>
+              <CardContent className="text-2xl font-bold">{assignmentAnalytics?.summary.total ?? 0}</CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="py-3"><CardTitle className="text-sm">Overdue</CardTitle></CardHeader>
+              <CardContent className="text-2xl font-bold text-destructive">{assignmentAnalytics?.summary.overdue ?? 0}</CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="py-3"><CardTitle className="text-sm">Due Soon</CardTitle></CardHeader>
+              <CardContent className="text-2xl font-bold text-warning">{assignmentAnalytics?.summary.dueSoon ?? 0}</CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="py-3"><CardTitle className="text-sm">No Due Date</CardTitle></CardHeader>
+              <CardContent className="text-2xl font-bold text-muted-foreground">{assignmentAnalytics?.summary.noDueDate ?? 0}</CardContent>
+            </Card>
+          </div>
+
+          {/* Charts */}
+          <div className="grid gap-6 md:grid-cols-2 mt-6">
+            <div>
+              <h4 className="text-sm font-medium mb-2">By Class</h4>
+              <ChartContainer config={{ assignments: { label: 'Assignments', color: 'hsl(var(--primary))' } }} className="h-64 w-full">
+                <BarChart data={assignmentAnalytics?.byClass || []}>
+                  <CartesianGrid vertical={false} />
+                  <XAxis dataKey="name" tickLine={false} axisLine={false} interval={0} />
+                  <YAxis allowDecimals={false} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="count" fill="var(--color-assignments)" radius={[4,4,0,0]} />
+                </BarChart>
+              </ChartContainer>
+            </div>
+            <div>
+              <h4 className="text-sm font-medium mb-2">By Teacher</h4>
+              <ChartContainer config={{ assignments: { label: 'Assignments', color: 'hsl(var(--primary))' } }} className="h-64 w-full">
+                <BarChart data={assignmentAnalytics?.byTeacher || []}>
+                  <CartesianGrid vertical={false} />
+                  <XAxis dataKey="name" tickLine={false} axisLine={false} interval={0} />
+                  <YAxis allowDecimals={false} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="count" fill="var(--color-assignments)" radius={[4,4,0,0]} />
+                </BarChart>
+              </ChartContainer>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Quick Actions */}
       <Card>

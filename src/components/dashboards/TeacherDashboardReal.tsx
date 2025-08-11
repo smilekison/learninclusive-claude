@@ -46,6 +46,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNavigate } from 'react-router-dom';
 import { SubjectEnrollmentRequestsManager } from '@/components/teachers/SubjectEnrollmentRequestsManager';
 import { useToast } from '@/hooks/use-toast';
+import { useTeacherAssignmentAnalytics } from '@/hooks/useAssignmentAnalytics';
+import { ChartContainer, ChartTooltipContent, ChartTooltip } from '@/components/ui/chart';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 
 export const TeacherDashboardReal: React.FC = () => {
@@ -61,6 +64,7 @@ export const TeacherDashboardReal: React.FC = () => {
   const { data: unreadNotifications = [] } = useUnreadNotifications();
   const { data: recentSubmissions = [] } = useRecentSubmissions(5);
   const { data: stats } = useTeacherStats();
+  const { data: tAssignmentAnalytics } = useTeacherAssignmentAnalytics();
   
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [newSubject, setNewSubject] = useState({ name: '', description: '', classId: '' });
@@ -622,23 +626,38 @@ export const TeacherDashboardReal: React.FC = () => {
                         <CardTitle>Assignment Analytics</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span>Total Assignments</span>
-                            <span className="font-medium">{stats?.totalAssignments || 0}</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Active Assignments</span>
-                            <span className="font-medium">{stats?.activeAssignments || 0}</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Average Submission Time</span>
-                            <span className="font-medium">2.1 days</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Grading Response Time</span>
-                            <span className="font-medium">1.5 days</span>
-                          </div>
+                        {/* Summary for this teacher */}
+                        <div className="grid gap-4 md:grid-cols-4">
+                          <Card>
+                            <CardHeader className="py-3"><CardTitle className="text-sm">Total</CardTitle></CardHeader>
+                            <CardContent className="text-2xl font-bold">{tAssignmentAnalytics?.summary.total ?? 0}</CardContent>
+                          </Card>
+                          <Card>
+                            <CardHeader className="py-3"><CardTitle className="text-sm">Overdue</CardTitle></CardHeader>
+                            <CardContent className="text-2xl font-bold text-destructive">{tAssignmentAnalytics?.summary.overdue ?? 0}</CardContent>
+                          </Card>
+                          <Card>
+                            <CardHeader className="py-3"><CardTitle className="text-sm">Due Soon</CardTitle></CardHeader>
+                            <CardContent className="text-2xl font-bold text-warning">{tAssignmentAnalytics?.summary.dueSoon ?? 0}</CardContent>
+                          </Card>
+                          <Card>
+                            <CardHeader className="py-3"><CardTitle className="text-sm">No Due Date</CardTitle></CardHeader>
+                            <CardContent className="text-2xl font-bold text-muted-foreground">{tAssignmentAnalytics?.summary.noDueDate ?? 0}</CardContent>
+                          </Card>
+                        </div>
+
+                        {/* By Subject chart */}
+                        <div className="mt-6">
+                          <h4 className="text-sm font-medium mb-2">By Subject</h4>
+                          <ChartContainer config={{ assignments: { label: 'Assignments', color: 'hsl(var(--primary))' } }} className="h-64 w-full">
+                            <BarChart data={tAssignmentAnalytics?.bySubject || []}>
+                              <CartesianGrid vertical={false} />
+                              <XAxis dataKey="name" tickLine={false} axisLine={false} interval={0} />
+                              <YAxis allowDecimals={false} />
+                              <ChartTooltip content={<ChartTooltipContent />} />
+                              <Bar dataKey="count" fill="var(--color-assignments)" radius={[4,4,0,0]} />
+                            </BarChart>
+                          </ChartContainer>
                         </div>
                       </CardContent>
                     </Card>

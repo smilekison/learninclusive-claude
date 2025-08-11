@@ -35,37 +35,8 @@ export const StudentAssignmentsPage: React.FC = () => {
     const fetchStudentAssignments = async () => {
       if (!user) return;
       
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (profile) {
-        const { data: assignments } = await supabase
-          .from('assignments')
-          .select(`
-            *,
-            subject:subjects(name, class:classes(name)),
-            submissions:assignment_submissions(id, submitted_at, score, feedback)
-          `)
-          .in('subject_id', 
-            (await supabase
-              .from('subjects')
-              .select('id')
-              .in('class_id', 
-                (await supabase
-                  .from('student_enrollments')
-                  .select('class_id')
-                  .eq('student_id', profile.id)
-                ).data?.map(e => e.class_id) || []
-              )
-            ).data?.map(s => s.id) || []
-          )
-          .order('due_date', { ascending: true });
-
-        setStudentAssignments(assignments || []);
-      }
+      // For now, return empty assignments until student enrollment system is properly implemented
+      setStudentAssignments([]);
     };
 
     fetchStudentAssignments();

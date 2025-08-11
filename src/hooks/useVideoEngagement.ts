@@ -24,20 +24,33 @@ export const useVideoEngagement = (videoId: string) => {
   });
 
   const fetchEngagementData = async () => {
-    if (!videoId) return;
+    if (!videoId) {
+      console.log('No videoId provided for engagement data');
+      return;
+    }
+
+    console.log('Fetching engagement data for video:', videoId);
 
     try {
       // Get view count
-      const { count: viewCount } = await supabase
+      const { count: viewCount, error: viewError } = await supabase
         .from('video_views')
         .select('*', { count: 'exact', head: true })
         .eq('video_id', videoId);
 
+      if (viewError) {
+        console.error('Error fetching view count:', viewError);
+      }
+
       // Get like counts
-      const { data: likesData } = await supabase
+      const { data: likesData, error: likesError } = await supabase
         .from('video_likes')
         .select('liked, user_id')
         .eq('video_id', videoId);
+
+      if (likesError) {
+        console.error('Error fetching likes data:', likesError);
+      }
 
       const likes = likesData?.filter(l => l.liked).length || 0;
       const dislikes = likesData?.filter(l => !l.liked).length || 0;
@@ -46,13 +59,13 @@ export const useVideoEngagement = (videoId: string) => {
       let userLiked = false;
       let userDisliked = false;
       if (user?.id && likesData) {
-        const { data: userProfile } = await supabase
+        const { data: userProfile, error: profileError } = await supabase
           .from('profiles')
           .select('id')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
-        if (userProfile) {
+        if (userProfile && !profileError) {
           const userLike = likesData.find(l => l.user_id === userProfile.id);
           if (userLike) {
             userLiked = userLike.liked;
@@ -82,14 +95,14 @@ export const useVideoEngagement = (videoId: string) => {
     }
 
     try {
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (!profile) {
-        toast.error('Profile not found');
+      if (!profile || profileError) {
+        toast.error('Profile not found. Please ensure you are logged in.');
         return;
       }
 
@@ -158,14 +171,14 @@ export const useVideoEngagement = (videoId: string) => {
     }
 
     try {
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (!profile) {
-        toast.error('Profile not found');
+      if (!profile || profileError) {
+        toast.error('Profile not found. Please ensure you are logged in.');
         return;
       }
 
@@ -228,7 +241,7 @@ export const useVideoEngagement = (videoId: string) => {
   };
 
   const shareVideo = async () => {
-    const shareUrl = `${window.location.origin}/videos/details/${videoId}`;
+    const shareUrl = `${window.location.origin}/video-details/${videoId}`;
     
     if (navigator.share) {
       try {
@@ -256,8 +269,45 @@ export const useVideoEngagement = (videoId: string) => {
     });
   };
 
+  // Track video view when component loads
+  const trackVideoView = async () => {
+    if (!videoId) return;
+
+    try {
+      let profileId = null;
+      if (user?.id) {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (profile && !profileError) {
+          profileId = profile.id;
+        }
+      }
+
+      // Insert video view record
+      await supabase
+        .from('video_views')
+        .insert({
+          video_id: videoId,
+          user_id: profileId,
+          watch_seconds: 1,
+          completed: false,
+          device: navigator.userAgent.includes('Mobile') ? 'mobile' : 'desktop',
+          source: 'web'
+        });
+
+      console.log('Video view tracked for:', videoId);
+    } catch (error) {
+      console.error('Error tracking video view:', error);
+    }
+  };
+
   useEffect(() => {
     fetchEngagementData();
+    trackVideoView();
   }, [videoId, user]);
 
   return {

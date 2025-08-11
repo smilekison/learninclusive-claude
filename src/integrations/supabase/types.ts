@@ -573,6 +573,105 @@ export type Database = {
           },
         ]
       }
+      student_enrollments: {
+        Row: {
+          class_id: string
+          created_at: string
+          enrolled_at: string
+          id: string
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          enrolled_at?: string
+          id?: string
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          enrolled_at?: string
+          id?: string
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subject_enrollment_requests: {
+        Row: {
+          created_at: string
+          id: string
+          invitation_code: string
+          processed_at: string | null
+          processed_by: string | null
+          requested_at: string
+          status: string
+          student_id: string
+          subject_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invitation_code: string
+          processed_at?: string | null
+          processed_by?: string | null
+          requested_at?: string
+          status?: string
+          student_id: string
+          subject_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invitation_code?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          requested_at?: string
+          status?: string
+          student_id?: string
+          subject_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subject_invitation_codes: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          invitation_code: string
+          is_active: boolean
+          subject_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          invitation_code: string
+          is_active?: boolean
+          subject_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          invitation_code?: string
+          is_active?: boolean
+          subject_id?: string
+        }
+        Relationships: []
+      }
       subjects: {
         Row: {
           class_id: string

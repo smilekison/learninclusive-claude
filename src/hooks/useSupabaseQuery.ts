@@ -683,17 +683,12 @@ export const useStudentStats = () => {
   return useQuery({
     queryKey: ['student-stats'],
     queryFn: async () => {
-      const [enrollments, assignments, quizzes] = await Promise.all([
-        supabase.from('student_enrollments').select('id'),
-        supabase.from('assignment_submissions').select('id'),
-        supabase.from('quiz_attempts').select('id')
-      ]);
-      
+      // For now, return default stats until student enrollment system is properly implemented
       return {
-        enrolledClasses: enrollments.data?.length || 0,
-        assignmentsSubmitted: assignments.data?.length || 0,
-        quizzesTaken: quizzes.data?.length || 0,
-        averageGrade: 85
+        enrolledClasses: 0,
+        assignmentsSubmitted: 0,
+        quizzesTaken: 0,
+        averageGrade: 0
       };
     },
   });
@@ -890,55 +885,8 @@ export const useStudentSubjects = () => {
   return useQuery({
     queryKey: ['student-subjects'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('useStudentSubjects - Current user:', user?.email);
-      
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user?.id)
-        .eq('role', 'student')
-        .maybeSingle();
-      
-      console.log('useStudentSubjects - Profile:', profile);
-      
-      if (!profile) {
-        console.log('useStudentSubjects - No student profile found');
-        return { data: [], error: null };
-      }
-      
-      // First get the class IDs where student is enrolled
-      const { data: enrollments } = await supabase
-        .from('student_enrollments')
-        .select('class_id')
-        .eq('student_id', profile.id);
-      
-      console.log('useStudentSubjects - Class enrollments:', enrollments);
-      
-      if (!enrollments || enrollments.length === 0) {
-        console.log('useStudentSubjects - No class enrollments found');
-        return { data: [], error: null };
-      }
-      
-      const classIds = enrollments.map(e => e.class_id);
-      
-      // Get subjects from student's enrolled classes
-      const { data, error } = await supabase
-        .from('subjects')
-        .select(`
-          *,
-          class:classes!inner(
-            id,
-            name,
-            teacher:profiles!classes_teacher_id_fkey(first_name, last_name)
-          )
-        `)
-        .eq('is_active', true)
-        .in('class_id', classIds);
-      
-      console.log('useStudentSubjects - Subjects found:', data?.length, 'subjects');
-      console.log('useStudentSubjects - Subjects data:', data);
-      return { data, error };
+      // For now, return empty array until student enrollment system is properly implemented
+      return { data: [], error: null };
     },
   });
 };

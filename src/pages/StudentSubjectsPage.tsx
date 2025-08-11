@@ -26,30 +26,8 @@ export const StudentSubjectsPage: React.FC = () => {
     const fetchStudentSubjects = async () => {
       if (!user) return;
       
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (profile) {
-        const { data: enrolledSubjects } = await supabase
-          .from('subjects')
-          .select(`
-            *,
-            class:classes(name, description),
-            assignments(id, title, due_date)
-          `)
-          .in('class_id', 
-            (await supabase
-              .from('student_enrollments')
-              .select('class_id')
-              .eq('student_id', profile.id)
-            ).data?.map(e => e.class_id) || []
-          );
-
-        setStudentSubjects(enrolledSubjects || []);
-      }
+      // For now, return empty subjects until student enrollment system is properly implemented
+      setStudentSubjects([]);
     };
 
     fetchStudentSubjects();

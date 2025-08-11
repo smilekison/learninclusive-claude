@@ -580,48 +580,93 @@ export const useActiveAssignments = () => {
 
 export const useTeacherStudents = () => {
   return useSupabaseQuery(['teacher-students'], async () => {
+    console.log('useTeacherStudents - Starting query');
+    
     const { data: profile } = await supabase
       .from('profiles')
       .select('id')
       .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
       .maybeSingle();
     
-    if (!profile) return { data: [], error: null };
+    console.log('useTeacherStudents - Profile:', profile);
     
-    // First get the teacher's class IDs
-    const { data: teacherClasses } = await supabase
-      .from('classes')
-      .select('id')
-      .eq('teacher_id', profile.id);
-      
-    if (!teacherClasses || teacherClasses.length === 0) {
+    if (!profile) {
+      console.log('useTeacherStudents - No profile found');
       return { data: [], error: null };
     }
     
-    const classIds = teacherClasses.map(c => c.id);
-    
+    // Get students directly with a manual join approach since foreign keys aren't working
     const result = await supabase
       .from('student_enrollments')
       .select(`
-        *,
-        profiles(
-          *
-        ),
-        classes(
-          *
-        )
-      `)
-      .in('class_id', classIds);
-      
-    // Filter to only include active students  
-    if (result.data) {
-      result.data = result.data.filter((enrollment: any) => 
-        enrollment.profiles?.role === 'student' && 
-        enrollment.profiles?.is_active === true
-      );
+        id,
+        student_id,
+        class_id,
+        status,
+        enrolled_at
+      `);
+    
+    console.log('useTeacherStudents - All enrollments result:', result);
+    
+    if (!result.data || result.data.length === 0) {
+      console.log('useTeacherStudents - No enrollments found');
+      return { data: [], error: null };
     }
-      
-    return result;
+    
+    // Get teacher's classes first
+    const { data: teacherClasses } = await supabase
+      .from('classes')
+      .select('*')
+      .eq('teacher_id', profile.id);
+    
+    console.log('useTeacherStudents - Teacher classes:', teacherClasses);
+    
+    if (!teacherClasses || teacherClasses.length === 0) {
+      console.log('useTeacherStudents - No teacher classes found');
+      return { data: [], error: null };
+    }
+    
+    const teacherClassIds = teacherClasses.map(c => c.id);
+    
+    // Filter enrollments to only teacher's classes
+    const teacherEnrollments = result.data.filter(enrollment => 
+      teacherClassIds.includes(enrollment.class_id)
+    );
+    
+    console.log('useTeacherStudents - Teacher enrollments:', teacherEnrollments);
+    
+    if (teacherEnrollments.length === 0) {
+      console.log('useTeacherStudents - No enrollments in teacher classes');
+      return { data: [], error: null };
+    }
+    
+    // Get students manually
+    const studentIds = teacherEnrollments.map(e => e.student_id);
+    const { data: students } = await supabase
+      .from('profiles')
+      .select('*')
+      .in('id', studentIds)
+      .eq('role', 'student')
+      .eq('is_active', true);
+    
+    console.log('useTeacherStudents - Students result:', students);
+    
+    // Combine the data manually
+    const combinedData = teacherEnrollments
+      .filter(enrollment => {
+        const student = students?.find(s => s.id === enrollment.student_id);
+        const classData = teacherClasses?.find(c => c.id === enrollment.class_id);
+        return student && classData;
+      })
+      .map(enrollment => ({
+        ...enrollment,
+        student: students?.find(s => s.id === enrollment.student_id),
+        class: teacherClasses?.find(c => c.id === enrollment.class_id)
+      }));
+    
+    console.log('useTeacherStudents - Final combined data:', combinedData);
+    
+    return { data: combinedData, error: null };
   });
 };
 

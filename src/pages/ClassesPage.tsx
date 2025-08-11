@@ -230,11 +230,15 @@ export const ClassesPage: React.FC = () => {
                         <SelectValue placeholder="Select a teacher" />
                       </SelectTrigger>
                       <SelectContent>
-                        {teachers.map((teacher: any) => (
-                          <SelectItem key={teacher.id} value={teacher.id}>
-                            {teacher.first_name} {teacher.last_name}
-                          </SelectItem>
-                        ))}
+                        {teachers && teachers.length > 0 ? (
+                          teachers.map((teacher: any) => (
+                            <SelectItem key={teacher.id} value={teacher.id}>
+                              {teacher.first_name} {teacher.last_name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="" disabled>No teachers available</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -286,11 +290,15 @@ export const ClassesPage: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">No teacher assigned</SelectItem>
-                  {teachers.map((teacher: any) => (
-                    <SelectItem key={teacher.id} value={teacher.id}>
-                      {teacher.first_name} {teacher.last_name}
-                    </SelectItem>
-                  ))}
+                  {teachers && teachers.length > 0 ? (
+                    teachers.map((teacher: any) => (
+                      <SelectItem key={teacher.id} value={teacher.id}>
+                        {teacher.first_name} {teacher.last_name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="" disabled>No teachers available</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -333,11 +341,15 @@ export const ClassesPage: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Teachers</SelectItem>
-                  {teachers.map((teacher: any) => (
-                    <SelectItem key={teacher.id} value={teacher.id}>
-                      {teacher.first_name} {teacher.last_name}
-                    </SelectItem>
-                  ))}
+                  {teachers && teachers.length > 0 ? (
+                    teachers.map((teacher: any) => (
+                      <SelectItem key={teacher.id} value={teacher.id}>
+                        {teacher.first_name} {teacher.last_name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="" disabled>No teachers available</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             )}

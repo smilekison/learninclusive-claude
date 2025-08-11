@@ -315,11 +315,15 @@ export const PrincipalDashboardReal: React.FC = () => {
                         <SelectValue placeholder="Select a teacher" />
                       </SelectTrigger>
                       <SelectContent>
-                        {teachers?.map((teacher: any) => (
-                          <SelectItem key={teacher.id} value={teacher.id}>
-                            {teacher.first_name} {teacher.last_name}
-                          </SelectItem>
-                        ))}
+                        {teachers && teachers.length > 0 ? (
+                          teachers.map((teacher: any) => (
+                            <SelectItem key={teacher.id} value={teacher.id}>
+                              {teacher.first_name} {teacher.last_name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="" disabled>No teachers available</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -502,7 +506,7 @@ export const PrincipalDashboardReal: React.FC = () => {
                   <div className="min-w-0">
                     <Truncate lines={1} className="font-medium">{classItem.name}</Truncate>
                     <Truncate lines={1} className="text-sm text-muted-foreground">
-                      Teacher: {classItem.teacher?.first_name} {classItem.teacher?.last_name} | Code: {classItem.enrollment_code}
+                      Teacher: {classItem.teacher?.first_name} {classItem.teacher?.last_name || 'Not assigned'}
                     </Truncate>
                   </div>
                   <div className="text-right">

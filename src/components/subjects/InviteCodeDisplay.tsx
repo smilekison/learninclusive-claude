@@ -40,13 +40,13 @@ export const InviteCodeDisplay: React.FC<InviteCodeDisplayProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-card-foreground">
           <QrCode className="w-5 h-5" />
-          Class Invitation Code
+          Subject Invitation Code
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">
-            Share this code with students to let them join your class:
+            Share this code with students to let them join your subject:
           </p>
           <div className="flex items-center gap-3">
             <div className="flex-1 p-3 bg-muted rounded-lg border">
@@ -77,7 +77,7 @@ export const InviteCodeDisplay: React.FC<InviteCodeDisplayProps> = ({
         </div>
         
         <div className="text-xs text-muted-foreground">
-          Students can enter this code in their "Join Class" section to request enrollment.
+          Students can enter this code in their "Join Subject" section to request enrollment.
         </div>
       </CardContent>
     </Card>

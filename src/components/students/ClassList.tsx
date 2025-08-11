@@ -55,7 +55,7 @@ export const ClassList: React.FC<ClassListProps> = ({
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4" />
                   <span className="text-sm">
-                    {cls.enrollment_count || 0} students
+                    {(cls.enrollment_count ?? cls.student_enrollments?.[0]?.count ?? (Array.isArray(cls.student_enrollments) ? cls.student_enrollments.length : 0) ?? 0)} students
                   </span>
                 </div>
                 {cls.teacher && (

@@ -267,7 +267,8 @@ export const useTeacherClasses = () => {
           *,
           teacher:profiles!classes_teacher_id_fkey(first_name, last_name),
           school:schools(name),
-          subjects:subjects(id, name)
+          subjects:subjects(id, name),
+          student_enrollments:student_enrollments(count)
         `)
         .eq('is_active', true);
       return { data, error };
@@ -280,7 +281,8 @@ export const useTeacherClasses = () => {
         *,
         teacher:profiles!classes_teacher_id_fkey(first_name, last_name),
         school:schools(name),
-        subjects:subjects(id, name)
+        subjects:subjects(id, name),
+        student_enrollments:student_enrollments(count)
       `)
       .eq('teacher_id', profile.id)
       .eq('is_active', true);

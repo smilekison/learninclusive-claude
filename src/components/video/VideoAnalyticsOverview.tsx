@@ -1,7 +1,9 @@
+
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 
 interface VideoAnalyticsOverviewProps {
   videos: Array<{ id: string; title?: string | null }>; // expects video_materials rows
@@ -23,23 +25,38 @@ const formatDuration = (seconds: number) => {
   return `${sec}s`;
 };
 
+type RangePreset = '7d' | '30d' | '90d' | 'all';
+
 export const VideoAnalyticsOverview: React.FC<VideoAnalyticsOverviewProps> = ({ videos }) => {
   const [views, setViews] = useState<ViewRow[]>([]);
+  const [range, setRange] = useState<RangePreset>('7d');
+  const [loading, setLoading] = useState(false);
+
   const videoIds = useMemo(() => videos.map(v => v.id).filter(Boolean), [videos]);
 
   useEffect(() => {
     let active = true;
     (async () => {
       if (!videoIds.length) { setViews([]); return; }
-      const { data, error } = await supabase
+      setLoading(true);
+      const q = supabase
         .from('video_views')
         .select('video_id, watch_seconds, completed')
         .in('video_id', videoIds);
+
+      if (range !== 'all') {
+        const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+        const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+        q.gte('started_at', from);
+      }
+
+      const { data, error } = await q;
       if (!active) return;
       if (!error) setViews((data || []) as ViewRow[]);
+      setLoading(false);
     })();
     return () => { active = false; };
-  }, [videoIds.join(',')]);
+  }, [videoIds.join(','), range]);
 
   const totals = useMemo(() => {
     const totalViews = views.length;
@@ -67,22 +84,28 @@ export const VideoAnalyticsOverview: React.FC<VideoAnalyticsOverviewProps> = ({ 
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <CardTitle>Analytics Overview</CardTitle>
+        <div className="flex items-center gap-2">
+          <Button variant={range === '7d' ? 'default' : 'outline'} size="sm" onClick={() => setRange('7d')}>7d</Button>
+          <Button variant={range === '30d' ? 'default' : 'outline'} size="sm" onClick={() => setRange('30d')}>30d</Button>
+          <Button variant={range === '90d' ? 'default' : 'outline'} size="sm" onClick={() => setRange('90d')}>90d</Button>
+          <Button variant={range === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setRange('all')}>All</Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-lg border bg-card p-4">
             <div className="text-sm text-muted-foreground">Total views</div>
-            <div className="text-2xl font-bold">{totals.totalViews}</div>
+            <div className="text-2xl font-bold">{loading ? '...' : totals.totalViews}</div>
           </div>
           <div className="rounded-lg border bg-card p-4">
             <div className="text-sm text-muted-foreground">Total watch time</div>
-            <div className="text-2xl font-bold">{formatDuration(totals.totalWatch)}</div>
+            <div className="text-2xl font-bold">{loading ? '...' : formatDuration(totals.totalWatch)}</div>
           </div>
           <div className="rounded-lg border bg-card p-4">
             <div className="text-sm text-muted-foreground">Completions</div>
-            <div className="text-2xl font-bold">{totals.totalCompleted}</div>
+            <div className="text-2xl font-bold">{loading ? '...' : totals.totalCompleted}</div>
           </div>
         </div>
 

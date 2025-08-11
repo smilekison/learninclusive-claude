@@ -514,6 +514,9 @@ export const PrincipalDashboardReal: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-medium">{classItem.subjects?.length || 0} subjects</p>
+                    <p className="text-xs text-muted-foreground">
+                      {(classItem.student_enrollments?.[0]?.count ?? (Array.isArray(classItem.student_enrollments) ? classItem.student_enrollments.length : 0) ?? 0)} students
+                    </p>
                     <Badge variant="secondary">Active</Badge>
                   </div>
                 </div>

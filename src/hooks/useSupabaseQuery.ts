@@ -727,18 +727,23 @@ export const usePrincipalStats = () => {
   return useQuery({
     queryKey: ['principal-stats'],
     queryFn: async () => {
-      const [teachers, classes, students, subjects] = await Promise.all([
-        supabase.from('profiles').select('id').eq('role', 'teacher'),
-        supabase.from('classes').select('id'),
-        supabase.from('profiles').select('id').eq('role', 'student'),
-        supabase.from('subjects').select('id')
+      const [
+        { count: teacherCount },
+        { count: classCount },
+        { count: studentCount },
+        { count: subjectCount }
+      ] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'teacher').eq('is_active', true),
+        supabase.from('classes').select('id', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'student').eq('is_active', true),
+        supabase.from('subjects').select('id', { count: 'exact', head: true }).eq('is_active', true)
       ]);
       
       return {
-        totalTeachers: teachers.data?.length || 0,
-        totalClasses: classes.data?.length || 0,
-        totalStudents: students.data?.length || 0,
-        totalSubjects: subjects.data?.length || 0
+        totalTeachers: teacherCount ?? 0,
+        totalClasses: classCount ?? 0,
+        totalStudents: studentCount ?? 0,
+        totalSubjects: subjectCount ?? 0
       };
     },
   });

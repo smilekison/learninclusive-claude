@@ -80,7 +80,7 @@ export const PrincipalDashboardReal: React.FC = () => {
     },
     {
       successMessage: 'Class created successfully!',
-      invalidateKeys: [['classes'], ['principal-stats']],
+      invalidateKeys: [['classes'], ['teacher-classes'], ['principal-stats']],
       onSuccess: () => {
         setNewClass({ name: '', description: '', teacherId: '' });
         setIsClassDialogOpen(false);

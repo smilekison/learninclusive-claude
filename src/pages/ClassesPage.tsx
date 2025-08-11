@@ -72,7 +72,7 @@ export const ClassesPage: React.FC = () => {
     },
     {
       successMessage: 'Class created successfully!',
-      invalidateKeys: [['teacher-classes'], ['classes'], ['profiles', 'teacher']],
+      invalidateKeys: [['teacher-classes'], ['classes'], ['profiles', 'teacher'], ['principal-stats']],
       onSuccess: () => {
         setNewClass({ name: '', description: '', teacherId: '', grade: '' });
         setIsAddDialogOpen(false);

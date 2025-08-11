@@ -1,3 +1,4 @@
+import React, { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,29 +19,39 @@ import { LiveAnnouncer } from "@/components/accessibility/LiveAnnouncer";
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { LoadingScreen } from "@/components/ui/loading-screen";
-import { AuthPage } from "./pages/AuthPage";
-import { Dashboard } from "./pages/Dashboard";
-import { InsightsPage } from "./pages/InsightsPage";
-import { VideoHomepage } from "./pages/VideoHomepage";
-import { YouTubeHomepage } from "./pages/YouTubeHomepage";
-import { VideoDetailsPage } from "./pages/VideoDetailsPage";
-import { SubjectsPage } from "./pages/SubjectsPage";
-import { AssignmentsPage } from "./pages/AssignmentsPage";
-import { StudentsPage } from "./pages/StudentsPage";
-import { TeachersPage } from "./pages/TeachersPage";
-import { TeacherProfilePage } from "./pages/TeacherProfilePage";
-import { ClassesPage } from "./pages/ClassesPage";
-import { BinPage } from "./pages/BinPage";
-import { StudentSubjectsPage } from "./pages/StudentSubjectsPage";
-import { StudentAssignmentsPage } from "./pages/StudentAssignmentsPage";
-import { SubmissionsPage } from "./pages/SubmissionsPage";
-import { JoinSubjectPage } from "./pages/JoinSubjectPage";
-import { VideoManagementPage } from "./pages/VideoManagementPage";
-
-import NotFound from "./pages/NotFound";
 import { Layout } from "./components/layout/Layout";
 
-const queryClient = new QueryClient();
+// Lazy load all page components for better performance
+const AuthPage = React.lazy(() => import("./pages/AuthPage").then(module => ({ default: module.AuthPage })));
+const Dashboard = React.lazy(() => import("./pages/Dashboard").then(module => ({ default: module.Dashboard })));
+const InsightsPage = React.lazy(() => import("./pages/InsightsPage").then(module => ({ default: module.InsightsPage })));
+const VideoHomepage = React.lazy(() => import("./pages/VideoHomepage").then(module => ({ default: module.VideoHomepage })));
+const YouTubeHomepage = React.lazy(() => import("./pages/YouTubeHomepage").then(module => ({ default: module.YouTubeHomepage })));
+const VideoDetailsPage = React.lazy(() => import("./pages/VideoDetailsPage").then(module => ({ default: module.VideoDetailsPage })));
+const SubjectsPage = React.lazy(() => import("./pages/SubjectsPage").then(module => ({ default: module.SubjectsPage })));
+const AssignmentsPage = React.lazy(() => import("./pages/AssignmentsPage").then(module => ({ default: module.AssignmentsPage })));
+const StudentsPage = React.lazy(() => import("./pages/StudentsPage").then(module => ({ default: module.StudentsPage })));
+const TeachersPage = React.lazy(() => import("./pages/TeachersPage").then(module => ({ default: module.TeachersPage })));
+const TeacherProfilePage = React.lazy(() => import("./pages/TeacherProfilePage").then(module => ({ default: module.TeacherProfilePage })));
+const ClassesPage = React.lazy(() => import("./pages/ClassesPage").then(module => ({ default: module.ClassesPage })));
+const BinPage = React.lazy(() => import("./pages/BinPage").then(module => ({ default: module.BinPage })));
+const StudentSubjectsPage = React.lazy(() => import("./pages/StudentSubjectsPage").then(module => ({ default: module.StudentSubjectsPage })));
+const StudentAssignmentsPage = React.lazy(() => import("./pages/StudentAssignmentsPage").then(module => ({ default: module.StudentAssignmentsPage })));
+const SubmissionsPage = React.lazy(() => import("./pages/SubmissionsPage").then(module => ({ default: module.SubmissionsPage })));
+const JoinSubjectPage = React.lazy(() => import("./pages/JoinSubjectPage").then(module => ({ default: module.JoinSubjectPage })));
+const VideoManagementPage = React.lazy(() => import("./pages/VideoManagementPage").then(module => ({ default: module.VideoManagementPage })));
+const NotFound = React.lazy(() => import("./pages/NotFound"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime)
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const AppContent = () => {
   const { user, loading } = useAuth();
@@ -50,148 +61,210 @@ const AppContent = () => {
   }
 
   return (
-    <Routes>
-      <Route 
-        path="/" 
-        element={<YouTubeHomepage />} 
-      />
-      <Route 
-        path="/auth" 
-        element={<AuthPage />} 
-      />
-      <Route 
-        path="/videos" 
-        element={<VideoHomepage />} 
-      />
-      <Route 
-        path="/video/:id" 
-        element={<VideoDetailsPage />} 
-      />
-      
-      {/* Protected routes with Layout */}
-      <Route 
-        path="/dashboard" 
-        element={
-          <ProtectedRoute>
-            <Layout><Dashboard /></Layout>
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/insights" 
-        element={
-          <ProtectedRoute allowedRoles={['principal', 'teacher']}>
-            <Layout><InsightsPage /></Layout>
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/teachers" 
-        element={
-          <ProtectedRoute requiredRole="principal">
-            <Layout><TeachersPage /></Layout>
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/teacher/:teacherId" 
-        element={
-          <ProtectedRoute allowedRoles={['principal', 'teacher']}>
-            <Layout><TeacherProfilePage /></Layout>
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/classes" 
-        element={
-          <ProtectedRoute allowedRoles={['principal', 'teacher']}>
-            <Layout><ClassesPage /></Layout>
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/subjects" 
-        element={
-          <ProtectedRoute allowedRoles={['principal', 'teacher']}>
-            <Layout><SubjectsPage /></Layout>
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/assignments" 
-        element={
-          <ProtectedRoute allowedRoles={['principal', 'teacher']}>
-            <Layout><AssignmentsPage /></Layout>
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/students" 
-        element={
-          <ProtectedRoute allowedRoles={['principal', 'teacher']}>
-            <Layout><StudentsPage /></Layout>
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/student/classes" 
-        element={
-          <ProtectedRoute requiredRole="student">
-            <Layout><ClassesPage /></Layout>
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/student/subjects" 
-        element={
-          <ProtectedRoute requiredRole="student">
-            <Layout><StudentSubjectsPage /></Layout>
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/student/assignments" 
-        element={
-          <ProtectedRoute requiredRole="student">
-            <Layout><StudentAssignmentsPage /></Layout>
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/bin" 
-        element={
-          <ProtectedRoute requiredRole="principal">
-            <Layout><BinPage /></Layout>
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/submissions" 
-        element={
-          <ProtectedRoute allowedRoles={['principal', 'teacher']}>
-            <Layout><SubmissionsPage /></Layout>
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/videos/manage" 
-        element={
-          <ProtectedRoute allowedRoles={['principal', 'teacher']}>
-            <Layout><VideoManagementPage /></Layout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/join-subject" 
-        element={
-          <ProtectedRoute requiredRole="student">
-            <Layout><JoinSubjectPage /></Layout>
-          </ProtectedRoute>
-        } 
-      />
-      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <Suspense fallback={<LoadingScreen />}>
+      <Routes>
+        <Route 
+          path="/" 
+          element={<YouTubeHomepage />} 
+        />
+        <Route 
+          path="/auth" 
+          element={<AuthPage />} 
+        />
+        <Route 
+          path="/videos" 
+          element={<VideoHomepage />} 
+        />
+        <Route 
+          path="/video/:id" 
+          element={<VideoDetailsPage />} 
+        />
+        
+        {/* Protected routes with Layout */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Suspense fallback={<LoadingScreen />}>
+                  <Dashboard />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/insights" 
+          element={
+            <ProtectedRoute allowedRoles={['principal', 'teacher']}>
+              <Layout>
+                <Suspense fallback={<LoadingScreen />}>
+                  <InsightsPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/teachers" 
+          element={
+            <ProtectedRoute requiredRole="principal">
+              <Layout>
+                <Suspense fallback={<LoadingScreen />}>
+                  <TeachersPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/teacher/:teacherId" 
+          element={
+            <ProtectedRoute allowedRoles={['principal', 'teacher']}>
+              <Layout>
+                <Suspense fallback={<LoadingScreen />}>
+                  <TeacherProfilePage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/classes" 
+          element={
+            <ProtectedRoute allowedRoles={['principal', 'teacher']}>
+              <Layout>
+                <Suspense fallback={<LoadingScreen />}>
+                  <ClassesPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/subjects" 
+          element={
+            <ProtectedRoute allowedRoles={['principal', 'teacher']}>
+              <Layout>
+                <Suspense fallback={<LoadingScreen />}>
+                  <SubjectsPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/assignments" 
+          element={
+            <ProtectedRoute allowedRoles={['principal', 'teacher']}>
+              <Layout>
+                <Suspense fallback={<LoadingScreen />}>
+                  <AssignmentsPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/students" 
+          element={
+            <ProtectedRoute allowedRoles={['principal', 'teacher']}>
+              <Layout>
+                <Suspense fallback={<LoadingScreen />}>
+                  <StudentsPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/student/classes" 
+          element={
+            <ProtectedRoute requiredRole="student">
+              <Layout>
+                <Suspense fallback={<LoadingScreen />}>
+                  <ClassesPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/student/subjects" 
+          element={
+            <ProtectedRoute requiredRole="student">
+              <Layout>
+                <Suspense fallback={<LoadingScreen />}>
+                  <StudentSubjectsPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/student/assignments" 
+          element={
+            <ProtectedRoute requiredRole="student">
+              <Layout>
+                <Suspense fallback={<LoadingScreen />}>
+                  <StudentAssignmentsPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/bin" 
+          element={
+            <ProtectedRoute requiredRole="principal">
+              <Layout>
+                <Suspense fallback={<LoadingScreen />}>
+                  <BinPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/submissions" 
+          element={
+            <ProtectedRoute allowedRoles={['principal', 'teacher']}>
+              <Layout>
+                <Suspense fallback={<LoadingScreen />}>
+                  <SubmissionsPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/videos/manage" 
+          element={
+            <ProtectedRoute allowedRoles={['principal', 'teacher']}>
+              <Layout>
+                <Suspense fallback={<LoadingScreen />}>
+                  <VideoManagementPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/join-subject" 
+          element={
+            <ProtectedRoute requiredRole="student">
+              <Layout>
+                <Suspense fallback={<LoadingScreen />}>
+                  <JoinSubjectPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 };
 

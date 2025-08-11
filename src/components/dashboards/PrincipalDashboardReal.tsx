@@ -15,16 +15,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Truncate } from '@/components/ui/truncate';
-import { usePrincipalAssignmentAnalytics } from '@/hooks/useAssignmentAnalytics';
-import { ChartContainer, ChartTooltipContent, ChartTooltip } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 export const PrincipalDashboardReal: React.FC = () => {
   const { user } = useAuth();
   const { data: stats } = usePrincipalStats();
   const { data: classes, refetch: refetchClasses } = useClasses();
   const { data: teachers } = useProfiles('teacher');
-  const { data: students } = useProfiles('student');
+  
   const { data: notifications } = useNotifications();
 
   const [newTeacher, setNewTeacher] = useState({
@@ -44,16 +41,6 @@ export const PrincipalDashboardReal: React.FC = () => {
   const [isClassDialogOpen, setIsClassDialogOpen] = useState(false);
   const [isReportsDialogOpen, setIsReportsDialogOpen] = useState(false);
 
-  // Assignments filters for Principal view
-  const [selectedClassId, setSelectedClassId] = useState<string>('');
-  const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
-  const [assignmentStatus, setAssignmentStatus] = useState<'all' | 'overdue' | 'due_soon' | 'no_due_date' | 'active'>('all');
-
-  const { data: assignmentAnalytics } = usePrincipalAssignmentAnalytics({
-    classId: selectedClassId || undefined,
-    teacherId: selectedTeacherId || undefined,
-    status: assignmentStatus,
-  });
 
   // Fixed teacher creation using create_demo_user function
   const addTeacherMutation = useSupabaseMutation(

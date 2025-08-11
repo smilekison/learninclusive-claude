@@ -69,11 +69,14 @@ export const PrincipalDashboardReal: React.FC = () => {
   // Fixed class creation - removed hardcoded school_id
   const addClassMutation = useSupabaseMutation(
     async (classData: typeof newClass) => {
-      return await supabase.from('classes').insert({
+      const { data, error } = await supabase.from('classes').insert({
         name: classData.name,
         description: classData.description,
         teacher_id: classData.teacherId || null
-      });
+      }).select().single();
+      
+      if (error) throw error;
+      return { data, error: null };
     },
     {
       successMessage: 'Class created successfully!',

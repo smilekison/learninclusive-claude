@@ -133,14 +133,17 @@ export const StudentsPage: React.FC = () => {
 
   const selectedClass = classes.find((cls: any) => cls.id === selectedClassId);
   
-  // Filter students by selected class for teachers
-  const studentsInClass = students.filter((student: any) => {
-    if (!selectedClassId) return false;
-    // Check if student is enrolled in the selected class
-    return student.student_enrollments?.some((enrollment: any) => 
-      enrollment.class?.id === selectedClassId
-    );
-  });
+  // Filter students by selected class for teachers/principals
+  const studentsInClass = students
+    .filter((item: any) => {
+      if (!selectedClassId) return false;
+      // Support both combined enrollment shape and plain student shape
+      const classId = item.class?.id || item.class_id;
+      if (classId) return classId === selectedClassId;
+      // Fallback: if item has enrollments array like student.student_enrollments
+      return item.student_enrollments?.some((enrollment: any) => enrollment.class?.id === selectedClassId);
+    })
+    .map((item: any) => item.student ?? item);
 
   const getPageTitle = () => {
     switch (viewMode) {

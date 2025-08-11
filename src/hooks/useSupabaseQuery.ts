@@ -71,8 +71,7 @@ export const useClasses = () => {
         *,
         teacher:profiles!classes_teacher_id_fkey(id, first_name, last_name),
         school:schools(name),
-        subjects:subjects(id, name),
-        student_enrollments:student_enrollments(count)
+        subjects:subjects(id, name)
       `)
       .eq('is_active', true)
   );
@@ -263,13 +262,12 @@ export const useTeacherClasses = () => {
     if (profile.role === 'principal') {
       const { data, error } = await supabase
         .from('classes')
-        .select(`
-          *,
-          teacher:profiles!classes_teacher_id_fkey(first_name, last_name),
-          school:schools(name),
-          subjects:subjects(id, name),
-          student_enrollments:student_enrollments(count)
-        `)
+         .select(`
+           *,
+           teacher:profiles!classes_teacher_id_fkey(first_name, last_name),
+           school:schools(name),
+           subjects:subjects(id, name)
+         `)
         .eq('is_active', true);
       return { data, error };
     }
@@ -277,13 +275,12 @@ export const useTeacherClasses = () => {
     // For teachers, only return their classes
     const { data, error } = await supabase
       .from('classes')
-      .select(`
-        *,
-        teacher:profiles!classes_teacher_id_fkey(first_name, last_name),
-        school:schools(name),
-        subjects:subjects(id, name),
-        student_enrollments:student_enrollments(count)
-      `)
+       .select(`
+         *,
+         teacher:profiles!classes_teacher_id_fkey(first_name, last_name),
+         school:schools(name),
+         subjects:subjects(id, name)
+       `)
       .eq('teacher_id', profile.id)
       .eq('is_active', true);
       

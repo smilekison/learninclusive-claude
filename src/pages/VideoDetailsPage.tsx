@@ -49,7 +49,7 @@ export const VideoDetailsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleRelatedVideoSelect = (videoId: string) => {
-    navigate(`/videos/details/${videoId}`);
+    navigate(`/video/${videoId}`);
   };
 
   useEffect(() => {

@@ -39,10 +39,10 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const tracker = useVideoViewTracker(videoDbId, 'mp4');
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
 
     const handleTimeUpdate = () => {
       setCurrentTime(video.currentTime);

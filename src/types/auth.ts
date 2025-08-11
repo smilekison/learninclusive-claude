@@ -1,7 +1,8 @@
 export type UserRole = 'principal' | 'teacher' | 'student' | 'parent';
 
 export interface User {
-  id: string;
+  id: string; // Profile ID
+  authUserId?: string; // Auth user ID (optional for backward compatibility)
   email: string;
   firstName: string;
   lastName: string;

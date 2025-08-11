@@ -84,7 +84,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const { data: authUser } = await supabase.auth.getUser();
         
         const userData = {
-          id: profile.id,
+          id: profile.id, // This is the profile ID
+          authUserId: userId, // This is the auth user ID
           email: authUser.user?.email || '',
           firstName: profile.first_name,
           lastName: profile.last_name,

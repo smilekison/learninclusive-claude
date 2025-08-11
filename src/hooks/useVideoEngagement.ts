@@ -59,18 +59,11 @@ export const useVideoEngagement = (videoId: string) => {
       let userLiked = false;
       let userDisliked = false;
       if (user?.id && likesData) {
-        const { data: userProfile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (userProfile && !profileError) {
-          const userLike = likesData.find(l => l.user_id === userProfile.id);
-          if (userLike) {
-            userLiked = userLike.liked;
-            userDisliked = !userLike.liked;
-          }
+        // User.id is already the profile ID, so we can use it directly
+        const userLike = likesData.find(l => l.user_id === user.id);
+        if (userLike) {
+          userLiked = userLike.liked;
+          userDisliked = !userLike.liked;
         }
       }
 
@@ -95,23 +88,15 @@ export const useVideoEngagement = (videoId: string) => {
     }
 
     try {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (!profile || profileError) {
-        toast.error('Profile not found. Please ensure you are logged in.');
-        return;
-      }
+      // User.id is already the profile ID
+      const profileId = user.id;
 
       // Check if user already has a like/dislike
       const { data: existingLike } = await supabase
         .from('video_likes')
         .select('*')
         .eq('video_id', videoId)
-        .eq('user_id', profile.id)
+        .eq('user_id', profileId)
         .maybeSingle();
 
       if (existingLike) {
@@ -148,7 +133,7 @@ export const useVideoEngagement = (videoId: string) => {
           .from('video_likes')
           .insert({
             video_id: videoId,
-            user_id: profile.id,
+            user_id: profileId,
             liked: true,
           });
         
@@ -171,23 +156,15 @@ export const useVideoEngagement = (videoId: string) => {
     }
 
     try {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (!profile || profileError) {
-        toast.error('Profile not found. Please ensure you are logged in.');
-        return;
-      }
+      // User.id is already the profile ID
+      const profileId = user.id;
 
       // Check if user already has a like/dislike
       const { data: existingLike } = await supabase
         .from('video_likes')
         .select('*')
         .eq('video_id', videoId)
-        .eq('user_id', profile.id)
+        .eq('user_id', profileId)
         .maybeSingle();
 
       if (existingLike) {
@@ -224,7 +201,7 @@ export const useVideoEngagement = (videoId: string) => {
           .from('video_likes')
           .insert({
             video_id: videoId,
-            user_id: profile.id,
+            user_id: profileId,
             liked: false,
           });
         
@@ -241,7 +218,7 @@ export const useVideoEngagement = (videoId: string) => {
   };
 
   const shareVideo = async () => {
-    const shareUrl = `${window.location.origin}/video-details/${videoId}`;
+    const shareUrl = `${window.location.origin}/video/${videoId}`;
     
     if (navigator.share) {
       try {
@@ -276,15 +253,8 @@ export const useVideoEngagement = (videoId: string) => {
     try {
       let profileId = null;
       if (user?.id) {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (profile && !profileError) {
-          profileId = profile.id;
-        }
+        // User.id is already the profile ID
+        profileId = user.id;
       }
 
       // Insert video view record

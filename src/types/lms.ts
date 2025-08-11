@@ -5,7 +5,6 @@ export interface Class {
   principalId: string;
   students: Student[];
   subjects: Subject[];
-  inviteCode: string;
   createdAt: Date;
   updatedAt: Date;
 }

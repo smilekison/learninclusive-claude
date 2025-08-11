@@ -593,17 +593,16 @@ export const useTeacherStudents = () => {
       .select(`
         *,
         student_enrollments!inner(
+          *,
           class:classes!inner(
             *
           )
         )
       `)
       .eq('role', 'student')
-      .eq('student_enrollments.class.teacher_id', profile.id)
+      .eq('student_enrollments.classes.teacher_id', profile.id)
       .eq('is_active', true);
       
-    console.log('useTeacherStudents - Query result:', result);
-    console.log('useTeacherStudents - Profile ID:', profile.id);
     return result;
   });
 };

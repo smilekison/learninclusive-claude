@@ -66,12 +66,6 @@ export const TeacherDashboardReal: React.FC = () => {
   const { data: stats } = useTeacherStats();
   const { data: tAssignmentAnalytics } = useTeacherAssignmentAnalytics();
 
-  // Debug logging
-  console.log('TeacherDashboard - Classes:', teacherClasses.length, 'classes', teacherClasses);
-  console.log('TeacherDashboard - Subjects:', teacherSubjects.length, 'subjects', teacherSubjects);
-  console.log('TeacherDashboard - Students:', teacherStudents.length, 'students', teacherStudents);
-  console.log('TeacherDashboard - Loading states:', { classesLoading, subjectsLoading, assignmentsLoading, studentsLoading });
-  console.log('TeacherDashboard - Errors:', { classesError, subjectsError });
   
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [newSubject, setNewSubject] = useState({ name: '', description: '', classId: '' });

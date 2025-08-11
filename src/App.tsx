@@ -197,7 +197,6 @@ const App = () => (
                 <GlobalShortcutsProvider>
                   <SkipNavigation />
                   <AccessibilityAnnouncements />
-                  <LiveAnnouncer />
                   <AccessibilityPanel />
                   <ShortcutsHelp />
                   {/* Chatbot is global, lightweight, and opt-in */}
@@ -207,6 +206,7 @@ const App = () => (
                   <Toaster />
                   <Sonner />
                   <BrowserRouter>
+                    <LiveAnnouncer />
                     <AppContent />
                   </BrowserRouter>
                 </GlobalShortcutsProvider>

@@ -14,23 +14,17 @@ export const useStudentProfile = () => {
         return null;
       }
       
-      console.log('useStudentProfile: Fetching profile for user:', user.id, 'role:', user.role);
+      console.log('useStudentProfile: User is already a student with profile ID:', user.id);
       
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name, role, is_active')
-        .eq('user_id', user.id)
-        .eq('role', 'student')
-        .eq('is_active', true)
-        .maybeSingle();
-        
-      if (error) {
-        console.error('Student profile query error:', error);
-        throw error;
-      }
-      
-      console.log('useStudentProfile: Retrieved profile:', data);
-      return data;
+      // Since user.id is already the profile ID and we know the user is a student,
+      // we can return the profile data directly from the auth context
+      return {
+        id: user.id,
+        first_name: user.firstName,
+        last_name: user.lastName,
+        role: user.role,
+        is_active: true
+      };
     },
     enabled: !!user?.id && user?.role === 'student',
     staleTime: 5 * 60 * 1000, // 5 minutes

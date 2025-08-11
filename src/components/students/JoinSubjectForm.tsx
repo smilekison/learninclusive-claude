@@ -65,24 +65,15 @@ export const JoinSubjectForm: React.FC<JoinSubjectFormProps> = ({ onSuccess }) =
     // If profile is still loading, wait a bit and try to get it directly
     let currentStudentProfile = studentProfile;
     if (!currentStudentProfile) {
-      console.log('Profile not loaded, fetching directly...');
-      const { data: directProfile, error: directError } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name, role, is_active')
-        .eq('user_id', user.id)
-        .eq('role', 'student')
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (directError || !directProfile) {
-        toast({
-          title: "Error",
-          description: "Student profile not found. Please refresh the page and try again.",
-          variant: "destructive"
-        });
-        return;
-      }
-      currentStudentProfile = directProfile;
+      console.log('Profile not loaded, using user data directly...');
+      // Since user.id is already the profile ID and user is a student, use it directly
+      currentStudentProfile = {
+        id: user.id,
+        first_name: user.firstName,
+        last_name: user.lastName,
+        role: user.role,
+        is_active: true
+      };
     }
 
     await joinSubjectMutation.mutateAsync({

@@ -914,16 +914,10 @@ export const useTeacherStats = () => {
       
       if (!profile) return null;
       
-      // Get teacher's classes with actual student counts
+      // Get teacher's classes (ids only)
       const { data: classes } = await supabase
         .from('classes')
-        .select(`
-          id,
-          student_enrollments(
-            id,
-            student:profiles!student_enrollments_student_id_fkey(id)
-          )
-        `)
+        .select('id')
         .eq('teacher_id', profile.id)
         .eq('is_active', true);
       
@@ -943,7 +937,7 @@ export const useTeacherStats = () => {
             class:classes!inner(teacher_id)
           )
         `)
-      .eq('subject.class.teacher_id', profile.id)
+        .eq('subject.class.teacher_id', profile.id)
         .eq('is_active', true);
       
       // Get active assignments
@@ -960,19 +954,28 @@ export const useTeacherStats = () => {
         .eq('is_active', true)
         .gte('due_date', new Date().toISOString());
       
-      // Calculate unique students across all classes
-      const allStudents = new Set();
-      classes?.forEach((cls: any) => {
-        cls.student_enrollments?.forEach((enrollment: any) => {
-          if (enrollment.student?.id) {
-            allStudents.add(enrollment.student.id);
-          }
-        });
-      });
+      // Calculate unique students across all classes using enrollments (no profile join needed)
+      const { data: enrollments } = await supabase
+        .from('student_enrollments')
+        .select(`
+          student_id,
+          class:classes!inner(
+            id,
+            teacher_id
+          )
+        `)
+        .eq('class.teacher_id', profile.id)
+        .eq('status', 'active');
+      
+      const uniqueStudentIds = new Set(
+        (enrollments || [])
+          .map((e: any) => e.student_id)
+          .filter((id: string | null) => Boolean(id))
+      );
       
       return {
         totalClasses: classes?.length || 0,
-        totalStudents: allStudents.size,
+        totalStudents: uniqueStudentIds.size,
         totalSubjects: subjects?.length || 0,
         totalAssignments: allAssignments?.length || 0,
         activeAssignments: assignments?.length || 0

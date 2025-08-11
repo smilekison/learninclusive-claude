@@ -57,14 +57,20 @@ export const TeacherDashboardReal: React.FC = () => {
   const { toast } = useToast();
   
   // Use teacher-specific hooks
-  const { data: teacherClasses = [] } = useTeacherClasses();
-  const { data: teacherSubjects = [] } = useTeacherSubjects();
-  const { data: activeAssignments = [] } = useActiveAssignments();
-  const { data: teacherStudents = [] } = useTeacherStudents();
+  const { data: teacherClasses = [], isLoading: classesLoading, error: classesError } = useTeacherClasses();
+  const { data: teacherSubjects = [], isLoading: subjectsLoading, error: subjectsError } = useTeacherSubjects();
+  const { data: activeAssignments = [], isLoading: assignmentsLoading } = useActiveAssignments();
+  const { data: teacherStudents = [], isLoading: studentsLoading } = useTeacherStudents();
   const { data: unreadNotifications = [] } = useUnreadNotifications();
   const { data: recentSubmissions = [] } = useRecentSubmissions(5);
   const { data: stats } = useTeacherStats();
   const { data: tAssignmentAnalytics } = useTeacherAssignmentAnalytics();
+
+  // Debug logging
+  console.log('TeacherDashboard - Classes:', teacherClasses.length, 'classes', teacherClasses);
+  console.log('TeacherDashboard - Subjects:', teacherSubjects.length, 'subjects', teacherSubjects);
+  console.log('TeacherDashboard - Loading states:', { classesLoading, subjectsLoading, assignmentsLoading, studentsLoading });
+  console.log('TeacherDashboard - Errors:', { classesError, subjectsError });
   
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [newSubject, setNewSubject] = useState({ name: '', description: '', classId: '' });
@@ -259,7 +265,7 @@ export const TeacherDashboardReal: React.FC = () => {
             <School className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{teacherClasses.length || 0}</div>
+            <div className="text-2xl font-bold">{classesLoading ? "..." : teacherClasses.length || 0}</div>
             <div className="flex items-center text-xs text-muted-foreground">
               <TrendingUp className="h-3 w-3 mr-1 text-success" />
               Active classes
@@ -293,7 +299,7 @@ export const TeacherDashboardReal: React.FC = () => {
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{teacherSubjects.length || 0}</div>
+            <div className="text-2xl font-bold">{subjectsLoading ? "..." : teacherSubjects.length || 0}</div>
             <div className="flex items-center text-xs text-muted-foreground">
               <BookOpen className="h-3 w-3 mr-1 text-purple-500" />
               Teaching subjects
@@ -310,7 +316,7 @@ export const TeacherDashboardReal: React.FC = () => {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeAssignments.length || 0}</div>
+            <div className="text-2xl font-bold">{assignmentsLoading ? "..." : activeAssignments.length || 0}</div>
             <div className="flex items-center text-xs text-muted-foreground">
               <AlertCircle className="h-3 w-3 mr-1 text-warning" />
               Before due date

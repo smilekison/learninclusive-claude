@@ -20,8 +20,12 @@ export const SubjectsPage: React.FC = () => {
   const { user } = useAuth();
   
   // Use teacher-specific hooks for teachers
-  const { data: classes = [] } = useTeacherClasses();
-  const { data: subjects = [] } = useTeacherSubjects();
+  const { data: classes = [], isLoading: classesLoading, error: classesError } = useTeacherClasses();
+  const { data: subjects = [], isLoading: subjectsLoading, error: subjectsError } = useTeacherSubjects();
+  
+  console.log('SubjectsPage - Classes for dropdown:', classes?.length, 'classes', classes);
+  console.log('SubjectsPage - Loading states:', { classesLoading, subjectsLoading });
+  console.log('SubjectsPage - Errors:', { classesError, subjectsError });
   
   const softDeleteMutation = useSoftDelete();
   const toggleStatusMutation = useToggleStatus();
@@ -49,13 +53,27 @@ export const SubjectsPage: React.FC = () => {
   );
 
   const handleCreateSubject = async () => {
-    if (!newSubject.name || !newSubject.classId) return;
+    if (!newSubject.name || !newSubject.classId) {
+      console.error('Subject creation failed: Missing required fields', { name: newSubject.name, classId: newSubject.classId });
+      return;
+    }
     
-    await createSubjectMutation.mutateAsync({
+    console.log('Creating subject with data:', {
       name: newSubject.name,
       description: newSubject.description,
       class_id: newSubject.classId
     });
+    
+    try {
+      await createSubjectMutation.mutateAsync({
+        name: newSubject.name,
+        description: newSubject.description,
+        class_id: newSubject.classId
+      });
+      console.log('Subject created successfully');
+    } catch (error) {
+      console.error('Subject creation error:', error);
+    }
   };
 
   const handleSubjectSelect = (subject: any) => {

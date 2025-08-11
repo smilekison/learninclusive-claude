@@ -267,7 +267,11 @@ export const useTeacherClasses = () => {
           *,
           teacher:profiles!classes_teacher_id_fkey(first_name, last_name),
           school:schools(name),
-          subjects:subjects(id, name)
+          subjects:subjects(id, name),
+          student_enrollments(
+            id,
+            student:profiles!student_enrollments_student_id_fkey(id, first_name, last_name)
+          )
         `)
         .eq('is_active', true);
       return { data, error };
@@ -280,7 +284,11 @@ export const useTeacherClasses = () => {
         *,
         teacher:profiles!classes_teacher_id_fkey(first_name, last_name),
         school:schools(name),
-        subjects:subjects(id, name)
+        subjects:subjects(id, name),
+        student_enrollments(
+          id,
+          student:profiles!student_enrollments_student_id_fkey(id, first_name, last_name)
+        )
       `)
       .eq('teacher_id', profile.id)
       .eq('is_active', true);
@@ -680,12 +688,50 @@ export const useStudentStats = () => {
   return useQuery({
     queryKey: ['student-stats'],
     queryFn: async () => {
-      // For now, return default stats until student enrollment system is properly implemented
-      return {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .maybeSingle();
+      
+      if (!profile) return {
         enrolledClasses: 0,
         assignmentsSubmitted: 0,
         quizzesTaken: 0,
         averageGrade: 0
+      };
+      
+      // Get student's enrollments
+      const { data: enrollments } = await supabase
+        .from('student_enrollments')
+        .select(`
+          id,
+          class:classes!inner(id, name)
+        `)
+        .eq('student_id', profile.id)
+        .eq('status', 'active');
+      
+      // Get student's assignment submissions
+      const { data: submissions } = await supabase
+        .from('assignment_submissions')
+        .select('id, score')
+        .eq('student_id', profile.id);
+      
+      // Get student's quiz attempts
+      const { data: quizAttempts } = await supabase
+        .from('quiz_attempts')
+        .select('id, score')
+        .eq('student_id', profile.id);
+      
+      const totalScores = submissions?.filter(s => s.score).reduce((sum, s) => sum + (s.score || 0), 0) || 0;
+      const scoredSubmissions = submissions?.filter(s => s.score).length || 0;
+      const averageGrade = scoredSubmissions > 0 ? Math.round(totalScores / scoredSubmissions) : 0;
+      
+      return {
+        enrolledClasses: enrollments?.length || 0,
+        assignmentsSubmitted: submissions?.length || 0,
+        quizzesTaken: quizAttempts?.length || 0,
+        averageGrade
       };
     },
   });
@@ -882,8 +928,31 @@ export const useStudentSubjects = () => {
   return useQuery({
     queryKey: ['student-subjects'],
     queryFn: async () => {
-      // For now, return empty array until student enrollment system is properly implemented
-      return { data: [], error: null };
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .maybeSingle();
+      
+      if (!profile) return { data: [], error: null };
+      
+      return await supabase
+        .from('subjects')
+        .select(`
+          *,
+          class:classes!inner(
+            id,
+            name,
+            teacher:profiles!classes_teacher_id_fkey(first_name, last_name),
+            student_enrollments!inner(
+              student_id,
+              status
+            )
+          )
+        `)
+        .eq('class.student_enrollments.student_id', profile.id)
+        .eq('class.student_enrollments.status', 'active')
+        .eq('is_active', true);
     },
   });
 };

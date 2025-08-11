@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useSchools } from '@/hooks/useSupabaseQuery';
 import { signLanguageVideos, getYouTubeThumbnail } from '@/data/signLanguageVideos';
 import { Plus, Filter, Pencil, Trash2, Clapperboard, Globe2, LockKeyhole, Shield, Link as LinkIcon } from 'lucide-react';
+import { VideoAnalyticsOverview } from '@/components/video/VideoAnalyticsOverview';
 
 // Helper to get YouTube ID from various URL formats
 function extractYouTubeId(url: string): string | null {
@@ -279,6 +280,9 @@ export const VideoManagementPage: React.FC = () => {
           <Clapperboard className="h-4 w-4" /> Add sample YouTube videos
         </Button>
       </div>
+
+      <VideoAnalyticsOverview videos={videos} />
+
 
       <Card>
         <CardHeader>

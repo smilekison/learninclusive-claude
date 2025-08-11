@@ -345,7 +345,7 @@ export const useTeacherSubjects = () => {
           teacher:profiles!classes_teacher_id_fkey(first_name, last_name)
         )
       `)
-      .eq('classes.teacher_id', profile.id)
+      .eq('class.teacher_id', profile.id)
       .eq('is_active', true);
     
     return { data, error };
@@ -371,7 +371,7 @@ export const useTeacherAssignments = () => {
           class:classes!inner(*)
         )
       `)
-      .eq('subjects.classes.teacher_id', profile.id)
+      .eq('subject.class.teacher_id', profile.id)
       .eq('is_active', true)
       .order('created_at', { ascending: false });
   });
@@ -575,7 +575,7 @@ export const useActiveAssignments = () => {
           class:classes!inner(*)
         )
       `)
-      .eq('subjects.classes.teacher_id', profile.id)
+      .eq('subject.class.teacher_id', profile.id)
       .eq('is_active', true)
       .gte('due_date', new Date().toISOString())
       .order('due_date', { ascending: true });
@@ -603,7 +603,7 @@ export const useTeacherStudents = () => {
         )
       `)
       .eq('role', 'student')
-      .eq('student_enrollments.classes.teacher_id', profile.id)
+      .eq('student_enrollments.class.teacher_id', profile.id)
       .eq('is_active', true);
   });
 };
@@ -651,7 +651,7 @@ export const useRecentSubmissions = (limit: number = 5) => {
         ),
         student:profiles!assignment_submissions_student_id_fkey(first_name, last_name)
       `)
-      .eq('assignments.subjects.classes.teacher_id', profile.id)
+      .eq('assignment.subject.class.teacher_id', profile.id)
       .order('submitted_at', { ascending: false })
       .limit(limit);
   });
@@ -843,7 +843,7 @@ export const useTeacherStats = () => {
             class:classes!inner(teacher_id)
           )
         `)
-        .eq('subjects.classes.teacher_id', profile.id)
+      .eq('subject.class.teacher_id', profile.id)
         .eq('is_active', true);
       
       // Get active assignments
@@ -856,7 +856,7 @@ export const useTeacherStats = () => {
             class:classes!inner(teacher_id)
           )
         `)
-        .eq('subjects.classes.teacher_id', profile.id)
+        .eq('subject.class.teacher_id', profile.id)
         .eq('is_active', true)
         .gte('due_date', new Date().toISOString());
       

@@ -14,7 +14,8 @@ import {
   Bell,
   ChevronLeft,
   ChevronRight,
-  Menu
+  Menu,
+  Clapperboard
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useLanguage } from "@/contexts/LanguageContext"

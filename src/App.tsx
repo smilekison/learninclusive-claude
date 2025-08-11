@@ -35,6 +35,7 @@ import { StudentSubjectsPage } from "./pages/StudentSubjectsPage";
 import { StudentAssignmentsPage } from "./pages/StudentAssignmentsPage";
 import { SubmissionsPage } from "./pages/SubmissionsPage";
 import { JoinSubjectPage } from "./pages/JoinSubjectPage";
+import { VideoManagementPage } from "./pages/VideoManagementPage";
 
 import NotFound from "./pages/NotFound";
 import { Layout } from "./components/layout/Layout";
@@ -173,6 +174,14 @@ const AppContent = () => {
         } 
       />
       <Route 
+        path="/videos/manage" 
+        element={
+          <ProtectedRoute requiredRole="principal">
+            <Layout><VideoManagementPage /></Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/join-subject" 
         element={
           <ProtectedRoute requiredRole="student">

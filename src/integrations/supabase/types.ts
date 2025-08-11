@@ -794,11 +794,13 @@ export type Database = {
           description: string | null
           difficulty_level: string | null
           duration: number | null
+          external_url: string | null
           file_path: string
           file_size: number | null
           id: string
           lesson_id: string | null
           resolution: string | null
+          school_id: string | null
           sign_language_video_path: string | null
           subject_id: string | null
           tags: string[] | null
@@ -808,6 +810,7 @@ export type Database = {
           updated_at: string
           uploaded_by: string
           video_format: string | null
+          visibility: string
         }
         Insert: {
           audio_description_path?: string | null
@@ -817,11 +820,13 @@ export type Database = {
           description?: string | null
           difficulty_level?: string | null
           duration?: number | null
+          external_url?: string | null
           file_path: string
           file_size?: number | null
           id?: string
           lesson_id?: string | null
           resolution?: string | null
+          school_id?: string | null
           sign_language_video_path?: string | null
           subject_id?: string | null
           tags?: string[] | null
@@ -831,6 +836,7 @@ export type Database = {
           updated_at?: string
           uploaded_by: string
           video_format?: string | null
+          visibility?: string
         }
         Update: {
           audio_description_path?: string | null
@@ -840,11 +846,13 @@ export type Database = {
           description?: string | null
           difficulty_level?: string | null
           duration?: number | null
+          external_url?: string | null
           file_path?: string
           file_size?: number | null
           id?: string
           lesson_id?: string | null
           resolution?: string | null
+          school_id?: string | null
           sign_language_video_path?: string | null
           subject_id?: string | null
           tags?: string[] | null
@@ -854,6 +862,7 @@ export type Database = {
           updated_at?: string
           uploaded_by?: string
           video_format?: string | null
+          visibility?: string
         }
         Relationships: [
           {
@@ -861,6 +870,13 @@ export type Database = {
             columns: ["lesson_id"]
             isOneToOne: false
             referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_materials_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
             referencedColumns: ["id"]
           },
           {
@@ -928,6 +944,10 @@ export type Database = {
       }
       is_principal: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_user_in_school: {
+        Args: { target_school_id: string }
         Returns: boolean
       }
       regen_subject_invitation_code: {

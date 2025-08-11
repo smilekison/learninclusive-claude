@@ -324,9 +324,9 @@ export const PrincipalDashboardReal: React.FC = () => {
                               {teacher.first_name} {teacher.last_name}
                             </SelectItem>
                           ))
-                        ) : (
-                          <SelectItem value="" disabled>No teachers available</SelectItem>
-                        )}
+                         ) : (
+                           <SelectItem value="no-teachers" disabled>No teachers available</SelectItem>
+                         )}
                       </SelectContent>
                     </Select>
                   </div>

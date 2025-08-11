@@ -236,9 +236,9 @@ export const ClassesPage: React.FC = () => {
                               {teacher.first_name} {teacher.last_name}
                             </SelectItem>
                           ))
-                        ) : (
-                          <SelectItem value="" disabled>No teachers available</SelectItem>
-                        )}
+                         ) : (
+                           <SelectItem value="no-teachers" disabled>No teachers available</SelectItem>
+                         )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -288,17 +288,17 @@ export const ClassesPage: React.FC = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select a teacher" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">No teacher assigned</SelectItem>
+                 <SelectContent>
+                   <SelectItem value="unassigned">No teacher assigned</SelectItem>
                   {teachers && teachers.length > 0 ? (
                     teachers.map((teacher: any) => (
                       <SelectItem key={teacher.id} value={teacher.id}>
                         {teacher.first_name} {teacher.last_name}
                       </SelectItem>
                     ))
-                  ) : (
-                    <SelectItem value="" disabled>No teachers available</SelectItem>
-                  )}
+                   ) : (
+                     <SelectItem value="no-teachers" disabled>No teachers available</SelectItem>
+                   )}
                 </SelectContent>
               </Select>
             </div>
@@ -347,9 +347,9 @@ export const ClassesPage: React.FC = () => {
                         {teacher.first_name} {teacher.last_name}
                       </SelectItem>
                     ))
-                  ) : (
-                    <SelectItem value="" disabled>No teachers available</SelectItem>
-                  )}
+                   ) : (
+                     <SelectItem value="no-teachers" disabled>No teachers available</SelectItem>
+                   )}
                 </SelectContent>
               </Select>
             )}

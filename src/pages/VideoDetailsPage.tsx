@@ -152,12 +152,14 @@ export const VideoDetailsPage: React.FC = () => {
       title={video.title}
       captionLang={video.category === 'FSL' ? 'fi' : 'en'}
       className="overflow-hidden"
+      videoDbId={video.id}
     />
   ) : fileUrl ? (
     <AccessibleVideoPlayer
       title={video.title}
       description={video.description}
       videoUrl={fileUrl}
+      videoDbId={video.id}
     />
   ) : (
     <Card><CardContent className="p-6">Loading video…</CardContent></Card>

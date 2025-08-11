@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Volume2, VolumeX, Play, Pause, Captions, Hand, Minimize2, RotateCcw, RotateCw } from 'lucide-react';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { useTTS } from '@/contexts/TTSContext';
+import { useVideoViewTracker } from '@/hooks/useVideoAnalytics';
 
 declare global {
   interface Window {
@@ -44,6 +45,7 @@ interface AccessibleYouTubePlayerProps {
   title?: string;
   captionLang?: string; // e.g., 'en', 'fi'
   className?: string;
+  videoDbId?: string; // database id of video_materials row for analytics
 }
 
 export const AccessibleYouTubePlayer: React.FC<AccessibleYouTubePlayerProps> = ({
@@ -51,6 +53,7 @@ export const AccessibleYouTubePlayer: React.FC<AccessibleYouTubePlayerProps> = (
   title,
   captionLang = 'en',
   className,
+  videoDbId,
 }) => {
   const apiReady = useYouTubeAPI();
   const playerRef = useRef<any>(null);
@@ -66,7 +69,7 @@ export const AccessibleYouTubePlayer: React.FC<AccessibleYouTubePlayerProps> = (
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-
+  const tracker = useVideoViewTracker(videoDbId, 'youtube');
   // Draggable sign-language overlay (viewport)
   const overlayRef = useRef<HTMLDivElement>(null);
   const [overlayPos, setOverlayPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -247,8 +250,18 @@ useEffect(() => {
         onStateChange: (e: any) => {
           const YT = window.YT;
           if (!YT) return;
-          if (e.data === YT.PlayerState.PLAYING) setIsPlaying(true);
-          if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) setIsPlaying(false);
+          if (e.data === YT.PlayerState.PLAYING) {
+            setIsPlaying(true);
+            tracker.startPlaying();
+          }
+          if (e.data === YT.PlayerState.PAUSED) {
+            setIsPlaying(false);
+            tracker.pausePlaying();
+          }
+          if (e.data === YT.PlayerState.ENDED) {
+            setIsPlaying(false);
+            tracker.endPlaying(true);
+          }
         },
       },
     });
@@ -266,8 +279,11 @@ useEffect(() => {
     const p = playerRef.current; if (!p) return;
     const update = () => {
       try {
-        setCurrentTime(p.getCurrentTime?.() ?? 0);
-        setDuration(p.getDuration?.() ?? 0);
+        const ct = p.getCurrentTime?.() ?? 0;
+        const dur = p.getDuration?.() ?? 0;
+        setCurrentTime(ct);
+        setDuration(dur);
+        tracker.reportProgress(ct, dur);
       } catch { }
     };
     update();

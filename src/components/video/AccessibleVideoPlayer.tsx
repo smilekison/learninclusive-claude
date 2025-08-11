@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
+import { useVideoViewTracker } from '@/hooks/useVideoAnalytics';
 
 interface AccessibleVideoPlayerProps {
   title: string;
@@ -14,6 +15,7 @@ interface AccessibleVideoPlayerProps {
   thumbnailUrl?: string;
   onProgress?: (progress: number) => void;
   onComplete?: () => void;
+  videoDbId?: string; // database id for analytics tracking
 }
 
 export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
@@ -25,6 +27,7 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
   thumbnailUrl,
   onProgress,
   onComplete,
+  videoDbId,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -43,22 +46,40 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
 
     const handleTimeUpdate = () => {
       setCurrentTime(video.currentTime);
-      if (onProgress) {
+      // analytics
+      tracker.reportProgress(video.currentTime, video.duration);
+      if (onProgress && video.duration) {
         onProgress((video.currentTime / video.duration) * 100);
       }
     };
 
     const handleEnded = () => {
       setIsPlaying(false);
+      // analytics
+      tracker.endPlaying(true);
       if (onComplete) onComplete();
+    };
+
+    const handlePlay = () => {
+      setIsPlaying(true);
+      tracker.startPlaying();
+    };
+
+    const handlePause = () => {
+      setIsPlaying(false);
+      tracker.pausePlaying();
     };
 
     video.addEventListener('timeupdate', handleTimeUpdate);
     video.addEventListener('ended', handleEnded);
+    video.addEventListener('play', handlePlay);
+    video.addEventListener('pause', handlePause);
 
     return () => {
       video.removeEventListener('timeupdate', handleTimeUpdate);
       video.removeEventListener('ended', handleEnded);
+      video.removeEventListener('play', handlePlay);
+      video.removeEventListener('pause', handlePause);
     };
   }, [onProgress, onComplete]);
 

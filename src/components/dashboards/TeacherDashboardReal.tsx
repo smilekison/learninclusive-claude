@@ -69,6 +69,7 @@ export const TeacherDashboardReal: React.FC = () => {
   // Debug logging
   console.log('TeacherDashboard - Classes:', teacherClasses.length, 'classes', teacherClasses);
   console.log('TeacherDashboard - Subjects:', teacherSubjects.length, 'subjects', teacherSubjects);
+  console.log('TeacherDashboard - Students:', teacherStudents.length, 'students', teacherStudents);
   console.log('TeacherDashboard - Loading states:', { classesLoading, subjectsLoading, assignmentsLoading, studentsLoading });
   console.log('TeacherDashboard - Errors:', { classesError, subjectsError });
   

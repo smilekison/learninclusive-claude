@@ -588,7 +588,7 @@ export const useTeacherStudents = () => {
     
     if (!profile) return { data: [], error: null };
     
-    return await supabase
+    const result = await supabase
       .from('profiles')
       .select(`
         *,
@@ -601,6 +601,10 @@ export const useTeacherStudents = () => {
       .eq('role', 'student')
       .eq('student_enrollments.class.teacher_id', profile.id)
       .eq('is_active', true);
+      
+    console.log('useTeacherStudents - Query result:', result);
+    console.log('useTeacherStudents - Profile ID:', profile.id);
+    return result;
   });
 };
 

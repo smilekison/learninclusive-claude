@@ -588,20 +588,38 @@ export const useTeacherStudents = () => {
     
     if (!profile) return { data: [], error: null };
     
+    // First get the teacher's class IDs
+    const { data: teacherClasses } = await supabase
+      .from('classes')
+      .select('id')
+      .eq('teacher_id', profile.id);
+      
+    if (!teacherClasses || teacherClasses.length === 0) {
+      return { data: [], error: null };
+    }
+    
+    const classIds = teacherClasses.map(c => c.id);
+    
     const result = await supabase
       .from('student_enrollments')
       .select(`
         *,
-        student:profiles!inner(
+        student:profiles!student_enrollments_student_id_fkey(
           *
         ),
-        class:classes!inner(
+        class:classes!student_enrollments_class_id_fkey(
           *
         )
       `)
-      .eq('classes.teacher_id', profile.id)
-      .eq('profiles.role', 'student')
-      .eq('profiles.is_active', true);
+      .in('class_id', classIds);
+      
+    // Filter the results to only include active students
+    if (result.data) {
+      result.data = result.data.filter((enrollment: any) => 
+        enrollment.student?.role === 'student' && 
+        enrollment.student?.is_active === true
+      );
+    }
       
     return result;
   });

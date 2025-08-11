@@ -99,11 +99,8 @@ export const usePrincipalAssignmentAnalytics = (filters: PrincipalAssignmentFilt
         schoolIds = (schools || []).map((s: any) => s.id);
       }
 
-      if (schoolIds.length === 0) {
-        return { summary: { total: 0, overdue: 0, dueSoon: 0, noDueDate: 0 }, byClass: [], byTeacher: [] };
-      }
-
-      const { data: assignments } = await supabase
+      // Build base query; if schools are linked to this principal, filter by them; otherwise show all active
+      let query = supabase
         .from('assignments')
         .select(`
           id,
@@ -121,8 +118,15 @@ export const usePrincipalAssignmentAnalytics = (filters: PrincipalAssignmentFilt
             )
           )
         `)
-        .eq('is_active', true)
-        .in('subjects.classes.school_id', schoolIds);
+        .eq('is_active', true);
+
+      if (schoolIds.length > 0) {
+        // Restrict to classes within the principal's schools when linkage exists
+        // @ts-ignore - PostgREST nested filter
+        query = query.in('subjects.classes.school_id', schoolIds);
+      }
+
+      const { data: assignments } = await query;
 
       let list = assignments || [];
       if (filters.classId) {

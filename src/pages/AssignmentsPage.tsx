@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTeacherSubjects, useTeacherAssignments, useTeacherClasses, useSupabaseMutation } from '@/hooks/useSupabaseQuery';
+import { useTeacherSubjects, useTeacherAssignments, useTeacherClasses, useSupabaseMutation, useSubjects, useAssignments, useClasses } from '@/hooks/useSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { Plus, ArrowLeft } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -19,10 +19,18 @@ export const AssignmentsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  // Use teacher-specific hooks for teachers
-  const { data: subjects = [] } = useTeacherSubjects();
-  const { data: assignments = [] } = useTeacherAssignments();
-  const { data: classes = [] } = useTeacherClasses();
+  // Fetch both teacher-scoped and global data, then select based on role
+  const { data: tSubjects = [] } = useTeacherSubjects();
+  const { data: allSubjects = [] } = useSubjects();
+  const subjects = (user?.role === 'principal') ? allSubjects : tSubjects;
+
+  const { data: tAssignments = [] } = useTeacherAssignments();
+  const { data: allAssignments = [] } = useAssignments();
+  const assignments = (user?.role === 'principal') ? allAssignments : tAssignments;
+
+  const { data: tClasses = [] } = useTeacherClasses();
+  const { data: allClasses = [] } = useClasses();
+  const classes = (user?.role === 'principal') ? allClasses : tClasses;
   
   const [viewMode, setViewMode] = useState<ViewMode>('assignments');
   const [selectedAssignment, setSelectedAssignment] = useState<any>(null);
@@ -52,7 +60,7 @@ export const AssignmentsPage: React.FC = () => {
     async (data: any) => await supabase.from('assignments').insert(data).select().single(),
     {
       successMessage: "Assignment created successfully",
-      invalidateKeys: [['teacher-assignments']],
+      invalidateKeys: [['teacher-assignments'], ['assignments']],
       onSuccess: () => {
         setNewAssignment({ title: '', description: '', subjectId: '', dueDate: '', maxScore: 100 });
         setIsDialogOpen(false);
@@ -65,7 +73,7 @@ export const AssignmentsPage: React.FC = () => {
       await supabase.from('assignments').update(updates).eq('id', id).select().single(),
     {
       successMessage: 'Assignment updated successfully',
-      invalidateKeys: [['teacher-assignments']],
+      invalidateKeys: [['teacher-assignments'], ['assignments']],
       onSuccess: (updated: any) => {
         if (updated) setSelectedAssignment(updated);
         setIsEditOpen(false);

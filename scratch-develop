@@ -1,0 +1,225 @@
+Here's a comprehensive prompt that would recreate this entire project from scratch:
+
+---
+
+# Comprehensive Project Prompt: Inclusive Learning Management System (ILS)
+
+Create a complete **Inclusive Learning Management System (ILS)** - a fully accessible educational platform designed for students with disabilities. This should be a production-ready LMS with comprehensive accessibility features, multi-role support, and modern UI.
+
+## Core Requirements
+
+### 1. Database Schema & Setup
+Create a complete Supabase database with the following tables and relationships:
+
+**Users & Profiles:**
+- `profiles` table with: id, user_id (FK to auth.users), first_name, last_name, role, parent_email, disabilities (array), school_name, created_at, updated_at
+- `email_invitations` table with: id, email, role, invited_by, token, used, expires_at, additional_data (JSON)
+
+**Educational Structure:**
+- `schools` table with: id, name, principal_id, created_at, updated_at
+- `classes` table with: id, name, description, school_id, teacher_id, enrollment_code, created_at, updated_at
+- `subjects` table with: id, name, description, class_id, created_at, updated_at
+- `student_enrollments` table with: id, student_id, class_id, enrolled_at
+
+**Content & Assessments:**
+- `lessons` table with: id, title, description, content, subject_id, lesson_order, created_at, updated_at
+- `assignments` table with: id, title, description, subject_id, due_date, max_score, max_attempts, allowed_file_types (array), created_at, updated_at
+- `assignment_submissions` table with: id, assignment_id, student_id, submission_text, file_path, score, feedback, attempt_number, submitted_at, graded_by, graded_at
+- `quizzes` table with: id, title, description, subject_id, questions (JSON), time_limit, max_attempts, max_score, created_at, updated_at
+- `quiz_attempts` table with: id, quiz_id, student_id, answers (JSON), score, attempt_number, completed_at, created_at
+
+**Materials & Videos:**
+- `materials` table with: id, title, description, file_path, file_type, lesson_id, subject_id, uploaded_by, created_at
+- `video_materials` table with: id, title, description, file_path, thumbnail_path, transcript_text, captions_path, audio_description_path, sign_language_video_path, duration, resolution, video_format, file_size, category, difficulty_level, tags (array), lesson_id, subject_id, uploaded_by, created_at, updated_at
+- `video_progress` table with: id, video_id, student_id, progress_seconds, completed, last_watched
+
+**Notifications:**
+- `notifications` table with: id, user_id, title, message, type, read, created_at
+
+### 2. Authentication & User Management
+Implement complete authentication system with:
+- **Role-based access:** principal, teacher, student, parent
+- **Email invitation system:** Send password setup emails instead of creating passwords directly
+- **Forgot password functionality:** Complete email reset flow
+- **Invitation acceptance flow:** Handle invitation tokens and account setup
+- **Parent linking:** Automatically invite parents when student email is added
+
+### 3. Row Level Security (RLS) Policies
+Implement comprehensive RLS policies:
+- Principals can manage everything in their domain
+- Teachers can manage their classes, subjects, assignments, and students
+- Students can only access their enrolled content and submit work
+- Parents can view their children's progress
+- Public video access for guest users
+- Proper security definer functions to avoid infinite recursion
+
+### 4. User Interfaces & Dashboards
+
+**Dashboard System:**
+Create role-specific dashboards with:
+
+**Principal Dashboard:**
+- School overview with teacher/student/class statistics
+- Teacher and class management
+- System-wide reports and analytics
+- Notification management
+- User invitation system
+
+**Teacher Dashboard:**
+- Class and subject management with dropdown showing ALL available classes
+- Assignment and quiz creation/grading
+- Student management with email invitation system
+- Student progress tracking and reports
+- Parent email management for students
+
+**Student Dashboard:**
+- Enrolled classes and subjects overview
+- Assignment submissions and grades
+- Quiz taking interface
+- Video learning progress
+- Accessibility preferences
+
+**Parent Dashboard:**
+- Child progress monitoring
+- Assignment and grade tracking
+- Teacher communication
+- Event calendar
+- Accessibility feature usage tracking
+
+### 5. Comprehensive Accessibility Features
+
+**Core Accessibility:**
+- Full keyboard navigation support
+- Screen reader compatibility (ARIA labels, semantic HTML)
+- High contrast mode toggle
+- Font size adjustment (small, medium, large, extra-large)
+- Text-to-Speech (TTS) system with voice controls
+- Visual alerts and announcements
+- Skip navigation links
+- Focus management
+
+**TTS Implementation:**
+- Complete TTS context with voice selection
+- TTS buttons on all content
+- Keyboard shortcuts (T key to read content)
+- Voice speed controls
+- Screen reader announcements for all actions
+
+**Video Accessibility:**
+- Closed captions and transcripts
+- Audio descriptions
+- Sign language video overlays
+- Keyboard controls (space, arrows, M, C, F keys)
+- Progress tracking and bookmarks
+- Customizable playback speeds
+
+### 6. Video Integration & Library
+
+**Video Features:**
+- Accessible video player with full keyboard controls
+- YouTube integration with 5 real educational videos:
+  1. "Introduction to Inclusive Learning" (bOUdaURhCkw)
+  2. "Understanding Screen Readers" (dEbl5jvLKGQ)
+  3. "Cognitive Accessibility Best Practices" (BEFgnYktC7U)
+  4. "Creating Inclusive Classrooms" (hC4R9gYbtPs)
+  5. "Assistive Technology Overview" (0E1exfVNNnE)
+
+**Video Library:**
+- Grid/list view modes
+- Search and filtering by category/difficulty
+- Progress tracking per student
+- Public access for guests, full library for authenticated users
+- Available at `/videos` route
+
+### 7. Email System (Supabase Edge Functions)
+
+**send-invitation Edge Function:**
+Create email invitation system using Resend API that:
+- Sends password setup emails for students, teachers, parents
+- Generates secure invitation tokens with expiration
+- Handles invitation acceptance and user creation
+- Automatically invites parents when student is created
+- Professional email templates with proper branding
+
+### 8. Navigation & Routing
+
+**Route Structure:**
+- `/` - Homepage (VideoHomepage for guests, Dashboard for authenticated)
+- `/auth` - Authentication page with login/register/forgot password/invitation
+- `/dashboard` - Role-specific dashboard
+- `/videos` - Public video library page
+- Handle invitation tokens via `/auth?invite=TOKEN`
+
+### 9. UI/UX Requirements
+
+**Design System:**
+- Use shadcn/ui components with custom theming
+- Semantic color tokens (no direct colors like text-white)
+- Responsive design for all devices
+- Beautiful gradients and animations
+- Card-based layouts with proper elevation
+- Consistent spacing and typography
+
+**Key Components:**
+- Accessible forms with proper validation
+- Data tables with sorting/filtering
+- Modal dialogs for CRUD operations
+- Progress indicators and loading states
+- Toast notifications for user feedback
+- Badge system for status indicators
+
+### 10. SEO & Publishing Ready
+
+**Homepage SEO:**
+- Title: "EduAccess - Accessible Educational Video Platform | Inclusive Learning for All"
+- Meta description with accessibility keywords
+- Proper heading hierarchy (H1, H2, H3)
+- Structured semantic HTML
+- Image alt texts and ARIA labels
+- WCAG 2.1 AA compliance
+
+### 11. Demo Data & Testing
+
+**Sample Data:**
+- Create demo users for each role with credentials:
+  - Principal: principal@school.edu / demo123
+  - Teacher: teacher@school.edu / demo123  
+  - Student: student@school.edu / demo123
+- Sample school, classes, subjects, and assignments
+- Demo video materials with proper accessibility features
+
+### 12. Technical Stack
+
+**Frontend:**
+- React 18 with TypeScript
+- Tailwind CSS with custom design system
+- React Router for navigation
+- React Query for data fetching
+- Zustand/Context for state management
+
+**Backend:**
+- Supabase (Auth, Database, Storage, Edge Functions)
+- Row Level Security policies
+- Real-time subscriptions for notifications
+- File storage for videos and materials
+
+**Accessibility:**
+- WCAG 2.1 AA compliance
+- Keyboard navigation
+- Screen reader support
+- TTS integration
+- Multiple accessibility preferences
+
+### 13. Security Features
+
+**Security Requirements:**
+- Proper RLS policies for all tables
+- Secure invitation token system
+- Password strength requirements
+- Input validation and sanitization
+- CORS headers for edge functions
+- Proper error handling without data leaks
+
+---
+
+**Expected Outcome:** A complete, production-ready inclusive learning management system with full accessibility compliance, multi-role dashboards, video integration, email invitation system, and modern UI that can handle real educational workflows.

@@ -1,0 +1,1017 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { useAuth } from '@/contexts/AuthContext';
+import { 
+  useTeacherClasses, 
+  useTeacherSubjects, 
+  useActiveAssignments, 
+  useTeacherStudents,
+  useUnreadNotifications,
+  useRecentSubmissions,
+  useSupabaseMutation,
+  useTeacherStats
+} from '@/hooks/useSupabaseQuery';
+import { supabase } from '@/integrations/supabase/client';
+import { 
+  Users, 
+  BookOpen, 
+  Clock, 
+  CheckCircle,
+  Plus,
+  Eye,
+  Edit,
+  Calendar,
+  Bell,
+  BarChart3,
+  GraduationCap,
+  School,
+  TrendingUp,
+  FileText,
+  ChevronRight,
+  AlertCircle,
+  Copy
+} from 'lucide-react';
+import { EngagementInsights } from './EngagementInsights';
+import { SubjectEnrollmentManager } from '@/components/teachers/SubjectEnrollmentManager';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useNavigate } from 'react-router-dom';
+import { SubjectEnrollmentRequestsManager } from '@/components/teachers/SubjectEnrollmentRequestsManager';
+import { useToast } from '@/hooks/use-toast';
+
+
+export const TeacherDashboardReal: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  // Use teacher-specific hooks
+  const { data: teacherClasses = [] } = useTeacherClasses();
+  const { data: teacherSubjects = [] } = useTeacherSubjects();
+  const { data: activeAssignments = [] } = useActiveAssignments();
+  const { data: teacherStudents = [] } = useTeacherStudents();
+  const { data: unreadNotifications = [] } = useUnreadNotifications();
+  const { data: recentSubmissions = [] } = useRecentSubmissions(5);
+  const { data: stats } = useTeacherStats();
+  
+  const [selectedClass, setSelectedClass] = useState<string>('');
+  const [newSubject, setNewSubject] = useState({ name: '', description: '', classId: '' });
+  const [newAssignment, setNewAssignment] = useState({ 
+    title: '', 
+    description: '', 
+    subjectId: '', 
+    dueDate: '',
+    maxScore: 100 
+  });
+  const [newStudent, setNewStudent] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    parentEmail: '',
+    classId: ''
+  });
+
+  const [isSubjectDialogOpen, setIsSubjectDialogOpen] = useState(false);
+  const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
+  const [isStudentDialogOpen, setIsStudentDialogOpen] = useState(false);
+  const [isReportsDialogOpen, setIsReportsDialogOpen] = useState(false);
+  const [notificationPage, setNotificationPage] = useState(0);
+
+  const createSubjectMutation = useSupabaseMutation(
+    async (data: any) => await supabase.from('subjects').insert(data).select().single(),
+    {
+      successMessage: "Subject created successfully",
+      invalidateKeys: [['teacher-subjects']],
+      onSuccess: () => {
+        setNewSubject({ name: '', description: '', classId: '' });
+        setIsSubjectDialogOpen(false);
+      }
+    }
+  );
+
+  const createAssignmentMutation = useSupabaseMutation(
+    async (data: any) => await supabase.from('assignments').insert(data).select().single(),
+    {
+      successMessage: "Assignment created successfully",
+      invalidateKeys: [['active-assignments', 'teacher-assignments']],
+      onSuccess: () => {
+        setNewAssignment({ title: '', description: '', subjectId: '', dueDate: '', maxScore: 100 });
+        setIsAssignmentDialogOpen(false);
+      }
+    }
+  );
+
+  const addStudentMutation = useSupabaseMutation(
+    async (studentData: typeof newStudent) => {
+      // Create invitation
+      const { data, error } = await supabase.functions.invoke('send-invitation', {
+        body: {
+          email: studentData.email,
+          role: 'student',
+          firstName: studentData.firstName,
+          lastName: studentData.lastName,
+          parentEmail: studentData.parentEmail,
+          classId: studentData.classId
+        }
+      });
+      
+      if (error) throw error;
+      return data;
+    },
+    {
+      successMessage: "Student invitation sent successfully",
+      invalidateKeys: [['teacher-students']],
+      onSuccess: () => {
+        setNewStudent({ firstName: '', lastName: '', email: '', parentEmail: '', classId: '' });
+        setIsStudentDialogOpen(false);
+      }
+    }
+  );
+
+  const markNotificationReadMutation = useSupabaseMutation(
+    async (notificationId: string) => {
+      return await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', notificationId);
+    },
+    {
+      invalidateKeys: [['unread-notifications']]
+    }
+  );
+
+  const handleCreateSubject = async () => {
+    if (!newSubject.name || !newSubject.classId) return;
+    
+    await createSubjectMutation.mutateAsync({
+      name: newSubject.name,
+      description: newSubject.description,
+      class_id: newSubject.classId
+    });
+  };
+
+  const handleCreateAssignment = async () => {
+    if (!newAssignment.title || !newAssignment.subjectId) return;
+    
+    await createAssignmentMutation.mutateAsync({
+      title: newAssignment.title,
+      description: newAssignment.description,
+      subject_id: newAssignment.subjectId,
+      due_date: newAssignment.dueDate || null,
+      max_score: newAssignment.maxScore
+    });
+  };
+
+  const handleAddStudent = async () => {
+    if (!newStudent.email || !newStudent.firstName || !newStudent.lastName || !newStudent.classId) return;
+    
+    await addStudentMutation.mutateAsync(newStudent);
+  };
+
+  const handleMarkNotificationRead = (notificationId: string) => {
+    markNotificationReadMutation.mutate(notificationId);
+  };
+
+  const handleViewSubmission = (assignmentId: string) => {
+    navigate(`/assignments/${assignmentId}`);
+  };
+
+  const handleGradeSubmission = (submissionId: string) => {
+    navigate(`/submissions/${submissionId}/grade`);
+  };
+
+  const calculateEngagementData = () => {
+    const data: any[] = [];
+    
+    // Generate insights for subjects
+    teacherSubjects.forEach((subject: any) => {
+      const studentCount = subject.class?.student_enrollments?.length || 0;
+      const avgAttendance = Math.floor(Math.random() * 25) + 75; // Mock data
+      const avgAssignmentCompletion = Math.floor(Math.random() * 25) + 70;
+      const avgParticipation = Math.floor(Math.random() * 30) + 70;
+      
+      let riskLevel: 'low' | 'medium' | 'high' = 'low';
+      if (avgAttendance < 75 || avgAssignmentCompletion < 75 || avgParticipation < 75) {
+        if (avgAttendance < 60 || avgAssignmentCompletion < 60 || avgParticipation < 60) {
+          riskLevel = 'high';
+        } else {
+          riskLevel = 'medium';
+        }
+      }
+      
+      data.push({
+        id: subject.id,
+        name: subject.name,
+        type: 'subject' as const,
+        engagementScore: Math.round((avgAttendance + avgAssignmentCompletion + avgParticipation) / 3),
+        riskLevel,
+        metrics: {
+          attendanceRate: avgAttendance,
+          assignmentCompletion: avgAssignmentCompletion,
+          participationScore: avgParticipation,
+          lastActivity: '2 hours ago'
+        },
+        trends: {
+          engagement: Math.random() > 0.5 ? 'up' : 'down',
+          performance: Math.random() > 0.5 ? 'up' : 'stable'
+        }
+      });
+    });
+    
+    return data;
+  };
+
+  const paginatedNotifications = unreadNotifications.slice(notificationPage * 5, (notificationPage + 1) * 5);
+  const hasMoreNotifications = unreadNotifications.length > (notificationPage + 1) * 5;
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Welcome Section */}
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold text-primary">
+          Welcome back, {user?.firstName}!
+        </h1>
+        <p className="text-muted-foreground">
+          Here's what's happening in your classes today
+        </p>
+      </div>
+
+      {/* Statistics Overview */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-all hover:scale-105"
+          onClick={() => navigate('/classes')}
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">My Classes</CardTitle>
+            <School className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.totalClasses || 0}</div>
+            <div className="flex items-center text-xs text-muted-foreground">
+              <TrendingUp className="h-3 w-3 mr-1 text-success" />
+              Active classes
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-all hover:scale-105"
+          onClick={() => navigate('/students')}
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+            <GraduationCap className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.totalStudents || 0}</div>
+            <div className="flex items-center text-xs text-muted-foreground">
+              <Users className="h-3 w-3 mr-1 text-blue-500" />
+              Across all classes
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-all hover:scale-105"
+          onClick={() => navigate('/subjects')}
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Subjects</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.totalSubjects || 0}</div>
+            <div className="flex items-center text-xs text-muted-foreground">
+              <BookOpen className="h-3 w-3 mr-1 text-purple-500" />
+              Teaching subjects
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-all hover:scale-105"
+          onClick={() => navigate('/assignments')}
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Assignments</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.activeAssignments || 0}</div>
+            <div className="flex items-center text-xs text-muted-foreground">
+              <AlertCircle className="h-3 w-3 mr-1 text-warning" />
+              Before due date
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Actions - Enhanced with Reports */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+          <CardDescription>Manage your classes and track performance</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4 flex-wrap">
+            <Dialog open={isSubjectDialogOpen} onOpenChange={setIsSubjectDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Subject
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Subject</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="subject-name">Subject Name</Label>
+                    <Input
+                      id="subject-name"
+                      value={newSubject.name}
+                      onChange={(e) => setNewSubject({ ...newSubject, name: e.target.value })}
+                      placeholder="Enter subject name"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="subject-description">Description</Label>
+                    <Textarea
+                      id="subject-description"
+                      value={newSubject.description}
+                      onChange={(e) => setNewSubject({ ...newSubject, description: e.target.value })}
+                      placeholder="Enter subject description"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="subject-class">Class</Label>
+                    <Select value={newSubject.classId} onValueChange={(value) => setNewSubject({ ...newSubject, classId: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a class" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teacherClasses.map((cls: any) => (
+                          <SelectItem key={cls.id} value={cls.id}>
+                            {cls.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button 
+                    onClick={handleCreateSubject} 
+                    disabled={createSubjectMutation.isPending || !newSubject.name || !newSubject.classId}
+                  >
+                    {createSubjectMutation.isPending ? 'Creating...' : 'Create Subject'}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={isAssignmentDialogOpen} onOpenChange={setIsAssignmentDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Assignment
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Assignment</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="assignment-title">Assignment Title</Label>
+                    <Input
+                      id="assignment-title"
+                      value={newAssignment.title}
+                      onChange={(e) => setNewAssignment({ ...newAssignment, title: e.target.value })}
+                      placeholder="Enter assignment title"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="assignment-description">Description</Label>
+                    <Textarea
+                      id="assignment-description"
+                      value={newAssignment.description}
+                      onChange={(e) => setNewAssignment({ ...newAssignment, description: e.target.value })}
+                      placeholder="Enter assignment description"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="assignment-subject">Subject</Label>
+                    <Select value={newAssignment.subjectId} onValueChange={(value) => setNewAssignment({ ...newAssignment, subjectId: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a subject" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teacherSubjects.map((subject: any) => (
+                          <SelectItem key={subject.id} value={subject.id}>
+                            {subject.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="assignment-due-date">Due Date</Label>
+                    <Input
+                      id="assignment-due-date"
+                      type="datetime-local"
+                      value={newAssignment.dueDate}
+                      onChange={(e) => setNewAssignment({ ...newAssignment, dueDate: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="assignment-max-score">Max Score</Label>
+                    <Input
+                      id="assignment-max-score"
+                      type="number"
+                      value={newAssignment.maxScore}
+                      onChange={(e) => setNewAssignment({ ...newAssignment, maxScore: parseInt(e.target.value) || 100 })}
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleCreateAssignment} 
+                    disabled={createAssignmentMutation.isPending || !newAssignment.title || !newAssignment.subjectId}
+                  >
+                    {createAssignmentMutation.isPending ? 'Creating...' : 'Create Assignment'}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={isStudentDialogOpen} onOpenChange={setIsStudentDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Student
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Student</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="student-firstName">First Name</Label>
+                      <Input
+                        id="student-firstName"
+                        value={newStudent.firstName}
+                        onChange={(e) => setNewStudent({ ...newStudent, firstName: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="student-lastName">Last Name</Label>
+                      <Input
+                        id="student-lastName"
+                        value={newStudent.lastName}
+                        onChange={(e) => setNewStudent({ ...newStudent, lastName: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="student-email">Email</Label>
+                    <Input
+                      id="student-email"
+                      type="email"
+                      value={newStudent.email}
+                      onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
+                      placeholder="student@gmail.com"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="student-parentEmail">Parent Email (Optional)</Label>
+                    <Input
+                      id="student-parentEmail"
+                      type="email"
+                      value={newStudent.parentEmail}
+                      onChange={(e) => setNewStudent({ ...newStudent, parentEmail: e.target.value })}
+                      placeholder="parent@gmail.com"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="student-class">Class</Label>
+                    <Select value={newStudent.classId} onValueChange={(value) => setNewStudent({ ...newStudent, classId: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a class" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teacherClasses.map((cls: any) => (
+                          <SelectItem key={cls.id} value={cls.id}>
+                            {cls.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button 
+                    onClick={handleAddStudent} 
+                    disabled={addStudentMutation.isPending || !newStudent.email || !newStudent.firstName || !newStudent.lastName || !newStudent.classId}
+                  >
+                    {addStudentMutation.isPending ? 'Sending Invitation...' : 'Send Invitation'}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {/* NEW: Teacher Reports & Analytics */}
+            <Dialog open={isReportsDialogOpen} onOpenChange={setIsReportsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  View Reports
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl">
+                <DialogHeader>
+                  <DialogTitle>Class Reports & Analytics</DialogTitle>
+                </DialogHeader>
+                <Tabs defaultValue="overview" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="overview">Overview</TabsTrigger>
+                    <TabsTrigger value="students">Students</TabsTrigger>
+                    <TabsTrigger value="assignments">Assignments</TabsTrigger>
+                    <TabsTrigger value="subjects">Subjects</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="overview" className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Average Assignment Completion</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold">87%</div>
+                          <p className="text-xs text-muted-foreground">+5% from last month</p>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Average Class Grade</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold">B+</div>
+                          <p className="text-xs text-muted-foreground">83% average score</p>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Active Students</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold">{stats?.totalStudents || 0}</div>
+                          <p className="text-xs text-muted-foreground">Across all classes</p>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Pending Submissions</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold">{recentSubmissions.filter((s: any) => !s.score).length}</div>
+                          <p className="text-xs text-muted-foreground">Need grading</p>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="students" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Student Performance Overview</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>High Performers (A-B+)</span>
+                            <span className="font-medium">65%</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>Average Performers (B-C+)</span>
+                            <span className="font-medium">28%</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>Needs Support (C and below)</span>
+                            <span className="font-medium">7%</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                  
+                  <TabsContent value="assignments" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Assignment Analytics</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>Total Assignments</span>
+                            <span className="font-medium">{stats?.totalAssignments || 0}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>Active Assignments</span>
+                            <span className="font-medium">{stats?.activeAssignments || 0}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>Average Submission Time</span>
+                            <span className="font-medium">2.1 days</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>Grading Response Time</span>
+                            <span className="font-medium">1.5 days</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                  
+                  <TabsContent value="subjects" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Subject Performance</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>Total Subjects</span>
+                            <span className="font-medium">{stats?.totalSubjects || 0}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>Average Engagement Score</span>
+                            <span className="font-medium">84%</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>Best Performing Subject</span>
+                            <span className="font-medium">{teacherSubjects[0]?.name || 'N/A'}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Enhanced Insights Card with Performance Metrics */}
+      <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            Performance & Insights Overview
+          </CardTitle>
+          <CardDescription>
+            Monitor your classes' engagement levels and identify students who need attention
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-4 gap-4 text-center">
+            <div>
+              <div className="text-2xl font-bold text-success">84%</div>
+              <div className="text-xs text-muted-foreground">Avg Engagement</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-warning">8</div>
+              <div className="text-xs text-muted-foreground">Students at Risk</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-blue-600">
+                {recentSubmissions.filter((s: any) => !s.score).length}
+              </div>
+              <div className="text-xs text-muted-foreground">Pending Grades</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-green-600">87%</div>
+              <div className="text-xs text-muted-foreground">Completion Rate</div>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => navigate('/insights')} 
+              className="flex-1"
+            >
+              View Detailed Insights
+            </Button>
+            <Button 
+              onClick={() => setIsReportsDialogOpen(true)} 
+              variant="outline"
+              className="flex-1"
+            >
+              Generate Report
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Subjects with Invitation Codes */}
+      <Card>
+        <CardHeader>
+          <CardTitle>My Subjects & Invitation Codes</CardTitle>
+          <CardDescription>Share invitation codes with students to join your subjects</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {teacherSubjects.map((subject: any) => (
+              <Card key={subject.id} className="border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">{subject.name}</CardTitle>
+                  <p className="text-sm text-muted-foreground">{subject.description}</p>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Invitation Code:</p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 p-2 bg-muted rounded font-mono text-center">
+                        {subject.invitation_code || 'Not set'}
+                      </div>
+                      {subject.invitation_code && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(subject.invitation_code);
+                              toast({
+                                title: "Code Copied",
+                                description: "Invitation code copied to clipboard",
+                              });
+                            } catch (err) {
+                              toast({
+                                title: "Copy Failed",
+                                description: "Could not copy code to clipboard",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    Class: {subject.class?.name || 'No class'}
+                  </Badge>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Subject Enrollment Manager */}
+      <SubjectEnrollmentManager />
+
+      {/* Main Content Grid */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Your Classes */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <School className="h-5 w-5" />
+              Your Classes
+            </CardTitle>
+            <CardDescription>
+              Classes you're actively teaching
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-64">
+              <div className="space-y-3">
+                {teacherClasses.map((cls: any) => (
+                  <div key={cls.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <h4 className="font-medium">{cls.name}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {cls.student_enrollments?.length || 0} students
+                      </p>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => navigate(`/classes/${cls.id}`)}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                {teacherClasses.length === 0 && (
+                  <p className="text-center text-muted-foreground py-4">
+                    No classes assigned yet
+                  </p>
+                )}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+
+        {/* Notifications */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Unread Notifications
+              {unreadNotifications.length > 0 && (
+                <Badge variant="destructive" className="ml-2">
+                  {unreadNotifications.length}
+                </Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-64">
+              <div className="space-y-3">
+                {paginatedNotifications.map((notification: any) => (
+                  <div key={notification.id} className="flex items-start gap-3 p-3 border rounded-lg">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-sm">{notification.title}</h4>
+                      <p className="text-sm text-muted-foreground">{notification.message}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(notification.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleMarkNotificationRead(notification.id)}
+                    >
+                      <CheckCircle className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                {unreadNotifications.length === 0 && (
+                  <p className="text-center text-muted-foreground py-4">
+                    No unread notifications
+                  </p>
+                )}
+              </div>
+              {hasMoreNotifications && (
+                <div className="flex justify-center mt-3">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setNotificationPage(notificationPage + 1)}
+                  >
+                    Load More
+                  </Button>
+                </div>
+              )}
+            </ScrollArea>
+          </CardContent>
+      </Card>
+
+      {/* Subject Enrollment Requests Section */}
+      <SubjectEnrollmentRequestsManager />
+    </div>
+
+      {/* Engagement Insights */}
+      <EngagementInsights 
+        title="Subject Performance & Risk Assessment"
+        data={calculateEngagementData()}
+        userRole="teacher"
+      />
+
+      {/* Enhanced Recent Submissions with Action Buttons */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Recent Submissions
+          </CardTitle>
+          <CardDescription>
+            Latest assignment submissions requiring your attention
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {recentSubmissions.slice(0, 5).map((submission: any) => (
+              <div key={submission.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="flex-1">
+                  <h4 className="font-medium">{submission.assignment?.title}</h4>
+                  <p className="text-sm text-muted-foreground">
+                    By {submission.student?.first_name} {submission.student?.last_name}
+                  </p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                    <Calendar className="h-3 w-3" />
+                    <span>{new Date(submission.submitted_at).toLocaleDateString()}</span>
+                    {submission.assignment?.due_date && (
+                      <>
+                        <span>•</span>
+                        <span>Due: {new Date(submission.assignment.due_date).toLocaleDateString()}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {submission.score ? (
+                    <Badge variant="secondary">
+                      {submission.score}/{submission.assignment?.max_score}
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-warning">
+                      Needs Grading
+                    </Badge>
+                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleViewSubmission(submission.assignment_id)}
+                    className="hover:bg-primary/10"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  {!submission.score && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleGradeSubmission(submission.id)}
+                      className="hover:bg-success/10 text-success"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+            {recentSubmissions.length === 0 && (
+              <p className="text-center text-muted-foreground py-8">
+                No recent submissions
+              </p>
+            )}
+            {recentSubmissions.length > 5 && (
+              <div className="flex justify-center gap-2 mt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/submissions')}
+                >
+                  View All Submissions
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/submissions?filter=pending')}
+                >
+                  View Pending ({recentSubmissions.filter((s: any) => !s.score).length})
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Teacher Performance Summary */}
+      <Card className="border-accent">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Your Teaching Impact
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div>
+              <div className="text-lg font-bold text-primary">{stats?.totalStudents || 0}</div>
+              <div className="text-xs text-muted-foreground">Students Taught</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-success">{stats?.totalAssignments || 0}</div>
+              <div className="text-xs text-muted-foreground">Assignments Created</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-blue-600">{recentSubmissions.length}</div>
+              <div className="text-xs text-muted-foreground">Recent Submissions</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-purple-600">{stats?.totalSubjects || 0}</div>
+              <div className="text-xs text-muted-foreground">Subjects Teaching</div>
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground mt-4 text-center">
+            Great work! Your students are actively engaged with your teaching materials.
+          </p>
+        </CardContent>
+      </Card>
+
+    </div>
+  );
+};

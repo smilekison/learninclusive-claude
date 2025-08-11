@@ -42,6 +42,7 @@ interface VideoFormState {
   visibility: 'public' | 'private' | 'unlisted' | 'school';
   school_id?: string | null;
   external_url: string;
+  file_path?: string | null;
 }
 
 const defaultForm: VideoFormState = {
@@ -52,7 +53,8 @@ const defaultForm: VideoFormState = {
   tags: '',
   visibility: 'private',
   school_id: null,
-  external_url: ''
+  external_url: '',
+  file_path: null
 };
 
 export const VideoManagementPage: React.FC = () => {
@@ -84,7 +86,7 @@ export const VideoManagementPage: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<VideoFormState | null>(null);
   const [form, setForm] = useState<VideoFormState>(defaultForm);
-
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   // Filters
   const [search, setSearch] = useState('');
   const [visibilityFilter, setVisibilityFilter] = useState<'all'|'public'|'private'|'unlisted'|'school'>('all');
@@ -93,14 +95,19 @@ export const VideoManagementPage: React.FC = () => {
 
   const fetchVideos = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    let query = supabase
       .from('video_materials')
       .select('*')
       .order('created_at', { ascending: false });
+
+    if (user?.role === 'teacher') {
+      query = query.eq('uploaded_by', user.id);
+    }
+
+    const { data, error } = await query;
     setLoading(false);
     if (!error) setVideos(data || []);
   };
-
   useEffect(() => {
     fetchVideos();
   }, []);
@@ -108,6 +115,7 @@ export const VideoManagementPage: React.FC = () => {
   const createMutation = useSupabaseMutation(
     async (payload: VideoFormState) => {
       const ytId = extractYouTubeId(payload.external_url || '');
+      const isFile = !!payload.file_path;
       const insert = {
         title: payload.title,
         description: payload.description || null,
@@ -116,12 +124,12 @@ export const VideoManagementPage: React.FC = () => {
         tags: payload.tags ? payload.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
         visibility: payload.visibility,
         school_id: payload.visibility === 'school' ? payload.school_id || null : null,
-        external_url: payload.external_url || null,
-        file_path: payload.external_url || (ytId ? `youtube:${ytId}` : 'external'),
+        external_url: isFile ? null : (payload.external_url || null),
+        file_path: isFile ? payload.file_path : (ytId ? `youtube:${ytId}` : payload.external_url || null),
         uploaded_by: user?.id,
-        video_format: 'youtube',
-        thumbnail_path: ytId ? getYouTubeThumbnail(ytId) : null,
-      };
+        video_format: isFile ? 'mp4' : 'youtube',
+        thumbnail_path: !isFile && ytId ? getYouTubeThumbnail(ytId) : null,
+      } as any;
       return await supabase.from('video_materials').insert(insert).select().single();
     },
     {

@@ -53,7 +53,7 @@ const AppContent = () => {
     <Routes>
       <Route 
         path="/" 
-        element={<YouTubeHomepage />} 
+        element={<VideoHomepage />} 
       />
       <Route 
         path="/auth" 
@@ -176,7 +176,7 @@ const AppContent = () => {
       <Route 
         path="/videos/manage" 
         element={
-          <ProtectedRoute requiredRole="principal">
+          <ProtectedRoute allowedRoles={['principal', 'teacher']}>
             <Layout><VideoManagementPage /></Layout>
           </ProtectedRoute>
         }

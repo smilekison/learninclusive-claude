@@ -62,15 +62,16 @@ const getNavigationItems = (userRole: string, t: (key: string) => string) => {
       { title: t("nav.bin"), url: "/bin", icon: BarChart3 }
     ];
   } else if (userRole === 'teacher') {
-    return [
-      ...baseItems,
-      { title: t("nav.myClasses"), url: "/classes", icon: School },
-      { title: t("nav.students"), url: "/students", icon: GraduationCap },
-      { title: t("nav.subjects"), url: "/subjects", icon: BookOpen },
-      { title: t("nav.assignments"), url: "/assignments", icon: FileText },
-      { title: t("nav.submissions"), url: "/submissions", icon: School },
-      { title: t("nav.bin"), url: "/bin", icon: BarChart3 }
-    ];
+      return [
+        ...baseItems,
+        { title: t("nav.myClasses"), url: "/classes", icon: School },
+        { title: t("nav.students"), url: "/students", icon: GraduationCap },
+        { title: t("nav.subjects"), url: "/subjects", icon: BookOpen },
+        { title: t("nav.videos") || 'Videos Section', url: "/videos/manage", icon: Clapperboard },
+        { title: t("nav.assignments"), url: "/assignments", icon: FileText },
+        { title: t("nav.submissions"), url: "/submissions", icon: School },
+        { title: t("nav.bin"), url: "/bin", icon: BarChart3 }
+      ];
   } else if (userRole === 'student') {
     return [
       ...baseItems,

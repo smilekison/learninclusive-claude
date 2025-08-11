@@ -46,14 +46,14 @@ export const useVideoEngagement = (videoId: string) => {
       let userLiked = false;
       let userDisliked = false;
       if (user?.id && likesData) {
-        const userProfile = await supabase
+        const { data: userProfile } = await supabase
           .from('profiles')
           .select('id')
           .eq('user_id', user.id)
           .single();
 
-        if (userProfile.data) {
-          const userLike = likesData.find(l => l.user_id === userProfile.data.id);
+        if (userProfile) {
+          const userLike = likesData.find(l => l.user_id === userProfile.id);
           if (userLike) {
             userLiked = userLike.liked;
             userDisliked = !userLike.liked;

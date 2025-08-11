@@ -67,7 +67,7 @@ export const JoinSubjectPage: React.FC = () => {
         {/* Join Subject Form */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <JoinSubjectForm onSuccess={() => window.location.reload()} />
-          <SubjectEnrollmentStatus />
+          <SubjectEnrollmentStatus subjectId={""} />
         </div>
 
         {/* Instructions Section */}

@@ -8,6 +8,7 @@ import { YouTubeNavbar } from '@/components/layout/YouTubeNavbar';
 import AccessibleYouTubePlayer from '@/components/video/AccessibleYouTubePlayer';
 import { AccessibleVideoPlayer } from '@/components/video/AccessibleVideoPlayer';
 import { VideoEngagementBar } from '@/components/video/VideoEngagementBar';
+import { RelatedVideos } from '@/components/video/RelatedVideos';
 import { supabase } from '@/integrations/supabase/client';
 
 interface VideoDetails {
@@ -46,6 +47,10 @@ export const VideoDetailsPage: React.FC = () => {
   const [ytId, setYtId] = useState<string | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const handleRelatedVideoSelect = (videoId: string) => {
+    navigate(`/videos/details/${videoId}`);
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -213,14 +218,12 @@ export const VideoDetailsPage: React.FC = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Related Videos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-center py-8">Related videos coming soon.</p>
-              </CardContent>
-            </Card>
+            <RelatedVideos
+              currentVideoId={video.id}
+              currentVideoCategory={video.category}
+              currentVideoTags={[video.category].filter(Boolean)}
+              onVideoSelect={handleRelatedVideoSelect}
+            />
 
             <Card>
               <CardHeader>

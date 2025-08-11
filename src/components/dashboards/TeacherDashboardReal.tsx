@@ -259,7 +259,7 @@ export const TeacherDashboardReal: React.FC = () => {
             <School className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalClasses || 0}</div>
+            <div className="text-2xl font-bold">{teacherClasses.length || 0}</div>
             <div className="flex items-center text-xs text-muted-foreground">
               <TrendingUp className="h-3 w-3 mr-1 text-success" />
               Active classes
@@ -293,7 +293,7 @@ export const TeacherDashboardReal: React.FC = () => {
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalSubjects || 0}</div>
+            <div className="text-2xl font-bold">{teacherSubjects.length || 0}</div>
             <div className="flex items-center text-xs text-muted-foreground">
               <BookOpen className="h-3 w-3 mr-1 text-purple-500" />
               Teaching subjects
@@ -310,7 +310,7 @@ export const TeacherDashboardReal: React.FC = () => {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.activeAssignments || 0}</div>
+            <div className="text-2xl font-bold">{activeAssignments.length || 0}</div>
             <div className="flex items-center text-xs text-muted-foreground">
               <AlertCircle className="h-3 w-3 mr-1 text-warning" />
               Before due date

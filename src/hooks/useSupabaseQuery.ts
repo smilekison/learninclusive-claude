@@ -293,6 +293,7 @@ export const useTeacherClasses = () => {
       .eq('teacher_id', profile.id)
       .eq('is_active', true);
       
+    console.log('useTeacherClasses - Teacher classes result:', data?.length, 'classes found');
     return { data, error };
   });
 };
@@ -348,6 +349,7 @@ export const useTeacherSubjects = () => {
       .eq('class.teacher_id', profile.id)
       .eq('is_active', true);
     
+    console.log('useTeacherSubjects - Teacher subjects result:', data?.length, 'subjects found');
     return { data, error };
   });
 };

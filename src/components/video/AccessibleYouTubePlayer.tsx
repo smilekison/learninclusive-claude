@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 import { cn } from '@/lib/utils';
 import { Volume2, VolumeX, Play, Pause, Captions, Hand, Minimize2, RotateCcw, RotateCw } from 'lucide-react';
+import { useAccessibility } from '@/contexts/AccessibilityContext';
+import { useTTS } from '@/contexts/TTSContext';
 
 declare global {
   interface Window {
@@ -69,7 +71,29 @@ export const AccessibleYouTubePlayer: React.FC<AccessibleYouTubePlayerProps> = (
   const overlayRef = useRef<HTMLDivElement>(null);
   const [overlayPos, setOverlayPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
-  const grabOffset = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+const grabOffset = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  // Resizable overlay size (persisted)
+  const [overlayWidth, setOverlayWidth] = useState<number>(() => {
+    const saved = localStorage.getItem('sign-overlay-width');
+    const parsed = saved ? parseInt(saved, 10) : NaN;
+    return Number.isFinite(parsed) ? parsed : 320;
+  });
+  const aspect = 9 / 16;
+  const minWidth = 192;
+  const maxWidth = 768;
+  const [resizing, setResizing] = useState(false);
+
+  // Accessibility announcements
+  const { settings } = useAccessibility();
+  const { speak } = useTTS();
+  const announce = useCallback((msg: string) => {
+    const level = (settings as any)?.announcementLevel as 'none' | 'low' | 'medium' | 'high' | undefined;
+    if (!level || level === 'none') return;
+    // For low level, only announce critical things; resizing is medium/high
+    if (msg.startsWith('Size') && level === 'low') return;
+    speak(msg);
+  }, [settings, speak]);
 
   const onDragStart = useCallback((e: React.MouseEvent) => {
     const ov = overlayRef.current;
@@ -80,18 +104,36 @@ export const AccessibleYouTubePlayer: React.FC<AccessibleYouTubePlayerProps> = (
     e.preventDefault();
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
     if (!openSign) return;
     const ov = overlayRef.current;
     if (!ov) return;
-    // place near bottom-right of the viewport after render
+    // place near bottom-right of the viewport after render or restore saved position
     requestAnimationFrame(() => {
-      const oRect = ov.getBoundingClientRect();
-      const x = Math.max(8, window.innerWidth - oRect.width - 16);
-      const y = Math.max(8, window.innerHeight - oRect.height - 16);
-      setOverlayPos({ x, y });
+      const saved = localStorage.getItem('sign-overlay-pos');
+      if (saved) {
+        try {
+          const pos = JSON.parse(saved) as { x: number; y: number };
+          setOverlayPos({
+            x: Math.max(0, Math.min(pos.x, window.innerWidth - ov.getBoundingClientRect().width)),
+            y: Math.max(0, Math.min(pos.y, window.innerHeight - ov.getBoundingClientRect().height)),
+          });
+        } catch {
+          // fallback to default placement
+          const oRect = ov.getBoundingClientRect();
+          const x = Math.max(8, window.innerWidth - oRect.width - 16);
+          const y = Math.max(8, window.innerHeight - oRect.height - 16);
+          setOverlayPos({ x, y });
+        }
+      } else {
+        const oRect = ov.getBoundingClientRect();
+        const x = Math.max(8, window.innerWidth - oRect.width - 16);
+        const y = Math.max(8, window.innerHeight - oRect.height - 16);
+        setOverlayPos({ x, y });
+      }
+      announce('Sign language window opened');
     });
-  }, [openSign]);
+  }, [openSign, announce]);
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
@@ -114,6 +156,38 @@ export const AccessibleYouTubePlayer: React.FC<AccessibleYouTubePlayerProps> = (
     };
   }, [dragging]);
 
+  // Persist position and size
+  useEffect(() => {
+    if (openSign) localStorage.setItem('sign-overlay-pos', JSON.stringify(overlayPos));
+  }, [overlayPos, openSign]);
+  useEffect(() => {
+    localStorage.setItem('sign-overlay-width', String(Math.round(overlayWidth)));
+  }, [overlayWidth]);
+
+  // Handle resizing via mouse drag on the corner handle
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!resizing) return;
+      const ov = overlayRef.current; if (!ov) return;
+      const rect = ov.getBoundingClientRect();
+      let newW = e.clientX - rect.left;
+      newW = Math.max(minWidth, Math.min(newW, maxWidth));
+      setOverlayWidth(newW);
+    };
+    const onUp = () => {
+      if (resizing) {
+        setResizing(false);
+        announce(`Size ${Math.round(overlayWidth)} by ${Math.round(overlayWidth * aspect)}`);
+      }
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+  }, [resizing, announce, overlayWidth]);
+
   const handleOverlayKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       setOpenSign(false);
@@ -121,16 +195,27 @@ export const AccessibleYouTubePlayer: React.FC<AccessibleYouTubePlayerProps> = (
     }
     const ov = overlayRef.current;
     if (!ov) return;
-    const step = e.shiftKey ? 16 : 8;
+    const moveStep = e.shiftKey ? 16 : 8;
+    const sizeStep = e.shiftKey ? 32 : 16;
     const oRect = ov.getBoundingClientRect();
-    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) e.preventDefault();
+    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', '+', '=', '-', '_'].includes(e.key)) e.preventDefault();
     let { x, y } = overlayPos;
-    if (e.key === 'ArrowLeft') x = Math.max(0, x - step);
-    if (e.key === 'ArrowRight') x = Math.min(window.innerWidth - oRect.width, x + step);
-    if (e.key === 'ArrowUp') y = Math.max(0, y - step);
-    if (e.key === 'ArrowDown') y = Math.min(window.innerHeight - oRect.height, y + step);
+    // Move
+    if (e.key === 'ArrowLeft') x = Math.max(0, x - moveStep);
+    if (e.key === 'ArrowRight') x = Math.min(window.innerWidth - oRect.width, x + moveStep);
+    if (e.key === 'ArrowUp') y = Math.max(0, y - moveStep);
+    if (e.key === 'ArrowDown') y = Math.min(window.innerHeight - oRect.height, y + moveStep);
     if (x !== overlayPos.x || y !== overlayPos.y) setOverlayPos({ x, y });
-  }, [overlayPos]);
+    // Resize with +/- keys
+    if (['+', '='].includes(e.key)) {
+      setOverlayWidth((w) => Math.min(maxWidth, w + sizeStep));
+      announce(`Size ${Math.round(Math.min(maxWidth, overlayWidth + sizeStep))} by ${Math.round((Math.min(maxWidth, overlayWidth + sizeStep)) * aspect)}`);
+    }
+    if (['-', '_'].includes(e.key)) {
+      setOverlayWidth((w) => Math.max(minWidth, w - sizeStep));
+      announce(`Size ${Math.round(Math.max(minWidth, overlayWidth - sizeStep))} by ${Math.round((Math.max(minWidth, overlayWidth - sizeStep)) * aspect)}`);
+    }
+  }, [overlayPos, announce, overlayWidth]);
 
   // Build main player
   useEffect(() => {
@@ -319,7 +404,7 @@ export const AccessibleYouTubePlayer: React.FC<AccessibleYouTubePlayerProps> = (
   return (
     <Card className={cn('overflow-hidden', className)}>
       <style>{`.yt-mini-frame iframe{pointer-events:none!important;}`}</style>
-      <div className="relative bg-black aspect-video">
+      <div className="relative bg-black aspect-video" onMouseEnter={() => announce('Video player area')}>
         <div id={containerId} className="w-full h-full" aria-label={title || 'YouTube video player'} />
       </div>
 
@@ -389,10 +474,12 @@ export const AccessibleYouTubePlayer: React.FC<AccessibleYouTubePlayerProps> = (
           className="fixed z-40 rounded-md ring-1 ring-border shadow-lg bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70 pointer-events-none"
           style={{ left: overlayPos.x, top: overlayPos.y }}
           onKeyDown={handleOverlayKeyDown}
+          onMouseEnter={() => announce('Sign language window')}
         >
           <div
             className="flex items-center justify-between px-2 py-1 border-b border-border bg-muted/40 pointer-events-auto"
             onMouseDown={onDragStart}
+            onMouseEnter={() => announce('Sign language window header. Drag to move')}
             aria-label="Drag sign language window"
             role="button"
             tabIndex={-1}
@@ -402,10 +489,22 @@ export const AccessibleYouTubePlayer: React.FC<AccessibleYouTubePlayerProps> = (
               <Minimize2 className="h-4 w-4" />
             </Button>
           </div>
-          <div className="relative bg-black overflow-hidden">
-            <div className="aspect-video w-48 md:w-64 pointer-events-none yt-mini-frame">
+          <div className="relative bg-black overflow-hidden pointer-events-auto">
+            <div className="aspect-video yt-mini-frame" style={{ width: overlayWidth }}>
               <div id={miniContainerId} className="w-full h-full" aria-label="Mini YouTube player (muted)" />
             </div>
+            {/* Resize handle */}
+            <div
+              className="absolute bottom-1 right-1 w-4 h-4 cursor-se-resize rounded-sm bg-muted/70"
+              onMouseDown={(e) => { e.preventDefault(); setResizing(true); announce('Resizing sign language window'); }}
+              onMouseEnter={() => announce('Resize handle')}
+              role="slider"
+              aria-label="Resize sign language window"
+              aria-valuemin={minWidth}
+              aria-valuemax={maxWidth}
+              aria-valuenow={Math.round(overlayWidth)}
+              title="Drag to resize"
+            />
           </div>
         </div>
       )}

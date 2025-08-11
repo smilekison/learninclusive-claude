@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Accessibility, 
   Eye, 
@@ -126,6 +127,28 @@ export const AccessibilityPanel: React.FC = () => {
 
                   <Separator />
 
+                  <div className="space-y-2">
+                    <Label htmlFor="contrast-level" className="flex items-center gap-2">
+                      <Contrast className="h-4 w-4" />
+                      Contrast Level: {settings.contrastLevel}%
+                    </Label>
+                    <Slider
+                      id="contrast-level"
+                      value={[settings.contrastLevel]}
+                      onValueChange={(value) => updateSetting('contrastLevel', value[0])}
+                      min={0}
+                      max={100}
+                      step={5}
+                      className="w-full"
+                      aria-describedby="contrast-level-description"
+                    />
+                    <p id="contrast-level-description" className="text-sm text-muted-foreground">
+                      Drag to increase or decrease contrast. 0% means no extra contrast.
+                    </p>
+                  </div>
+
+                  <Separator />
+
                   <div className="flex items-center justify-between">
                     <Label htmlFor="dark-mode" className="flex items-center gap-2">
                       <Monitor className="h-4 w-4" />
@@ -206,6 +229,21 @@ export const AccessibilityPanel: React.FC = () => {
                       checked={settings.captionsEnabled}
                       onCheckedChange={(checked) => updateSetting('captionsEnabled', checked)}
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="announcement-level">Announcement Level</Label>
+                    <Select value={settings.announcementLevel} onValueChange={(v) => updateSetting('announcementLevel', v as any)}>
+                      <SelectTrigger id="announcement-level" className="w-full">
+                        <SelectValue placeholder="Choose level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="low">Low (critical only)</SelectItem>
+                        <SelectItem value="medium">Medium (important)</SelectItem>
+                        <SelectItem value="high">High (announce everything)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </CardContent>
               </Card>

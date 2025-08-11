@@ -4,6 +4,7 @@ import { YouTubeVideoCard } from '@/components/video/YouTubeVideoCard';
 import { Button } from '@/components/ui/button';
 import { signLanguageVideos, getYouTubeThumbnail } from '@/data/signLanguageVideos';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useNavigate } from 'react-router-dom';
 
 interface VideoData {
   id: string;
@@ -31,6 +32,7 @@ const allVideos: VideoData[] = signLanguageVideos.map(v => ({
 
 export const YouTubeHomepage: React.FC = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const categories = useMemo(() => Array.from(new Set(allVideos.map(v => v.category).filter(Boolean))) as string[], []);
@@ -56,8 +58,7 @@ export const YouTubeHomepage: React.FC = () => {
   }, [searchTerm, selectedCategory]);
 
   const handleVideoClick = (video: VideoData) => {
-    // Navigate to video details page
-    window.location.href = `/video/${video.id}`;
+    navigate(`/video/${video.id}`);
   };
 
   useEffect(() => {

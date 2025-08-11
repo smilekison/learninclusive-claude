@@ -24,7 +24,7 @@ interface VideoDetails {
 }
 
 // Sample video details sourced from curated YouTube IDs
-import { getSignVideo, getYouTubeThumbnail } from '@/data/signLanguageVideos';
+import { getSignVideo, getYouTubeThumbnail, signLanguageVideos } from '@/data/signLanguageVideos';
 const getVideoDetails = (id: string): VideoDetails | null => {
   const v = getSignVideo(id);
   if (!v) return null;
@@ -42,6 +42,23 @@ const getVideoDetails = (id: string): VideoDetails | null => {
     dislikes: 0,
     channelSubscribers: 'N/A',
   };
+};
+
+// Compute related videos based on category and keyword overlap
+const computeRelated = (currentId: string, title: string, category?: string) => {
+  const tokens = title.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+  const stop = new Set(['the','a','an','in','on','for','and','to','of','with','your']);
+  const keywords = tokens.filter(t => !stop.has(t));
+  return signLanguageVideos
+    .filter(v => v.id !== currentId)
+    .map(v => {
+      const scoreCat = v.category === category ? 2 : 0;
+      const scoreTitle = keywords.reduce((acc, k) => acc + (v.title.toLowerCase().includes(k) ? 1 : 0), 0);
+      return { v, score: scoreCat + scoreTitle };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10)
+    .map(({ v }) => v);
 };
 
 export const VideoDetailsPage: React.FC = () => {
@@ -105,6 +122,8 @@ export const VideoDetailsPage: React.FC = () => {
       </div>
     );
   }
+
+  const related = computeRelated(video.id, video.title, video.category);
 
   return (
     <div className="min-h-screen bg-background">
@@ -212,9 +231,31 @@ export const VideoDetailsPage: React.FC = () => {
                 <CardTitle>Related Videos</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground text-center py-8">
-                  Related videos will appear here in a real implementation.
-                </p>
+                {related.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">No related videos found.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {related.map((rv) => (
+                      <button
+                        key={rv.id}
+                        onClick={() => navigate(`/video/${rv.id}`)}
+                        className="w-full text-left flex gap-3 hover:bg-muted/50 rounded-md p-2 transition-colors"
+                        aria-label={`Open related video: ${rv.title}`}
+                      >
+                        <img
+                          src={getYouTubeThumbnail(rv.id)}
+                          alt={`Thumbnail: ${rv.title}`}
+                          loading="lazy"
+                          className="w-36 h-20 object-cover rounded"
+                        />
+                        <div className="min-w-0">
+                          <p className="font-medium line-clamp-2">{rv.title}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{rv.channel}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
 

@@ -14,6 +14,7 @@ import { GlobalShortcutsProvider } from "@/contexts/GlobalShortcutsContext";
 import { ShortcutsHelp } from "@/components/accessibility/ShortcutsHelp";
 import { ChatbotDrawer } from "@/components/chatbot/ChatbotDrawer";
 import UniversalAssistBar from "@/components/layout/UniversalAssistBar";
+import { LiveAnnouncer } from "@/components/accessibility/LiveAnnouncer";
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { LoadingScreen } from "@/components/ui/loading-screen";
@@ -196,6 +197,7 @@ const App = () => (
                 <GlobalShortcutsProvider>
                   <SkipNavigation />
                   <AccessibilityAnnouncements />
+                  <LiveAnnouncer />
                   <AccessibilityPanel />
                   <ShortcutsHelp />
                   {/* Chatbot is global, lightweight, and opt-in */}

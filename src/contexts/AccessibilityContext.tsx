@@ -7,6 +7,7 @@ interface AccessibilitySettings {
   darkMode: boolean;
   reducedMotion: boolean;
   colorBlindFriendly: boolean;
+  contrastLevel: number; // 0-100 custom contrast
   
   // Hearing accessibility
   visualAlerts: boolean;
@@ -27,6 +28,9 @@ interface AccessibilitySettings {
   screenReaderOptimized: boolean;
   skipLinks: boolean;
   ariaLive: boolean;
+
+  // Announcements
+  announcementLevel: 'none' | 'low' | 'medium' | 'high';
 }
 
 interface AccessibilityContextType {
@@ -45,6 +49,7 @@ const defaultSettings: AccessibilitySettings = {
   darkMode: false,
   reducedMotion: false,
   colorBlindFriendly: false,
+  contrastLevel: 0,
   visualAlerts: false,
   captionsEnabled: false,
   largeClickTargets: false,
@@ -57,6 +62,7 @@ const defaultSettings: AccessibilitySettings = {
   screenReaderOptimized: false,
   skipLinks: true,
   ariaLive: true,
+  announcementLevel: 'medium',
 };
 
 const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined);
@@ -124,6 +130,11 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
     } else {
       root.classList.remove('colorblind-friendly');
     }
+
+    // Apply contrast level (0 means no change)
+    const factor = 1 + Math.max(0, Math.min(100, settings.contrastLevel)) / 100;
+    root.style.setProperty('--contrast-factor', String(factor));
+    root.style.filter = `contrast(${factor})`;
     
     // Apply large click targets
     if (settings.largeClickTargets) {
@@ -170,7 +181,7 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
       setSettings(prev => ({
         ...prev,
         reducedMotion: mediaQueries.prefersReducedMotion.matches || prev.reducedMotion,
-        darkMode: mediaQueries.prefersDarkMode.matches || prev.darkMode,
+        // Do not auto-toggle dark mode based on system to avoid unexpected switches
         highContrast: mediaQueries.prefersHighContrast.matches || prev.highContrast,
       }));
     };

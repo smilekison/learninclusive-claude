@@ -879,48 +879,6 @@ export type Database = {
           },
         ]
       }
-      video_progress: {
-        Row: {
-          completed: boolean | null
-          id: string
-          last_watched: string | null
-          progress_seconds: number | null
-          student_id: string
-          video_id: string
-        }
-        Insert: {
-          completed?: boolean | null
-          id?: string
-          last_watched?: string | null
-          progress_seconds?: number | null
-          student_id: string
-          video_id: string
-        }
-        Update: {
-          completed?: boolean | null
-          id?: string
-          last_watched?: string | null
-          progress_seconds?: number | null
-          student_id?: string
-          video_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "video_progress_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "video_progress_video_id_fkey"
-            columns: ["video_id"]
-            isOneToOne: false
-            referencedRelation: "video_materials"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       [_ in never]: never

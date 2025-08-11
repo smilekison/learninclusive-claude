@@ -44,6 +44,7 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
 
   useEffect(() => {
     const video = videoRef.current;
+    if (!video) return;
 
     const handleTimeUpdate = () => {
       setCurrentTime(video.currentTime);
@@ -53,7 +54,6 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
       if (onProgress && video.duration) {
         onProgress((video.currentTime / video.duration) * 100);
       }
-    };
     };
 
     const handleEnded = () => {
@@ -84,7 +84,7 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
       video.removeEventListener('play', handlePlay);
       video.removeEventListener('pause', handlePause);
     };
-  }, [onProgress, onComplete]);
+  }, [onProgress, onComplete, tracker]);
 
   const togglePlay = () => {
     const video = videoRef.current;

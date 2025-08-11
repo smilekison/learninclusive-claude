@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { YouTubeNavbar } from '@/components/layout/YouTubeNavbar';
 import AccessibleYouTubePlayer from '@/components/video/AccessibleYouTubePlayer';
+import { AccessibleVideoPlayer } from '@/components/video/AccessibleVideoPlayer';
+import { supabase } from '@/integrations/supabase/client';
 
 interface VideoDetails {
   id: string;
@@ -23,59 +25,79 @@ interface VideoDetails {
   channelSubscribers: string;
 }
 
-// Sample video details sourced from curated YouTube IDs
-import { getSignVideo, getYouTubeThumbnail, signLanguageVideos } from '@/data/signLanguageVideos';
-const getVideoDetails = (id: string): VideoDetails | null => {
-  const v = getSignVideo(id);
-  if (!v) return null;
-  return {
-    id: v.id,
-    title: v.title,
-    channel: v.channel,
-    views: 0,
-    uploadDate: v.uploadDate,
-    duration: v.duration || '',
-    thumbnail: getYouTubeThumbnail(v.id),
-    category: v.category,
-    description: v.category === 'FSL' ? 'Finnish Sign Language educational content.' : 'British Sign Language educational content.',
-    likes: 0,
-    dislikes: 0,
-    channelSubscribers: 'N/A',
-  };
-};
-
-// Compute related videos based on category and keyword overlap
-const computeRelated = (currentId: string, title: string, category?: string) => {
-  const tokens = title.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
-  const stop = new Set(['the','a','an','in','on','for','and','to','of','with','your']);
-  const keywords = tokens.filter(t => !stop.has(t));
-  return signLanguageVideos
-    .filter(v => v.id !== currentId)
-    .map(v => {
-      const scoreCat = v.category === category ? 2 : 0;
-      const scoreTitle = keywords.reduce((acc, k) => acc + (v.title.toLowerCase().includes(k) ? 1 : 0), 0);
-      return { v, score: scoreCat + scoreTitle };
-    })
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 10)
-    .map(({ v }) => v);
+// DB helper: extract YouTube video ID from URL
+const extractYouTubeId = (url?: string | null): string | null => {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes('youtu.be')) return u.pathname.replace('/', '');
+    if (u.hostname.includes('youtube.com')) {
+      const v = u.searchParams.get('v');
+      if (v) return v;
+      const parts = u.pathname.split('/');
+      const idx = parts.indexOf('embed');
+      if (idx >= 0 && parts[idx + 1]) return parts[idx + 1];
+    }
+  } catch {}
+  return null;
 };
 
 export const VideoDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [video, setVideo] = useState<VideoDetails | null>(null);
+  const [ytId, setYtId] = useState<string | null>(null);
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    if (id) {
-      const videoDetails = getVideoDetails(id);
-      setVideo(videoDetails);
-      
-      if (videoDetails) {
-        document.title = `${videoDetails.title} - Inclusive Learning Suite`;
+    if (!id) return;
+    (async () => {
+      const { data, error } = await supabase
+        .from('video_materials')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error loading video:', error);
+        setVideo(null);
+        return;
       }
-    }
+      if (!data) {
+        setVideo(null);
+        return;
+      }
+
+      // Map DB row to view model
+      const vd: VideoDetails = {
+        id: data.id,
+        title: data.title,
+        channel: data.video_format === 'youtube' ? 'YouTube' : 'Uploaded',
+        views: 0,
+        uploadDate: data.created_at,
+        duration: data.duration ? `${Math.floor(data.duration / 60)}:${String(data.duration % 60).padStart(2, '0')}` : '',
+        thumbnail: data.thumbnail_path || '',
+        category: data.category || undefined,
+        description: data.description || '',
+        likes: 0,
+        dislikes: 0,
+        channelSubscribers: 'N/A',
+      };
+      setVideo(vd);
+      document.title = `${vd.title} - Inclusive Learning Suite`;
+
+      // Determine player
+      const idFromUrl = extractYouTubeId(data.external_url || data.file_path || '');
+      if (data.video_format === 'youtube' && idFromUrl) {
+        setYtId(idFromUrl);
+      } else if (data.file_path) {
+        const { data: signed, error: sErr } = await supabase.storage
+          .from('videos')
+          .createSignedUrl(data.file_path, 3600);
+        if (!sErr && signed?.signedUrl) setFileUrl(signed.signedUrl);
+      }
+    })();
   }, [id]);
 
   const formatViews = (views: number) => {
@@ -123,8 +145,23 @@ export const VideoDetailsPage: React.FC = () => {
     );
   }
 
-  const related = computeRelated(video.id, video.title, video.category);
-
+  // Player
+  const player = ytId ? (
+    <AccessibleYouTubePlayer
+      videoId={ytId}
+      title={video.title}
+      captionLang={video.category === 'FSL' ? 'fi' : 'en'}
+      className="overflow-hidden"
+    />
+  ) : fileUrl ? (
+    <AccessibleVideoPlayer
+      title={video.title}
+      description={video.description}
+      videoUrl={fileUrl}
+    />
+  ) : (
+    <Card><CardContent className="p-6">Loading video…</CardContent></Card>
+  );
   return (
     <div className="min-h-screen bg-background">
       <YouTubeNavbar onSearch={setSearchTerm} searchTerm={searchTerm} />
@@ -143,13 +180,8 @@ export const VideoDetailsPage: React.FC = () => {
               Back to Videos
             </Button>
 
-            {/* Accessible YouTube Player */}
-            <AccessibleYouTubePlayer
-              videoId={video.id}
-              title={video.title}
-              captionLang={video.category === 'FSL' ? 'fi' : 'en'}
-              className="overflow-hidden"
-            />
+            {/* Player */}
+            {player}
 
             {/* Video Info */}
             <div className="space-y-4">
@@ -231,31 +263,7 @@ export const VideoDetailsPage: React.FC = () => {
                 <CardTitle>Related Videos</CardTitle>
               </CardHeader>
               <CardContent>
-                {related.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">No related videos found.</p>
-                ) : (
-                  <div className="space-y-4">
-                    {related.map((rv) => (
-                      <button
-                        key={rv.id}
-                        onClick={() => navigate(`/video/${rv.id}`)}
-                        className="w-full text-left flex gap-3 hover:bg-muted/50 rounded-md p-2 transition-colors"
-                        aria-label={`Open related video: ${rv.title}`}
-                      >
-                        <img
-                          src={getYouTubeThumbnail(rv.id)}
-                          alt={`Thumbnail: ${rv.title}`}
-                          loading="lazy"
-                          className="w-36 h-20 object-cover rounded"
-                        />
-                        <div className="min-w-0">
-                          <p className="font-medium line-clamp-2">{rv.title}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{rv.channel}</p>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <p className="text-muted-foreground text-center py-8">Related videos coming soon.</p>
               </CardContent>
             </Card>
 

@@ -2,9 +2,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { YouTubeNavbar } from '@/components/layout/YouTubeNavbar';
 import { YouTubeVideoCard } from '@/components/video/YouTubeVideoCard';
 import { Button } from '@/components/ui/button';
-import { signLanguageVideos, getYouTubeThumbnail } from '@/data/signLanguageVideos';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface VideoData {
   id: string;
@@ -17,29 +18,59 @@ interface VideoData {
   category?: string;
 }
 
-// Curated Sign Language videos mapped for cards
-
-const allVideos: VideoData[] = signLanguageVideos.map(v => ({
-  id: v.id,
-  title: v.title,
-  channel: v.channel,
-  views: 0,
-  uploadDate: v.uploadDate,
-  duration: v.duration || '',
-  thumbnail: getYouTubeThumbnail(v.id),
-  category: v.category,
-}));
+// Videos from database
+const formatDuration = (seconds?: number) => {
+  if (!seconds && seconds !== 0) return '';
+  const m = Math.floor((seconds as number) / 60);
+  const s = (seconds as number) % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+};
 
 export const YouTubeHomepage: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const categories = useMemo(() => Array.from(new Set(allVideos.map(v => v.category).filter(Boolean))) as string[], []);
-  const [filteredVideos, setFilteredVideos] = useState<VideoData[]>(allVideos);
+  const [videos, setVideos] = useState<VideoData[]>([]);
+  const categories = useMemo(() => Array.from(new Set(videos.map(v => v.category).filter(Boolean))) as string[], [videos]);
+  const [filteredVideos, setFilteredVideos] = useState<VideoData[]>([]);
 
+  // Fetch videos from Supabase with visibility rules
   useEffect(() => {
-    let filtered = allVideos;
+    let isMounted = true;
+    (async () => {
+      try {
+        let query = supabase.from('video_materials').select('*').order('created_at', { ascending: false }).limit(24);
+        if (!user) {
+          query = query.eq('visibility', 'public');
+        } else if (user.role === 'teacher' || user.role === 'principal') {
+          query = query.in('visibility', ['public', 'school']); // exclude private & unlisted from homepage listing
+        } else if (user.role === 'student') {
+          query = query.in('visibility', ['public', 'school']);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+        const mapped: VideoData[] = (data || []).map((v: any) => ({
+          id: v.id,
+          title: v.title,
+          channel: v.video_format === 'youtube' ? 'YouTube' : 'Uploaded',
+          views: 0,
+          uploadDate: new Date(v.created_at).toLocaleDateString(),
+          duration: formatDuration(v.duration ?? undefined),
+          thumbnail: v.thumbnail_path || '/placeholder.svg',
+          category: v.category || undefined,
+        }));
+        if (isMounted) setVideos(mapped);
+      } catch (e) {
+        console.error('Failed to load videos', e);
+      }
+    })();
+    return () => { isMounted = false; };
+  }, [user]);
+  useEffect(() => {
+    let filtered = videos;
 
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
@@ -55,7 +86,7 @@ export const YouTubeHomepage: React.FC = () => {
     }
 
     setFilteredVideos(filtered);
-  }, [searchTerm, selectedCategory]);
+  }, [videos, searchTerm, selectedCategory]);
 
   const handleVideoClick = (video: VideoData) => {
     navigate(`/video/${video.id}`);

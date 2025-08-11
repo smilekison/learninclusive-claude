@@ -15,6 +15,8 @@ import { useSchools } from '@/hooks/useSupabaseQuery';
 import { signLanguageVideos, getYouTubeThumbnail } from '@/data/signLanguageVideos';
 import { Plus, Filter, Pencil, Trash2, Clapperboard, Globe2, LockKeyhole, Shield, Link as LinkIcon } from 'lucide-react';
 import { VideoAnalyticsOverview } from '@/components/video/VideoAnalyticsOverview';
+import { VideoAnalyticsTable } from '@/components/video/VideoAnalyticsTable';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Helper to get YouTube ID from various URL formats
 function extractYouTubeId(url: string): string | null {
@@ -93,6 +95,8 @@ export const VideoManagementPage: React.FC = () => {
   const [visibilityFilter, setVisibilityFilter] = useState<'all'|'public'|'private'|'unlisted'|'school'>('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [difficultyFilter, setDifficultyFilter] = useState('all');
+  // Analytics tab search
+  const [analyticsSearch, setAnalyticsSearch] = useState('');
 
   const fetchVideos = async () => {
     setLoading(true);
@@ -197,6 +201,12 @@ export const VideoManagementPage: React.FC = () => {
     });
   }, [videos, search, visibilityFilter, categoryFilter, difficultyFilter]);
 
+  const analyticsFiltered = useMemo(() => {
+    const q = analyticsSearch.trim().toLowerCase();
+    if (!q) return videos;
+    return videos.filter(v => (v.title || '').toLowerCase().includes(q));
+  }, [videos, analyticsSearch]);
+
   const openCreate = () => {
     setEditing(null);
     setForm(defaultForm);
@@ -274,113 +284,138 @@ export const VideoManagementPage: React.FC = () => {
         <p className="text-muted-foreground">Create, edit, and organize videos with visibility controls.</p>
       </header>
 
-      <div className="flex items-center gap-2 flex-wrap">
-        <Button onClick={openCreate} className="flex items-center gap-2"><Plus className="h-4 w-4" /> New Video</Button>
-        <Button variant="outline" onClick={seedSamples} className="flex items-center gap-2">
-          <Clapperboard className="h-4 w-4" /> Add sample YouTube videos
-        </Button>
-      </div>
+      <Tabs defaultValue="library" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="library">Library</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
 
-      <VideoAnalyticsOverview videos={videos} />
-
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Filter className="h-4 w-4" /> Filters</CardTitle>
-          <CardDescription>Search and filter videos</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-4">
-            <Input placeholder="Search by title" value={search} onChange={(e) => setSearch(e.target.value)} />
-            <Select value={visibilityFilter} onValueChange={(v: any) => setVisibilityFilter(v)}>
-              <SelectTrigger><SelectValue placeholder="Visibility" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="public">Public</SelectItem>
-                <SelectItem value="unlisted">Unlisted</SelectItem>
-                <SelectItem value="private">Private</SelectItem>
-                <SelectItem value="school">School-only</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={categoryFilter} onValueChange={(v: any) => setCategoryFilter(v)}>
-              <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                {categories.map((c) => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={difficultyFilter} onValueChange={(v: any) => setDifficultyFilter(v)}>
-              <SelectTrigger><SelectValue placeholder="Difficulty" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="beginner">Beginner</SelectItem>
-                <SelectItem value="intermediate">Intermediate</SelectItem>
-                <SelectItem value="advanced">Advanced</SelectItem>
-              </SelectContent>
-            </Select>
+        <TabsContent value="library" className="space-y-6">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button onClick={openCreate} className="flex items-center gap-2"><Plus className="h-4 w-4" /> New Video</Button>
+            <Button variant="outline" onClick={seedSamples} className="flex items-center gap-2">
+              <Clapperboard className="h-4 w-4" /> Add sample YouTube videos
+            </Button>
           </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All Videos</CardTitle>
-          <CardDescription>Manage your library</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Visibility</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Difficulty</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((v) => (
-                <TableRow key={v.id}>
-                  <TableCell className="max-w-[320px]">
-                    <div className="flex items-center gap-3">
-                      {v.thumbnail_path && <img src={v.thumbnail_path} alt={v.title} className="h-12 w-20 rounded object-cover" loading="lazy" />}
-                      <div>
-                        <div className="font-medium line-clamp-1">{v.title}</div>
-                        {v.external_url && (
-                          <a href={v.external_url} target="_blank" rel="noreferrer" className="text-xs text-primary inline-flex items-center gap-1">
-                            <LinkIcon className="h-3 w-3" /> Open link
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {v.visibility === 'public' && <Badge variant="secondary" className="flex items-center gap-1"><Globe2 className="h-3 w-3" /> Public</Badge>}
-                    {v.visibility === 'unlisted' && <Badge variant="outline">Unlisted</Badge>}
-                    {v.visibility === 'private' && <Badge variant="destructive" className="flex items-center gap-1"><LockKeyhole className="h-3 w-3" /> Private</Badge>}
-                    {v.visibility === 'school' && <Badge variant="secondary" className="flex items-center gap-1"><Shield className="h-3 w-3" /> School</Badge>}
-                  </TableCell>
-                  <TableCell>{v.category || '-'}</TableCell>
-                  <TableCell className="capitalize">{v.difficulty_level || '-'}</TableCell>
-                  <TableCell>{new Date(v.created_at).toLocaleDateString()}</TableCell>
-                  <TableCell className="space-x-2">
-                    <Button size="sm" variant="outline" onClick={() => openEdit(v)}><Pencil className="h-3 w-3 mr-1" /> Edit</Button>
-                    <Button size="sm" variant="destructive" onClick={() => deleteMutation.mutate(v.id)}><Trash2 className="h-3 w-3 mr-1" /> Delete</Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {!filtered.length && (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground">{loading ? 'Loading videos…' : 'No videos found'}</TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Filter className="h-4 w-4" /> Filters</CardTitle>
+              <CardDescription>Search and filter videos</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-4">
+                <Input placeholder="Search by title" value={search} onChange={(e) => setSearch(e.target.value)} />
+                <Select value={visibilityFilter} onValueChange={(v: any) => setVisibilityFilter(v)}>
+                  <SelectTrigger><SelectValue placeholder="Visibility" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="public">Public</SelectItem>
+                    <SelectItem value="unlisted">Unlisted</SelectItem>
+                    <SelectItem value="private">Private</SelectItem>
+                    <SelectItem value="school">School-only</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={categoryFilter} onValueChange={(v: any) => setCategoryFilter(v)}>
+                  <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    {categories.map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={difficultyFilter} onValueChange={(v: any) => setDifficultyFilter(v)}>
+                  <SelectTrigger><SelectValue placeholder="Difficulty" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="beginner">Beginner</SelectItem>
+                    <SelectItem value="intermediate">Intermediate</SelectItem>
+                    <SelectItem value="advanced">Advanced</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>All Videos</CardTitle>
+              <CardDescription>Manage your library</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Visibility</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Difficulty</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map((v) => (
+                    <TableRow key={v.id}>
+                      <TableCell className="max-w-[320px]">
+                        <div className="flex items-center gap-3">
+                          {v.thumbnail_path && <img src={v.thumbnail_path} alt={v.title} className="h-12 w-20 rounded object-cover" loading="lazy" />}
+                          <div>
+                            <div className="font-medium line-clamp-1">{v.title}</div>
+                            {v.external_url && (
+                              <a href={v.external_url} target="_blank" rel="noreferrer" className="text-xs text-primary inline-flex items-center gap-1">
+                                <LinkIcon className="h-3 w-3" /> Open link
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {v.visibility === 'public' && <Badge variant="secondary" className="flex items-center gap-1"><Globe2 className="h-3 w-3" /> Public</Badge>}
+                        {v.visibility === 'unlisted' && <Badge variant="outline">Unlisted</Badge>}
+                        {v.visibility === 'private' && <Badge variant="destructive" className="flex items-center gap-1"><LockKeyhole className="h-3 w-3" /> Private</Badge>}
+                        {v.visibility === 'school' && <Badge variant="secondary" className="flex items-center gap-1"><Shield className="h-3 w-3" /> School</Badge>}
+                      </TableCell>
+                      <TableCell>{v.category || '-'}</TableCell>
+                      <TableCell className="capitalize">{v.difficulty_level || '-'}</TableCell>
+                      <TableCell>{new Date(v.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell className="space-x-2">
+                        <Button size="sm" variant="outline" onClick={() => openEdit(v)}><Pencil className="h-3 w-3 mr-1" /> Edit</Button>
+                        <Button size="sm" variant="destructive" onClick={() => deleteMutation.mutate(v.id)}><Trash2 className="h-3 w-3 mr-1" /> Delete</Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {!filtered.length && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">{loading ? 'Loading videos…' : 'No videos found'}</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Search analytics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Input
+                placeholder="Search videos by title"
+                value={analyticsSearch}
+                onChange={(e) => setAnalyticsSearch(e.target.value)}
+              />
+            </CardContent>
+          </Card>
+
+          <VideoAnalyticsOverview videos={analyticsFiltered} />
+          <VideoAnalyticsTable videos={analyticsFiltered} />
+        </TabsContent>
+      </Tabs>
+
 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if(!o){ setEditing(null); setForm(defaultForm);} }}>
         <DialogContent className="max-w-2xl">

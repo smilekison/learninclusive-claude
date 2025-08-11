@@ -82,6 +82,27 @@ export const usePrincipalAssignmentAnalytics = (filters: PrincipalAssignmentFilt
   return useQuery({
     queryKey: ['principal-assignment-analytics', filters],
     queryFn: async (): Promise<PrincipalAssignmentAnalytics> => {
+      // Limit to schools managed by the current principal
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: principal } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      let schoolIds: string[] = [];
+      if (principal) {
+        const { data: schools } = await supabase
+          .from('schools')
+          .select('id')
+          .eq('principal_id', principal.id);
+        schoolIds = (schools || []).map((s: any) => s.id);
+      }
+
+      if (schoolIds.length === 0) {
+        return { summary: { total: 0, overdue: 0, dueSoon: 0, noDueDate: 0 }, byClass: [], byTeacher: [] };
+      }
+
       const { data: assignments } = await supabase
         .from('assignments')
         .select(`
@@ -95,11 +116,13 @@ export const usePrincipalAssignmentAnalytics = (filters: PrincipalAssignmentFilt
             class:classes!inner(
               id,
               name,
-              teacher:profiles!classes_teacher_id_fkey(id, first_name, last_name)
+              teacher:profiles!classes_teacher_id_fkey(id, first_name, last_name),
+              school_id
             )
           )
         `)
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .in('subjects.classes.school_id', schoolIds);
 
       let list = assignments || [];
       if (filters.classId) {

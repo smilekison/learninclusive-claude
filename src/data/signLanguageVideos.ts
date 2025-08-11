@@ -7,7 +7,7 @@ export interface SignLangVideo {
   category: 'BSL' | 'FSL' | string;
 }
 
-// Curated free YouTube videos (initial set focuses on BSL). Add FSL links as provided.
+// Curated free YouTube videos: mixed British (BSL) and Finnish (FSL) Sign Language
 export const signLanguageVideos: SignLangVideo[] = [
   // British Sign Language (BSL)
   { id: 'xm5hen8K1gA', title: 'Learn the BSL Alphabet in Minutes (A–Z)', channel: 'Twinkl Resources', uploadDate: '2023-06-01', duration: '06:59', category: 'BSL' },
@@ -45,10 +45,6 @@ export const signLanguageVideos: SignLangVideo[] = [
   { id: 'Zx5b1Qw3Er7', title: 'Fingerspelling Speed Drills (BSL)', channel: 'Commanding Hands', uploadDate: '2018-05-19', duration: '06:22', category: 'BSL' },
   { id: 'Vc9m2Tn4Ry8', title: 'Numbers Challenge (FSL)', channel: 'Finnish Association of the Deaf', uploadDate: '2022-02-10', duration: '05:50', category: 'FSL' },
 ];
-
-export const getSignVideo = (id: string) => signLanguageVideos.find(v => v.id === id);
-
-export const getYouTubeThumbnail = (id: string) => `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
 
 export const getSignVideo = (id: string) => signLanguageVideos.find(v => v.id === id);
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { TopNavbar } from './TopNavbar';
+import { usePrincipalStudentCountDebug } from '@/hooks/usePrincipalStudentCountDebug';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -38,6 +39,7 @@ const LayoutContent: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 };
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
+  usePrincipalStudentCountDebug();
   return (
     <SidebarProvider>
       <LayoutContent>{children}</LayoutContent>

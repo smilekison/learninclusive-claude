@@ -227,12 +227,12 @@ export const PrincipalDashboardReal: React.FC = () => {
           <div className="grid gap-4 md:grid-cols-3">
             <div>
               <Label>Class</Label>
-              <Select value={selectedClassId} onValueChange={setSelectedClassId}>
+              <Select value={selectedClassId || 'all'} onValueChange={(v) => setSelectedClassId(v === 'all' ? '' : v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Classes" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Classes</SelectItem>
+                <SelectContent className="bg-background border z-50">
+                  <SelectItem value="all">All Classes</SelectItem>
                   {classes?.map((c: any) => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
@@ -241,12 +241,12 @@ export const PrincipalDashboardReal: React.FC = () => {
             </div>
             <div>
               <Label>Teacher</Label>
-              <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
+              <Select value={selectedTeacherId || 'all'} onValueChange={(v) => setSelectedTeacherId(v === 'all' ? '' : v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Teachers" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Teachers</SelectItem>
+                <SelectContent className="bg-background border z-50">
+                  <SelectItem value="all">All Teachers</SelectItem>
                   {teachers?.map((t: any) => (
                     <SelectItem key={t.id} value={t.id}>{t.first_name} {t.last_name}</SelectItem>
                   ))}

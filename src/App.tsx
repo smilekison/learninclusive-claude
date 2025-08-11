@@ -53,7 +53,7 @@ const AppContent = () => {
     <Routes>
       <Route 
         path="/" 
-        element={<VideoHomepage />} 
+        element={<YouTubeHomepage />} 
       />
       <Route 
         path="/auth" 

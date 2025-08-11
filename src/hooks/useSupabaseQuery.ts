@@ -589,19 +589,19 @@ export const useTeacherStudents = () => {
     if (!profile) return { data: [], error: null };
     
     const result = await supabase
-      .from('profiles')
+      .from('student_enrollments')
       .select(`
         *,
-        student_enrollments!inner(
-          *,
-          class:classes!inner(
-            *
-          )
+        student:profiles!inner(
+          *
+        ),
+        class:classes!inner(
+          *
         )
       `)
-      .eq('role', 'student')
-      .eq('student_enrollments.classes.teacher_id', profile.id)
-      .eq('is_active', true);
+      .eq('classes.teacher_id', profile.id)
+      .eq('profiles.role', 'student')
+      .eq('profiles.is_active', true);
       
     return result;
   });

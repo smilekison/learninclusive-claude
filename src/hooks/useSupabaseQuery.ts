@@ -604,20 +604,20 @@ export const useTeacherStudents = () => {
       .from('student_enrollments')
       .select(`
         *,
-        student:profiles!student_enrollments_student_id_fkey(
+        profiles(
           *
         ),
-        class:classes!student_enrollments_class_id_fkey(
+        classes(
           *
         )
       `)
       .in('class_id', classIds);
       
-    // Filter the results to only include active students
+    // Filter to only include active students  
     if (result.data) {
       result.data = result.data.filter((enrollment: any) => 
-        enrollment.student?.role === 'student' && 
-        enrollment.student?.is_active === true
+        enrollment.profiles?.role === 'student' && 
+        enrollment.profiles?.is_active === true
       );
     }
       

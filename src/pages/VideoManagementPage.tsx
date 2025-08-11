@@ -143,7 +143,8 @@ export const VideoManagementPage: React.FC = () => {
     async (payload: VideoFormState) => {
       if (!payload.id) throw new Error('Missing id');
       const ytId = extractYouTubeId(payload.external_url || '');
-      const updates = {
+      const isFile = !!payload.file_path;
+      const updates: any = {
         title: payload.title,
         description: payload.description || null,
         category: payload.category || null,
@@ -151,10 +152,19 @@ export const VideoManagementPage: React.FC = () => {
         tags: payload.tags ? payload.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
         visibility: payload.visibility,
         school_id: payload.visibility === 'school' ? payload.school_id || null : null,
-        external_url: payload.external_url || null,
-        video_format: 'youtube',
-        thumbnail_path: ytId ? getYouTubeThumbnail(ytId) : null,
       };
+
+      if (isFile) {
+        updates.file_path = payload.file_path;
+        updates.external_url = null;
+        updates.video_format = 'mp4';
+        updates.thumbnail_path = null;
+      } else {
+        updates.external_url = payload.external_url || null;
+        updates.video_format = 'youtube';
+        updates.thumbnail_path = ytId ? getYouTubeThumbnail(ytId) : null;
+      }
+
       return await supabase.from('video_materials').update(updates).eq('id', payload.id).select().single();
     },
     {
@@ -218,12 +228,25 @@ export const VideoManagementPage: React.FC = () => {
     setOpen(true);
   };
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     if (!form.title) return;
-    if (editing) updateMutation.mutate(form);
-    else createMutation.mutate(form);
-  };
 
+    let payload = { ...form } as VideoFormState;
+
+    // If a file is selected, upload to Supabase Storage first
+    if (selectedFile && user?.id) {
+      const path = `${user.id}/${Date.now()}-${selectedFile.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('videos')
+        .upload(path, selectedFile, { contentType: selectedFile.type });
+      if (!uploadError) {
+        payload = { ...payload, file_path: path, external_url: '' };
+      }
+    }
+
+    if (editing) updateMutation.mutate(payload);
+    else createMutation.mutate(payload);
+  };
   const seedSamples = async () => {
     const samples = signLanguageVideos.slice(0, 6).map((v) => ({
       title: v.title,
@@ -417,6 +440,14 @@ export const VideoManagementPage: React.FC = () => {
             <div>
               <Label>YouTube URL</Label>
               <Input value={form.external_url} onChange={(e) => setForm({ ...form, external_url: e.target.value })} placeholder="https://www.youtube.com/watch?v=..." />
+              <p className="text-xs text-muted-foreground mt-1">Or upload your own video file below.</p>
+            </div>
+            <div>
+              <Label>Upload Video File</Label>
+              <Input type="file" accept="video/*" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} />
+              {selectedFile && (
+                <p className="text-xs text-muted-foreground mt-1">Selected: {selectedFile.name}</p>
+              )}
             </div>
             <div>
               <Label>Description</Label>

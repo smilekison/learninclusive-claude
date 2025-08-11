@@ -13,7 +13,12 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
   if (context === undefined) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
+    // Fallback safely when provider isn't mounted yet
+    return {
+      language: 'en' as Language,
+      setLanguage: () => {},
+      t: (key: string) => key,
+    };
   }
   return context;
 };

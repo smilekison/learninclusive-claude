@@ -37,6 +37,7 @@ export const VideoLibrary: React.FC<VideoLibraryProps> = ({ showPublicOnly = fal
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedVideo, setSelectedVideo] = useState<VideoMaterial | null>(null);
+  const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetchVideos();
@@ -49,14 +50,16 @@ export const VideoLibrary: React.FC<VideoLibraryProps> = ({ showPublicOnly = fal
   const fetchVideos = async () => {
     try {
       let query = supabase.from('video_materials').select('*');
-      
-      if (showPublicOnly) {
-        // Show only public/featured videos for guests
-        query = query.or('tags.cs.{featured},tags.cs.{public}');
+
+      if (showPublicOnly || !user) {
+        query = query.eq('visibility', 'public');
+      } else if (user.role === 'teacher' || user.role === 'principal') {
+        query = query.in('visibility', ['public', 'unlisted', 'school']);
+      } else if (user.role === 'student') {
+        query = query.in('visibility', ['public', 'school']);
       }
-      
+
       const { data, error } = await query.order('created_at', { ascending: false });
-      
       if (error) throw error;
       setVideos(data || []);
     } catch (error) {

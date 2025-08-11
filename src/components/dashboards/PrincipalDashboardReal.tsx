@@ -58,7 +58,7 @@ export const PrincipalDashboardReal: React.FC = () => {
     },
     {
       successMessage: 'Teacher added successfully!',
-      invalidateKeys: [['profiles', 'teacher'], ['principal-stats']],
+      invalidateKeys: [['profiles', 'teacher'], ['principal-stats'], ['teacher-stats']],
       onSuccess: () => {
         setNewTeacher({ firstName: '', lastName: '', email: '', password: '' });
         setIsTeacherDialogOpen(false);

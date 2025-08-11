@@ -93,7 +93,7 @@ export const TeacherDashboardReal: React.FC = () => {
     async (data: any) => await supabase.from('subjects').insert(data).select().single(),
     {
       successMessage: "Subject created successfully",
-      invalidateKeys: [['teacher-subjects']],
+      invalidateKeys: [['teacher-subjects'], ['subjects'], ['teacher-stats']],
       onSuccess: () => {
         setNewSubject({ name: '', description: '', classId: '' });
         setIsSubjectDialogOpen(false);
@@ -105,7 +105,7 @@ export const TeacherDashboardReal: React.FC = () => {
     async (data: any) => await supabase.from('assignments').insert(data).select().single(),
     {
       successMessage: "Assignment created successfully",
-      invalidateKeys: [['active-assignments', 'teacher-assignments']],
+      invalidateKeys: [['active-assignments'], ['teacher-assignments'], ['assignments'], ['teacher-stats'], ['teacher-assignment-analytics']],
       onSuccess: () => {
         setNewAssignment({ title: '', description: '', subjectId: '', dueDate: '', maxScore: 100 });
         setIsAssignmentDialogOpen(false);
@@ -132,7 +132,7 @@ export const TeacherDashboardReal: React.FC = () => {
     },
     {
       successMessage: "Student invitation sent successfully",
-      invalidateKeys: [['teacher-students']],
+      invalidateKeys: [['teacher-students'], ['teacher-stats']],
       onSuccess: () => {
         setNewStudent({ firstName: '', lastName: '', email: '', parentEmail: '', classId: '' });
         setIsStudentDialogOpen(false);

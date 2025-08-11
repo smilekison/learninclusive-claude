@@ -946,6 +946,10 @@ export type Database = {
         Args: { target_table: string; target_column: string; code_len?: number }
         Returns: string
       }
+      get_current_profile_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -969,8 +973,20 @@ export type Database = {
           rank: number
         }[]
       }
+      is_class_taught_by_current_teacher: {
+        Args: { p_class_id: string }
+        Returns: boolean
+      }
+      is_current_student_enrolled_in_class: {
+        Args: { p_class_id: string }
+        Returns: boolean
+      }
       is_principal: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_teacher_of_student: {
+        Args: { p_student_id: string }
         Returns: boolean
       }
       is_user_in_school: {

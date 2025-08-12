@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 
 import { LessonManager } from './LessonManager';
+import { StudentEnrollmentPanel } from './StudentEnrollmentPanel';
 
 interface Assignment {
   id: string;
@@ -436,6 +437,7 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
+            <StudentEnrollmentPanel subjectId={subject.id} classId={subject.class?.id || ''} />
             <Card>
               <CardHeader>
                 <CardTitle>Subject Settings</CardTitle>

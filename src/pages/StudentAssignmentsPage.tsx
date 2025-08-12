@@ -34,9 +34,17 @@ export const StudentAssignmentsPage: React.FC = () => {
 
   React.useEffect(() => {
     const fetchStudentAssignments = async () => {
-      if (!user) return;
+      console.log('🔍 StudentAssignmentsPage: Starting fetchStudentAssignments');
+      console.log('🔍 StudentAssignmentsPage: User:', user);
+      
+      if (!user) {
+        console.log('❌ StudentAssignmentsPage: No user found');
+        return;
+      }
       
       try {
+        console.log('🔍 StudentAssignmentsPage: Fetching profile for user_id:', user.id);
+        
         // Get student's profile ID using the correct user_id from auth
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
@@ -44,13 +52,16 @@ export const StudentAssignmentsPage: React.FC = () => {
           .eq('user_id', user.id)
           .maybeSingle();
 
-        console.log('Profile query result:', { profile, error: profileError, userId: user.id });
+        console.log('🔍 StudentAssignmentsPage: Profile query result:', { profile, error: profileError, userId: user.id });
 
         if (profileError || !profile) {
-          console.error('Student profile not found:', profileError);
+          console.error('❌ StudentAssignmentsPage: Student profile not found:', profileError);
           setStudentAssignments([]);
           return;
         }
+
+        console.log('✅ StudentAssignmentsPage: Found profile:', profile);
+        console.log('🔍 StudentAssignmentsPage: Fetching enrollments for student_id:', profile.id);
 
         // First, get the student's class enrollments
         const { data: enrollments, error: enrollmentError } = await supabase
@@ -72,19 +83,33 @@ export const StudentAssignmentsPage: React.FC = () => {
           .eq('student_id', profile.id)
           .eq('status', 'active');
 
-        console.log('Enrollments query result:', { enrollments, error: enrollmentError });
+        console.log('🔍 StudentAssignmentsPage: Enrollments query result:', { enrollments, error: enrollmentError });
 
         if (enrollmentError) {
-          console.error('Error fetching enrollments:', enrollmentError);
+          console.error('❌ StudentAssignmentsPage: Error fetching enrollments:', enrollmentError);
           setStudentAssignments([]);
           return;
         }
 
+        if (!enrollments || enrollments.length === 0) {
+          console.log('⚠️ StudentAssignmentsPage: No enrollments found for student. Student needs to be enrolled in classes.');
+          setStudentAssignments([]);
+          return;
+        }
+
+        console.log('✅ StudentAssignmentsPage: Found enrollments:', enrollments?.length || 0);
+
         // Extract all assignments from enrolled classes
         const allAssignments: any[] = [];
-        enrollments?.forEach(enrollment => {
-          enrollment.classes?.subjects?.forEach((subject: any) => {
-            subject.assignments?.forEach((assignment: any) => {
+        enrollments?.forEach((enrollment, enrollmentIndex) => {
+          console.log(`🔍 StudentAssignmentsPage: Processing enrollment ${enrollmentIndex}:`, enrollment);
+          
+          enrollment.classes?.subjects?.forEach((subject: any, subjectIndex: number) => {
+            console.log(`🔍 StudentAssignmentsPage: Processing subject ${subjectIndex}:`, subject);
+            
+            subject.assignments?.forEach((assignment: any, assignmentIndex: number) => {
+              console.log(`🔍 StudentAssignmentsPage: Processing assignment ${assignmentIndex}:`, assignment);
+              
               if (assignment.is_active) {
                 allAssignments.push({
                   ...assignment,
@@ -97,48 +122,58 @@ export const StudentAssignmentsPage: React.FC = () => {
                     }
                   }
                 });
+              } else {
+                console.log('⚠️ StudentAssignmentsPage: Skipping inactive assignment:', assignment.id);
               }
             });
           });
         });
 
-        console.log('All assignments found:', allAssignments);
-
-        // Now get submissions for these assignments
-        const assignmentIds = allAssignments.map(a => a.id);
-        let submissions: any[] = [];
+        console.log('✅ StudentAssignmentsPage: Final assignments array:', allAssignments);
+        console.log('📊 StudentAssignmentsPage: Total assignments found:', allAssignments.length);
         
-        if (assignmentIds.length > 0) {
+        if (allAssignments.length === 0) {
+          console.log('⚠️ StudentAssignmentsPage: No assignments found. Either no enrollments or no assignments in enrolled classes.');
+          setStudentAssignments([]);
+          return;
+        }
+        
+        // Now get submissions for these assignments if any assignments exist
+        if (allAssignments.length > 0) {
+          console.log('🔍 StudentAssignmentsPage: Fetching submissions for assignments');
+          const assignmentIds = allAssignments.map(a => a.id);
+          
           const { data: submissionData, error: submissionError } = await supabase
             .from('assignment_submissions')
             .select('*')
             .in('assignment_id', assignmentIds)
             .eq('student_id', profile.id);
 
+          console.log('🔍 StudentAssignmentsPage: Submissions query result:', { submissionData, error: submissionError });
+
           if (submissionError) {
-            console.error('Error fetching submissions:', submissionError);
+            console.error('❌ StudentAssignmentsPage: Error fetching submissions:', submissionError);
           } else {
-            submissions = submissionData || [];
+            console.log('✅ StudentAssignmentsPage: Found submissions:', submissionData?.length || 0);
+            
+            // Combine assignments with their submissions
+            const processedAssignments = allAssignments.map(assignment => ({
+              ...assignment,
+              submissions: submissionData?.filter(sub => sub.assignment_id === assignment.id) || []
+            }));
+
+            // Sort by due date and creation date
+            processedAssignments.sort((a, b) => {
+              if (a.due_date && b.due_date) {
+                return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+              }
+              return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            });
+
+            console.log('✅ StudentAssignmentsPage: Final processed assignments:', processedAssignments);
+            setStudentAssignments(processedAssignments);
           }
         }
-
-        console.log('Submissions found:', submissions);
-
-        // Combine assignments with their submissions
-        const processedAssignments = allAssignments.map(assignment => ({
-          ...assignment,
-          submissions: submissions.filter(sub => sub.assignment_id === assignment.id)
-        }));
-
-        // Sort by due date and creation date
-        processedAssignments.sort((a, b) => {
-          if (a.due_date && b.due_date) {
-            return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
-          }
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        });
-
-        setStudentAssignments(processedAssignments);
       } catch (error) {
         console.error('Error fetching student assignments:', error);
         setStudentAssignments([]);
@@ -431,7 +466,12 @@ export const StudentAssignmentsPage: React.FC = () => {
             <div className="col-span-full text-center py-12">
               <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No assignments found</h3>
-              <p className="text-muted-foreground">You don't have any assignments yet</p>
+              <p className="text-muted-foreground mb-4">
+                You need to be enrolled in a class to see assignments. Please join a subject using an invitation code.
+              </p>
+              <Button onClick={() => window.location.href = '/join-subject'}>
+                Join a Subject
+              </Button>
             </div>
           )}
         </div>

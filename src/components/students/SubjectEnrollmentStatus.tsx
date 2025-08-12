@@ -72,7 +72,7 @@ export const SubjectEnrollmentStatus: React.FC<SubjectEnrollmentStatusProps> = (
           setEnrollmentData({
             status: enrollmentRequest.status as 'pending' | 'rejected',
             requestDate: enrollmentRequest.requested_at,
-            feedback: enrollmentRequest.teacher_feedback
+            feedback: (enrollmentRequest as any).teacher_feedback
           });
         } else {
           setEnrollmentData({ status: 'none' });

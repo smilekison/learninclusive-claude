@@ -35,8 +35,65 @@ export const StudentAssignmentsPage: React.FC = () => {
     const fetchStudentAssignments = async () => {
       if (!user) return;
       
-      // For now, return empty assignments until student enrollment system is properly implemented
-      setStudentAssignments([]);
+      try {
+        // Get student's profile ID
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!profile) {
+          console.error('Student profile not found');
+          return;
+        }
+
+        // Fetch assignments for classes the student is enrolled in
+        const { data: assignments, error } = await supabase
+          .from('assignments')
+          .select(`
+            *,
+            subject:subjects!inner(
+              id,
+              name,
+              class:classes!inner(
+                id,
+                name,
+                student_enrollments!inner(
+                  student_id,
+                  status
+                )
+              )
+            ),
+            submissions:assignment_submissions(
+              id,
+              submitted_at,
+              score,
+              feedback,
+              student_id
+            )
+          `)
+          .eq('subject.class.student_enrollments.student_id', profile.id)
+          .eq('subject.class.student_enrollments.status', 'approved')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching assignments:', error);
+          return;
+        }
+
+        // Filter submissions to only show current student's submissions
+        const processedAssignments = assignments?.map(assignment => ({
+          ...assignment,
+          submissions: assignment.submissions?.filter(sub => sub.student_id === profile.id) || []
+        })) || [];
+
+        setStudentAssignments(processedAssignments);
+      } catch (error) {
+        console.error('Error fetching student assignments:', error);
+        setStudentAssignments([]);
+      }
     };
 
     fetchStudentAssignments();

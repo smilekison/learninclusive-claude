@@ -80,13 +80,12 @@ export const StudentDashboardReal: React.FC = () => {
     fetchEnrolledClasses();
   }, [user]);
 
-  // Fetch assignments for student's enrolled classes
+  // Fetch assignments using the same working logic from StudentSubjectDetailView
   const [studentAssignments, setStudentAssignments] = useState<any[]>([]);
   
   React.useEffect(() => {
     const fetchStudentAssignments = async () => {
       console.log('🔍 StudentDashboard: Starting fetchStudentAssignments');
-      console.log('🔍 StudentDashboard: User:', user);
       
       if (!user) {
         console.log('❌ StudentDashboard: No user found');
@@ -94,88 +93,56 @@ export const StudentDashboardReal: React.FC = () => {
       }
       
       try {
-        console.log('🔍 StudentDashboard: Fetching profile for user_id:', user.id);
-        
-        // Get student's profile ID using the correct user_id from auth
-        const { data: profile, error: profileError } = await supabase
+        // Get user profile with role
+        const { data: userProfile, error: profileError } = await supabase
           .from('profiles')
-          .select('id')
+          .select('id, role')
           .eq('user_id', user.id)
-          .maybeSingle();
+          .single();
+        
+        console.log('🔍 StudentDashboard: Profile query result:', { userProfile, error: profileError });
 
-        console.log('🔍 StudentDashboard: Profile query result:', { profile, error: profileError });
-
-        if (profileError || !profile) {
+        if (profileError || !userProfile) {
           console.error('❌ StudentDashboard: Student profile not found:', profileError);
           setStudentAssignments([]);
           return;
         }
 
-        console.log('✅ StudentDashboard: Found profile:', profile);
-        console.log('🔍 StudentDashboard: Fetching enrollments for student_id:', profile.id);
+        console.log('✅ StudentDashboard: Found profile:', userProfile);
 
-        // First, get the student's class enrollments
-        const { data: enrollments, error: enrollmentError } = await supabase
-          .from('student_enrollments')
+        // Use the working query from get_student_assignments function or similar approach
+        const { data: assignmentsData, error: assignmentsError } = await supabase
+          .from('assignments')
           .select(`
-            class_id,
-            classes!inner(
+            *,
+            subject:subjects!inner(
               id,
               name,
-              subjects(
+              class:classes!inner(
                 id,
                 name,
-                assignments(
-                  *
+                student_enrollments!inner(
+                  student_id,
+                  status
                 )
               )
             )
           `)
-          .eq('student_id', profile.id)
-          .eq('status', 'active');
+          .eq('subject.class.student_enrollments.student_id', userProfile.id)
+          .eq('subject.class.student_enrollments.status', 'active')
+          .eq('is_active', true)
+          .order('due_date', { ascending: true });
 
-        console.log('🔍 StudentDashboard: Enrollments query result:', { enrollments, error: enrollmentError });
+        console.log('🔍 StudentDashboard: Assignments query result:', { assignmentsData, error: assignmentsError });
 
-        if (enrollmentError) {
-          console.error('❌ StudentDashboard: Error fetching enrollments:', enrollmentError);
+        if (assignmentsError) {
+          console.error('❌ StudentDashboard: Error fetching assignments:', assignmentsError);
           setStudentAssignments([]);
           return;
         }
 
-        console.log('✅ StudentDashboard: Found enrollments:', enrollments?.length || 0);
-
-        // Extract all assignments from enrolled classes
-        const allAssignments: any[] = [];
-        enrollments?.forEach((enrollment, enrollmentIndex) => {
-          console.log(`🔍 StudentDashboard: Processing enrollment ${enrollmentIndex}:`, enrollment);
-          
-          enrollment.classes?.subjects?.forEach((subject: any, subjectIndex: number) => {
-            console.log(`🔍 StudentDashboard: Processing subject ${subjectIndex}:`, subject);
-            
-            subject.assignments?.forEach((assignment: any, assignmentIndex: number) => {
-              console.log(`🔍 StudentDashboard: Processing assignment ${assignmentIndex}:`, assignment);
-              
-              if (assignment.is_active) {
-                allAssignments.push({
-                  ...assignment,
-                  subject: {
-                    id: subject.id,
-                    name: subject.name,
-                    class: {
-                      id: enrollment.classes?.id,
-                      name: enrollment.classes?.name
-                    }
-                  }
-                });
-              } else {
-                console.log('⚠️ StudentDashboard: Skipping inactive assignment:', assignment.id);
-              }
-            });
-          });
-        });
-
-        console.log('✅ StudentDashboard: Final assignments array:', allAssignments);
-        setStudentAssignments(allAssignments);
+        console.log('✅ StudentDashboard: Found assignments:', assignmentsData?.length || 0);
+        setStudentAssignments(assignmentsData || []);
       } catch (error) {
         console.error('❌ StudentDashboard: Error fetching student assignments:', error);
         setStudentAssignments([]);

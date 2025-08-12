@@ -95,13 +95,23 @@ export const SubjectEnrollmentManager: React.FC<SubjectEnrollmentManagerProps> =
 
       if (updateError) throw updateError;
 
-      // Create enrollment
+      // Get the subject's class_id
+      const { data: subject } = await supabase
+        .from('subjects')
+        .select('class_id')
+        .eq('id', request.subject_id)
+        .single();
+
+      if (!subject) throw new Error('Subject not found');
+
+      // Create class enrollment (not subject-specific enrollment)
       const { error: enrollError } = await supabase
-        .from('student_subject_enrollments' as any)
+        .from('student_enrollments')
         .insert({
           student_id: request.student_id,
-          subject_id: request.subject_id
-        } as any);
+          class_id: subject.class_id,
+          status: 'approved'
+        });
 
       if (enrollError) throw enrollError;
 

@@ -79,7 +79,27 @@ export const StudentLessons: React.FC = () => {
 
       console.log('StudentLessons: Profile found, fetching lessons for student ID:', userProfile.id);
 
-      // Get lessons from enrolled classes
+      // First, get student's enrolled classes
+      const { data: enrollments, error: enrollmentError } = await supabase
+        .from('student_enrollments')
+        .select('class_id')
+        .eq('student_id', userProfile.id)
+        .eq('status', 'active');
+
+      if (enrollmentError) {
+        console.error('StudentLessons: Error fetching enrollments:', enrollmentError);
+        return [];
+      }
+
+      if (!enrollments || enrollments.length === 0) {
+        console.log('StudentLessons: No active enrollments found');
+        return [];
+      }
+
+      const classIds = enrollments.map(e => e.class_id);
+      console.log('StudentLessons: Found enrolled classes:', classIds);
+
+      // Then get lessons from subjects in those classes
       const { data: lessonsData, error: lessonsError } = await supabase
         .from('lessons')
         .select(`
@@ -89,22 +109,19 @@ export const StudentLessons: React.FC = () => {
             name,
             class:classes!inner(
               id,
-              name,
-              student_enrollments!inner(
-                student_id,
-                status
-              )
+              name
             )
           ),
           materials(*)
         `)
-        .eq('subject.class.student_enrollments.student_id', userProfile.id)
-        .eq('subject.class.student_enrollments.status', 'active')
+        .in('subject.class_id', classIds)
         .order('created_at', { ascending: false })
         .limit(6);
 
+      console.log('StudentLessons: Lessons query result:', { lessonsData, lessonsError });
+
       if (lessonsError) {
-        console.error('Error fetching lessons:', lessonsError);
+        console.error('StudentLessons: Error fetching lessons:', lessonsError);
         return [];
       }
 

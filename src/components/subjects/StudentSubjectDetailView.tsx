@@ -19,10 +19,45 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 
+interface SubmissionWithStudent {
+  id: string;
+  assignment_id: string;
+  student_id: string;
+  submitted_at: string;
+  score: number | null;
+  assignment: {
+    id: string;
+    title: string;
+    max_score: number;
+    due_date: string;
+  };
+  student?: {
+    first_name: string;
+    last_name: string;
+  };
+}
+
 export const StudentSubjectDetailView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Get user profile with role
+  const { data: userProfile } = useQuery({
+    queryKey: ['user-profile'],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, role')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user
+  });
 
   // Fetch subject details
   const { data: subject, isLoading: subjectLoading } = useQuery({
@@ -70,34 +105,69 @@ export const StudentSubjectDetailView: React.FC = () => {
     enabled: !!id
   });
 
-  // Fetch student's submissions for this subject
-  const { data: submissions = [] } = useQuery({
-    queryKey: ['student-subject-submissions', id],
+  // Fetch student's submissions for this subject (role-based)
+  const { data: submissions = [] }: { data: SubmissionWithStudent[] } = useQuery({
+    queryKey: ['student-subject-submissions', id, userProfile?.role],
     queryFn: async () => {
-      if (!id || !user) return [];
+      if (!id || !userProfile) return [];
       
-      // Get student profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
+      if (userProfile.role === 'student') {
+        // Students see only their own submissions
+        const { data, error } = await supabase
+          .from('assignment_submissions')
+          .select(`
+            *,
+            assignment:assignments!inner(id, title, max_score, due_date)
+          `)
+          .eq('student_id', userProfile.id)
+          .eq('assignment.subject_id', id);
 
-      if (!profile) return [];
+        if (error) throw error;
+        return (data || []) as SubmissionWithStudent[];
+      } else if (userProfile.role === 'teacher' || userProfile.role === 'principal') {
+        // Teachers and principals see all submissions for this subject
+        const { data, error } = await supabase
+          .from('assignment_submissions')
+          .select(`
+            *,
+            assignment:assignments!inner(id, title, max_score, due_date),
+            student:profiles!assignment_submissions_student_id_fkey(first_name, last_name)
+          `)
+          .eq('assignment.subject_id', id)
+          .order('submitted_at', { ascending: false });
 
+        if (error) throw error;
+        return (data || []) as SubmissionWithStudent[];
+      }
+      
+      return [];
+    },
+    enabled: !!id && !!userProfile
+  });
+
+  // Fetch students enrolled in this subject's class (for teachers/principals)
+  const { data: enrolledStudents = [] } = useQuery({
+    queryKey: ['subject-enrolled-students', id],
+    queryFn: async () => {
+      if (!id || !subject || userProfile?.role === 'student') return [];
+      
       const { data, error } = await supabase
-        .from('assignment_submissions')
+        .from('student_enrollments')
         .select(`
-          *,
-          assignment:assignments!inner(id, title, max_score, due_date)
+          id,
+          student:profiles!student_enrollments_student_id_fkey(
+            id,
+            first_name,
+            last_name
+          )
         `)
-        .eq('student_id', profile.id)
-        .eq('assignment.subject_id', id);
+        .eq('class_id', subject.class_id)
+        .eq('status', 'active');
 
       if (error) throw error;
       return data || [];
     },
-    enabled: !!id && !!user
+    enabled: !!id && !!subject && userProfile?.role !== 'student'
   });
 
   if (subjectLoading) {
@@ -163,7 +233,13 @@ export const StudentSubjectDetailView: React.FC = () => {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => navigate('/student/subjects')}
+            onClick={() => {
+              if (userProfile?.role === 'student') {
+                navigate('/student/subjects');
+              } else {
+                navigate('/subjects');
+              }
+            }}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -258,53 +334,89 @@ export const StudentSubjectDetailView: React.FC = () => {
           </div>
         </div>
 
-        {/* Assignments Section */}
+        {/* Role-based Assignments Section */}
         <div className="grid gap-6 md:grid-cols-2">
           {/* Upcoming Assignments */}
           <Card>
             <CardHeader>
-              <CardTitle>Upcoming Assignments</CardTitle>
-              <CardDescription>Assignments due soon</CardDescription>
+              <CardTitle>
+                {userProfile?.role === 'student' ? 'Upcoming Assignments' : 'All Assignments'}
+              </CardTitle>
+              <CardDescription>
+                {userProfile?.role === 'student' 
+                  ? 'Assignments due soon' 
+                  : 'Assignments for this subject'
+                }
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {upcomingAssignments.length > 0 ? (
-                  upcomingAssignments.slice(0, 5).map((assignment) => {
-                    const daysLeft = getDaysLeft(assignment.due_date);
-                    const isUrgent = daysLeft <= 3;
+                {assignments.length > 0 ? (
+                  assignments.slice(0, 5).map((assignment) => {
+                    const dueDate = assignment.due_date ? new Date(assignment.due_date) : null;
+                    const daysLeft = dueDate ? getDaysLeft(assignment.due_date) : null;
+                    const isUrgent = daysLeft !== null && daysLeft <= 3;
+                    const isOverdue = daysLeft !== null && daysLeft < 0;
                     
                     return (
                       <div key={assignment.id} className="flex items-center justify-between p-3 rounded-lg border">
                         <div className="flex items-center space-x-3">
-                          <div className={`w-2 h-2 rounded-full ${isUrgent ? 'bg-red-500' : 'bg-blue-500'}`} />
+                          {userProfile?.role === 'student' && (
+                            <div className={`w-2 h-2 rounded-full ${
+                              isOverdue ? 'bg-red-500' : isUrgent ? 'bg-orange-500' : 'bg-blue-500'
+                            }`} />
+                          )}
                           <div>
                             <p className="font-medium">{assignment.title}</p>
-                            <p className="text-sm text-muted-foreground">
-                              Due: {formatDate(assignment.due_date)}
-                            </p>
+                            {dueDate && (
+                              <p className="text-sm text-muted-foreground">
+                                Due: {formatDate(assignment.due_date)}
+                              </p>
+                            )}
+                            {userProfile?.role !== 'student' && (
+                              <p className="text-xs text-muted-foreground">
+                                Max Score: {assignment.max_score}
+                              </p>
+                            )}
                           </div>
                         </div>
-                        <Badge variant={isUrgent ? "destructive" : "secondary"}>
-                          {daysLeft > 0 ? `${daysLeft} days` : 'Today'}
-                        </Badge>
+                        <div className="text-right">
+                          {userProfile?.role === 'student' && daysLeft !== null && (
+                            <Badge variant={isOverdue ? "destructive" : isUrgent ? "destructive" : "secondary"}>
+                              {isOverdue ? 'Overdue' : daysLeft > 0 ? `${daysLeft} days` : 'Today'}
+                            </Badge>
+                          )}
+                          {userProfile?.role !== 'student' && (
+                            <Badge variant="outline">
+                              {submissions.filter(s => s.assignment.id === assignment.id).length} submissions
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     );
                   })
                 ) : (
                   <div className="text-center py-8">
                     <Target className="w-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">No upcoming assignments</p>
+                    <p className="text-muted-foreground">No assignments found</p>
                   </div>
                 )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Recent Submissions */}
+          {/* Submissions/Students Section */}
           <Card>
             <CardHeader>
-              <CardTitle>Your Submissions</CardTitle>
-              <CardDescription>Recent assignment submissions</CardDescription>
+              <CardTitle>
+                {userProfile?.role === 'student' ? 'Your Submissions' : 'Recent Submissions'}
+              </CardTitle>
+              <CardDescription>
+                {userProfile?.role === 'student' 
+                  ? 'Your assignment submissions' 
+                  : 'Student submissions for this subject'
+                }
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -315,9 +427,20 @@ export const StudentSubjectDetailView: React.FC = () => {
                         <FileText className="w-4 h-4 text-muted-foreground" />
                         <div>
                           <p className="font-medium">{submission.assignment.title}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Submitted: {formatDate(submission.submitted_at)}
+                           <p className="text-sm text-muted-foreground">
+                             {userProfile?.role === 'student' ? 'Submitted: ' : 'Student: '}
+                             {userProfile?.role === 'student' 
+                               ? formatDate(submission.submitted_at)
+                               : submission.student
+                                 ? `${submission.student.first_name} ${submission.student.last_name}`
+                                 : 'Unknown student'
+                             }
                           </p>
+                          {userProfile?.role !== 'student' && (
+                            <p className="text-xs text-muted-foreground">
+                              Submitted: {formatDate(submission.submitted_at)}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="text-right">
@@ -326,7 +449,9 @@ export const StudentSubjectDetailView: React.FC = () => {
                             {submission.score}/{submission.assignment.max_score}
                           </Badge>
                         ) : (
-                          <Badge variant="outline">Pending</Badge>
+                          <Badge variant="outline">
+                            {userProfile?.role === 'student' ? 'Pending' : 'Not graded'}
+                          </Badge>
                         )}
                       </div>
                     </div>
@@ -334,13 +459,50 @@ export const StudentSubjectDetailView: React.FC = () => {
                 ) : (
                   <div className="text-center py-8">
                     <FileText className="w-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">No submissions yet</p>
+                    <p className="text-muted-foreground">
+                      {userProfile?.role === 'student' ? 'No submissions yet' : 'No submissions received'}
+                    </p>
                   </div>
                 )}
               </div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Additional info for teachers/principals */}
+        {userProfile?.role !== 'student' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Enrolled Students</CardTitle>
+              <CardDescription>Students enrolled in this subject's class</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-3">
+                {enrolledStudents.map((enrollment) => (
+                  <div key={enrollment.id} className="flex items-center space-x-3 p-3 rounded-lg border">
+                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                      <User className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">
+                        {enrollment.student.first_name} {enrollment.student.last_name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {submissions.filter(s => s.student_id === enrollment.student.id).length} submissions
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                {enrolledStudents.length === 0 && (
+                  <div className="col-span-full text-center py-8">
+                    <User className="w-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No students enrolled</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </main>
     </div>
   );

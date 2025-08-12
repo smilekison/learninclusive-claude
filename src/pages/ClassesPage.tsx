@@ -147,7 +147,13 @@ export const ClassesPage: React.FC = () => {
 
 
   const handleViewClass = (classId: string) => {
-    navigate(`/insights?classId=${classId}`);
+    // For students, redirect to their subjects page
+    if (user?.role === 'student') {
+      navigate('/student/subjects');
+    } else {
+      // For teachers and principals, redirect to insights
+      navigate(`/insights?classId=${classId}`);
+    }
   };
 
   const handleDeleteClass = (classId: string) => {

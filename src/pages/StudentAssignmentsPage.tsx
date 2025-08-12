@@ -13,7 +13,8 @@ import {
   Clock,
   AlertCircle,
   CheckCircle,
-  Upload
+  Upload,
+  BarChart3
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -254,78 +255,175 @@ export const StudentAssignmentsPage: React.FC = () => {
           </p>
         </div>
 
+        {/* Progress Overview */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5" />
+              Assignment Progress
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">{studentAssignments.length}</div>
+                <div className="text-sm text-blue-700">Total</div>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">
+                  {studentAssignments.filter(a => a.submissions?.length > 0).length}
+                </div>
+                <div className="text-sm text-green-700">Submitted</div>
+              </div>
+              <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                <div className="text-2xl font-bold text-yellow-600">
+                  {studentAssignments.filter(a => 
+                    a.submissions?.length > 0 && a.submissions[0]?.score === null
+                  ).length}
+                </div>
+                <div className="text-sm text-yellow-700">Pending</div>
+              </div>
+              <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <div className="text-2xl font-bold text-purple-600">
+                  {studentAssignments.filter(a => 
+                    a.submissions?.length > 0 && a.submissions[0]?.score !== null
+                  ).length}
+                </div>
+                <div className="text-sm text-purple-700">Graded</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         {/* Assignments Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {studentAssignments.map((assignment: any) => {
             const hasSubmission = assignment.submissions && assignment.submissions.length > 0;
             const submission = hasSubmission ? assignment.submissions[0] : null;
 
             return (
-              <Card key={assignment.id} className="hover:shadow-md transition-shadow">
+              <Card 
+                key={assignment.id} 
+                className="hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4"
+                style={{
+                  borderLeftColor: hasSubmission 
+                    ? submission?.score !== null ? '#22c55e' : '#3b82f6'
+                    : assignment.due_date && new Date(assignment.due_date) < new Date() ? '#ef4444' : '#6b7280'
+                }}
+              >
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-lg">
                       {getUrgencyIcon(assignment)}
                       {assignment.title}
                     </CardTitle>
                     {getStatusBadge(assignment)}
                   </div>
-                  <CardDescription>
+                  <CardDescription className="text-sm">
                     {assignment.description || 'No description available'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <FileText className="w-4 h-4" />
-                      <span>Subject: {assignment.subject?.name}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="w-4 h-4" />
-                      <span>Class: {assignment.subject?.class?.name}</span>
-                    </div>
-                    {assignment.due_date && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Clock className="w-4 h-4" />
-                        <span>Due: {new Date(assignment.due_date).toLocaleDateString()}</span>
+                  <div className="space-y-3 mb-4">
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <FileText className="w-4 h-4" />
+                        <span>Subject: {assignment.subject?.name}</span>
                       </div>
-                    )}
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>Max Score: {assignment.max_score} points</span>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Calendar className="w-4 h-4" />
+                        <span>Class: {assignment.subject?.class?.name}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      {assignment.due_date && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Clock className="w-4 h-4" />
+                          <span>Due: {new Date(assignment.due_date).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <span>Max Score: {assignment.max_score} points</span>
+                      </div>
                     </div>
                     
                     {submission && (
-                      <div className="mt-3 p-3 bg-muted rounded-lg">
-                        <p className="text-sm font-medium">Your Submission:</p>
-                        <p className="text-sm text-muted-foreground">
-                          Submitted: {new Date(submission.submitted_at).toLocaleDateString()}
-                        </p>
-                        {submission.score !== null && (
-                          <p className="text-sm font-medium text-green-600">
-                            Score: {submission.score}/{assignment.max_score}
+                      <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-sm font-semibold text-green-700">✓ Submitted</p>
+                          {submission.score !== null && (
+                            <div className="text-right">
+                              <p className="text-lg font-bold text-green-600">
+                                {submission.score}/{assignment.max_score}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                ({Math.round((submission.score / assignment.max_score) * 100)}%)
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-1 text-sm">
+                          <p className="text-muted-foreground">
+                            <strong>Submitted:</strong> {new Date(submission.submitted_at).toLocaleDateString()}
                           </p>
-                        )}
-                        {submission.feedback && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            Feedback: {submission.feedback}
-                          </p>
-                        )}
+                          {submission.feedback && (
+                            <div className="mt-2 p-2 bg-white rounded border">
+                              <p className="text-xs font-medium text-blue-700">Teacher Feedback:</p>
+                              <p className="text-sm text-gray-700">{submission.feedback}</p>
+                            </div>
+                          )}
+                          {submission.submission_text && (
+                            <div className="mt-2 p-2 bg-white rounded border">
+                              <p className="text-xs font-medium text-gray-700">Your Submission:</p>
+                              <p className="text-sm text-gray-600">{submission.submission_text.substring(0, 100)}...</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
                   
-                  {!hasSubmission && (
-                    <Button 
-                      className="w-full" 
-                      onClick={() => {
-                        setSelectedAssignment(assignment);
-                        setSubmissionDialog(true);
-                      }}
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      Submit Assignment
-                    </Button>
-                  )}
+                  <div className="flex gap-2">
+                    {!hasSubmission ? (
+                      <Button 
+                        className="flex-1" 
+                        onClick={() => {
+                          setSelectedAssignment(assignment);
+                          setSubmissionDialog(true);
+                        }}
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Submit Assignment
+                      </Button>
+                    ) : (
+                      <div className="flex gap-2 w-full">
+                        <Button 
+                          variant="outline" 
+                          className="flex-1"
+                          onClick={() => {
+                            setSelectedAssignment(assignment);
+                            setSubmissionText(submission?.submission_text || '');
+                            setSubmissionDialog(true);
+                          }}
+                        >
+                          View Submission
+                        </Button>
+                        {submission?.score === null && (
+                          <Button 
+                            variant="secondary" 
+                            className="flex-1"
+                            onClick={() => {
+                              setSelectedAssignment(assignment);
+                              setSubmissionText('');
+                              setSubmissionDialog(true);
+                            }}
+                          >
+                            Resubmit
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             );

@@ -359,7 +359,15 @@ export const StudentSubjectDetailView: React.FC = () => {
                     const isOverdue = daysLeft !== null && daysLeft < 0;
                     
                     return (
-                      <div key={assignment.id} className="flex items-center justify-between p-3 rounded-lg border">
+                      <div 
+                        key={assignment.id} 
+                        className="flex items-center justify-between p-3 rounded-lg border hover:border-primary/50 transition-colors cursor-pointer"
+                        onClick={() => {
+                          if (userProfile?.role === 'student') {
+                            navigate('/student/assignments');
+                          }
+                        }}
+                      >
                         <div className="flex items-center space-x-3">
                           {userProfile?.role === 'student' && (
                             <div className={`w-2 h-2 rounded-full ${
@@ -382,9 +390,16 @@ export const StudentSubjectDetailView: React.FC = () => {
                         </div>
                         <div className="text-right">
                           {userProfile?.role === 'student' && daysLeft !== null && (
-                            <Badge variant={isOverdue ? "destructive" : isUrgent ? "destructive" : "secondary"}>
-                              {isOverdue ? 'Overdue' : daysLeft > 0 ? `${daysLeft} days` : 'Today'}
-                            </Badge>
+                            <div className="flex flex-col items-end gap-1">
+                              <Badge variant={isOverdue ? "destructive" : isUrgent ? "destructive" : "secondary"}>
+                                {isOverdue ? 'Overdue' : daysLeft > 0 ? `${daysLeft} days` : 'Today'}
+                              </Badge>
+                              {submissions.some(s => s.assignment.id === assignment.id) ? (
+                                <span className="text-xs text-green-600">✓ Submitted</span>
+                              ) : (
+                                <span className="text-xs text-red-600">Not submitted</span>
+                              )}
+                            </div>
                           )}
                           {userProfile?.role !== 'student' && (
                             <Badge variant="outline">

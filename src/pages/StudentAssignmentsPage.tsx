@@ -36,7 +36,7 @@ export const StudentAssignmentsPage: React.FC = () => {
       if (!user) return;
       
       try {
-        // Get student's profile ID
+        // Get student's profile ID using the correct user_id from auth
         const { data: profile } = await supabase
           .from('profiles')
           .select('id')
@@ -48,48 +48,16 @@ export const StudentAssignmentsPage: React.FC = () => {
           return;
         }
 
-        // Fetch assignments for classes the student is enrolled in
+        // Fetch assignments for classes the student is enrolled in with a simpler approach
         const { data: assignments, error } = await supabase
-          .from('assignments')
-          .select(`
-            *,
-            subject:subjects!inner(
-              id,
-              name,
-              class:classes!inner(
-                id,
-                name,
-                student_enrollments!inner(
-                  student_id,
-                  status
-                )
-              )
-            ),
-            submissions:assignment_submissions(
-              id,
-              submitted_at,
-              score,
-              feedback,
-              student_id
-            )
-          `)
-          .eq('subject.class.student_enrollments.student_id', profile.id)
-          .eq('subject.class.student_enrollments.status', 'active')
-          .eq('is_active', true)
-          .order('created_at', { ascending: false });
+          .rpc('get_student_assignments', { student_profile_id: profile.id });
 
         if (error) {
           console.error('Error fetching assignments:', error);
           return;
         }
 
-        // Filter submissions to only show current student's submissions
-        const processedAssignments = assignments?.map(assignment => ({
-          ...assignment,
-          submissions: assignment.submissions?.filter(sub => sub.student_id === profile.id) || []
-        })) || [];
-
-        setStudentAssignments(processedAssignments);
+        setStudentAssignments(assignments || []);
       } catch (error) {
         console.error('Error fetching student assignments:', error);
         setStudentAssignments([]);

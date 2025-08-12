@@ -30,13 +30,13 @@ const YouTubeHomepage = React.lazy(() => import("./pages/YouTubeHomepage").then(
 const VideoDetailsPage = React.lazy(() => import("./pages/VideoDetailsPage").then(module => ({ default: module.VideoDetailsPage })));
 const SubjectsPage = React.lazy(() => import("./pages/SubjectsPage").then(module => ({ default: module.SubjectsPage })));
 const AssignmentsPage = React.lazy(() => import("./pages/AssignmentsPage").then(module => ({ default: module.AssignmentsPage })));
+const StudentAssignmentsPage = React.lazy(() => import("./pages/StudentAssignmentsPage").then(module => ({ default: module.StudentAssignmentsPage })));
 const StudentsPage = React.lazy(() => import("./pages/StudentsPage").then(module => ({ default: module.StudentsPage })));
 const TeachersPage = React.lazy(() => import("./pages/TeachersPage").then(module => ({ default: module.TeachersPage })));
 const TeacherProfilePage = React.lazy(() => import("./pages/TeacherProfilePage").then(module => ({ default: module.TeacherProfilePage })));
 const ClassesPage = React.lazy(() => import("./pages/ClassesPage").then(module => ({ default: module.ClassesPage })));
 const BinPage = React.lazy(() => import("./pages/BinPage").then(module => ({ default: module.BinPage })));
 const StudentSubjectsPage = React.lazy(() => import("./pages/StudentSubjectsPage").then(module => ({ default: module.StudentSubjectsPage })));
-const StudentAssignmentsPage = React.lazy(() => import("./pages/StudentAssignmentsPage").then(module => ({ default: module.StudentAssignmentsPage })));
 const SubmissionsPage = React.lazy(() => import("./pages/SubmissionsPage").then(module => ({ default: module.SubmissionsPage })));
 const JoinSubjectPage = React.lazy(() => import("./pages/JoinSubjectPage").then(module => ({ default: module.JoinSubjectPage })));
 const VideoManagementPage = React.lazy(() => import("./pages/VideoManagementPage").then(module => ({ default: module.VideoManagementPage })));

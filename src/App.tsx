@@ -202,6 +202,18 @@ const AppContent = () => {
           } 
         />
         <Route 
+          path="/student/subjects/:id" 
+          element={
+            <ProtectedRoute requiredRole="student">
+              <Layout>
+                <Suspense fallback={<LoadingScreen />}>
+                  {React.createElement(React.lazy(() => import("./components/subjects/StudentSubjectDetailView").then(module => ({ default: module.StudentSubjectDetailView }))))}
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
           path="/student/assignments" 
           element={
             <ProtectedRoute requiredRole="student">

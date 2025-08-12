@@ -400,31 +400,68 @@ export const StudentDashboardReal: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {subjects?.slice(0, 4).map((subject: any, index: number) => {
-                const progress = Math.floor(Math.random() * 40) + 60;
-                return (
-                  <div key={subject.id} className="flex items-center justify-between p-3 rounded-lg border">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                        <BookOpen className="h-5 w-5 text-primary" />
+              {subjects && subjects.length > 0 ? (
+                subjects.slice(0, 4).map((subject: any) => {
+                  // Get assignments for this subject to calculate progress
+                  const subjectAssignments = assignments?.filter((a: any) => a.subject_id === subject.id) || [];
+                  const completedAssignments = studentGrades.filter((g: any) => 
+                    g.assignment && g.assignment.subject && g.assignment.subject.id === subject.id
+                  ).length;
+                  const progress = subjectAssignments.length > 0 
+                    ? Math.round((completedAssignments / subjectAssignments.length) * 100)
+                    : 0;
+
+                  return (
+                    <div 
+                      key={subject.id} 
+                      className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
+                      onClick={() => navigate(`/student/subjects/${subject.id}`)}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                          <BookOpen className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{subject.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {subject.description || 'No description available'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Class: {subject.class?.name}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{subject.name}</p>
-                        <p className="text-sm text-muted-foreground">{subject.description}</p>
+                      <div className="text-right">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Progress value={progress} className="w-16 h-2" />
+                          <span className="text-xs font-medium">{progress}%</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {completedAssignments}/{subjectAssignments.length} assignments
+                        </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <Progress value={progress} className="w-16 h-2 mb-1" />
-                      <p className="text-xs text-muted-foreground">{progress}% complete</p>
-                    </div>
-                  </div>
-                );
-              })}
-              {(!subjects || subjects.length === 0) && (
+                  );
+                })
+              ) : (
                 <div className="text-center py-8">
                   <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground">No subjects found</p>
-                  <p className="text-sm text-muted-foreground">Join a class to see subjects</p>
+                  <p className="text-sm text-muted-foreground">
+                    {enrolledClasses.length > 0 
+                      ? "Your classes don't have any subjects yet" 
+                      : "Join a class to see subjects"
+                    }
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-4"
+                    onClick={() => navigate('/join-subject')}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Join Subject
+                  </Button>
                 </div>
               )}
             </div>

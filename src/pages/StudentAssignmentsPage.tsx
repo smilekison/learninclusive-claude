@@ -48,16 +48,50 @@ export const StudentAssignmentsPage: React.FC = () => {
           return;
         }
 
-        // Fetch assignments for classes the student is enrolled in with a simpler approach
+        // Fetch assignments for classes the student is enrolled in
         const { data: assignments, error } = await supabase
-          .rpc('get_student_assignments', { student_profile_id: profile.id });
+          .from('assignments')
+          .select(`
+            *,
+            subject:subjects!inner(
+              id,
+              name,
+              class:classes!inner(
+                id,
+                name,
+                student_enrollments!inner(
+                  student_id,
+                  status
+                )
+              )
+            ),
+            submissions:assignment_submissions(
+              id,
+              submitted_at,
+              score,
+              feedback,
+              submission_text,
+              file_path,
+              student_id
+            )
+          `)
+          .eq('subject.class.student_enrollments.student_id', profile.id)
+          .eq('subject.class.student_enrollments.status', 'active')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
 
         if (error) {
           console.error('Error fetching assignments:', error);
           return;
         }
 
-        setStudentAssignments(assignments || []);
+        // Filter submissions to only show current student's submissions
+        const processedAssignments = assignments?.map(assignment => ({
+          ...assignment,
+          submissions: assignment.submissions?.filter(sub => sub.student_id === profile.id) || []
+        })) || [];
+
+        setStudentAssignments(processedAssignments);
       } catch (error) {
         console.error('Error fetching student assignments:', error);
         setStudentAssignments([]);

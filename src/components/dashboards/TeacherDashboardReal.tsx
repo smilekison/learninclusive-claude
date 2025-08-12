@@ -744,11 +744,11 @@ export const TeacherDashboardReal: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Subjects with Invitation Codes */}
+      {/* My Subjects */}
       <Card>
         <CardHeader>
-          <CardTitle>My Subjects & Invitation Codes</CardTitle>
-          <CardDescription>Share invitation codes with students to join your subjects</CardDescription>
+          <CardTitle>My Subjects</CardTitle>
+          <CardDescription>Manage your subjects and course content</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -760,39 +760,19 @@ export const TeacherDashboardReal: React.FC = () => {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="space-y-2">
-                    <p className="text-sm font-medium">Invitation Code:</p>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 p-2 bg-muted rounded font-mono text-center">
-                        {subject.invitation_code || 'Not set'}
-                      </div>
-                      {subject.invitation_code && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={async () => {
-                            try {
-                              await navigator.clipboard.writeText(subject.invitation_code);
-                              toast({
-                                title: "Code Copied",
-                                description: "Invitation code copied to clipboard",
-                              });
-                            } catch (err) {
-                              toast({
-                                title: "Copy Failed",
-                                description: "Could not copy code to clipboard",
-                                variant: "destructive",
-                              });
-                            }
-                          }}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      )}
+                    <p className="text-sm font-medium">Subject Details:</p>
+                    <div className="text-sm text-muted-foreground">
+                      Class: {subject.class?.name || 'No class assigned'}
                     </div>
                   </div>
-                  <Badge variant="outline" className="text-xs">
-                    Class: {subject.class?.name || 'No class'}
-                  </Badge>
+                  <div className="flex justify-between items-center pt-2">
+                    <Badge variant="outline" className="text-xs">
+                      {subject.is_active ? 'Active' : 'Inactive'}
+                    </Badge>
+                    <Button size="sm" variant="outline">
+                      Manage
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}

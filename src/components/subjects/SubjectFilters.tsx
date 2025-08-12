@@ -201,28 +201,6 @@ export const SubjectFilters: React.FC<SubjectFiltersProps> = ({
                       </div>
                     )}
 
-                    {user?.role === 'teacher' && subject?.invitation_code && (
-                      <div className="flex items-center justify-between text-sm text-foreground">
-                        <div className="flex items-center gap-2">
-                          <QrCode className="w-4 h-4" />
-                          <span>Invite Code: <span className="font-mono bg-muted px-1 rounded">{subject.invitation_code}</span></span>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigator.clipboard.writeText(subject.invitation_code);
-                            toast({
-                              title: "Copied!",
-                              description: "Invitation code copied to clipboard",
-                            });
-                          }}
-                        >
-                          Copy
-                        </Button>
-                      </div>
-                    )}
                   </div>
 
                   <div className="flex gap-2 pt-2">

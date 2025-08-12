@@ -11,7 +11,6 @@ import { Clock, CheckCircle, XCircle, RefreshCw, Trash2 } from 'lucide-react';
 interface EnrollmentRequest {
   id: string;
   subject_id: string;
-  invitation_code: string;
   status: string;
   requested_at: string;
   processed_at?: string;
@@ -159,7 +158,6 @@ export const EnrollmentStatusList: React.FC = () => {
                   </div>
                   
                   <div className="text-xs text-muted-foreground">
-                    <p>Code: {request.invitation_code}</p>
                     <p>Requested: {new Date(request.requested_at).toLocaleDateString()}</p>
                     {request.processed_at && (
                       <p>Processed: {new Date(request.processed_at).toLocaleDateString()}</p>
@@ -178,7 +176,7 @@ export const EnrollmentStatusList: React.FC = () => {
               <div className="text-center py-8 text-muted-foreground">
                 <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>No enrollment requests found</p>
-                <p className="text-sm">Use invitation codes to request enrollment in subjects</p>
+                <p className="text-sm">Teachers will add you directly to subjects</p>
               </div>
             )}
           </div>

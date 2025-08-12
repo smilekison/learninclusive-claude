@@ -38,7 +38,7 @@ const ClassesPage = React.lazy(() => import("./pages/ClassesPage").then(module =
 const BinPage = React.lazy(() => import("./pages/BinPage").then(module => ({ default: module.BinPage })));
 const StudentSubjectsPage = React.lazy(() => import("./pages/StudentSubjectsPage").then(module => ({ default: module.StudentSubjectsPage })));
 const SubmissionsPage = React.lazy(() => import("./pages/SubmissionsPage").then(module => ({ default: module.SubmissionsPage })));
-const JoinSubjectPage = React.lazy(() => import("./pages/JoinSubjectPage").then(module => ({ default: module.JoinSubjectPage })));
+
 const VideoManagementPage = React.lazy(() => import("./pages/VideoManagementPage").then(module => ({ default: module.VideoManagementPage })));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
@@ -260,18 +260,6 @@ const AppContent = () => {
               </Layout>
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/join-subject" 
-          element={
-            <ProtectedRoute requiredRole="student">
-              <Layout>
-                <Suspense fallback={<LoadingScreen />}>
-                  <JoinSubjectPage />
-                </Suspense>
-              </Layout>
-            </ProtectedRoute>
-          } 
         />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />

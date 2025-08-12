@@ -31,7 +31,7 @@ import {
   Share,
   Settings
 } from 'lucide-react';
-import { InviteCodeDisplay } from './InviteCodeDisplay';
+
 import { LessonManager } from './LessonManager';
 
 interface Assignment {
@@ -51,7 +51,6 @@ interface Subject {
   id: string;
   name: string;
   description: string | null;
-  invitation_code: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -441,15 +440,17 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
               <CardHeader>
                 <CardTitle>Subject Settings</CardTitle>
                 <CardDescription>
-                  Manage subject configuration and student access
+                  Manage subject configuration
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <InviteCodeDisplay 
-                  enrollmentCode={subject.invitation_code} 
-                  className={subject.class?.name || 'Class'}
-                  subjectName={subject.name}
-                />
+                <div className="text-center py-8">
+                  <Settings className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Basic Settings</h3>
+                  <p className="text-muted-foreground">
+                    Subject settings and configuration options
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

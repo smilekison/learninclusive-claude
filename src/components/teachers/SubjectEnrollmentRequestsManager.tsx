@@ -13,11 +13,11 @@ export const SubjectEnrollmentRequestsManager: React.FC<SubjectEnrollmentRequest
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Enrollment Requests</CardTitle>
+        <CardTitle>Student Management</CardTitle>
       </CardHeader>
       <CardContent>
         <p className="text-muted-foreground text-center py-8">
-          Enrollment request management temporarily unavailable.
+          Student enrollment is now managed directly by teachers and administrators.
         </p>
       </CardContent>
     </Card>

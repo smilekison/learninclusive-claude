@@ -224,7 +224,7 @@ export const SubjectEnrollmentManager: React.FC<SubjectEnrollmentManagerProps> =
                     </p>
                     <p className="text-sm text-muted-foreground">{request.subject?.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      Code: {request.invitation_code} • {new Date(request.requested_at).toLocaleDateString()}
+                      Requested: {new Date(request.requested_at).toLocaleDateString()}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

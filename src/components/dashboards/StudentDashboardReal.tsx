@@ -43,6 +43,43 @@ export const StudentDashboardReal: React.FC = () => {
   const [submissionText, setSubmissionText] = useState('');
   const [submissionFile, setSubmissionFile] = useState<File | null>(null);
 
+  // Get student's enrolled classes from enrollments
+  const [enrolledClasses, setEnrolledClasses] = useState<any[]>([]);
+  React.useEffect(() => {
+    const fetchEnrolledClasses = async () => {
+      if (!user) return;
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profile) {
+        const { data: enrollments } = await supabase
+          .from('student_enrollments')
+          .select(`
+            id,
+            class_id,
+            status,
+            enrolled_at,
+            class:classes(
+              id,
+              name,
+              description,
+              teacher:profiles(first_name, last_name)
+            )
+          `)
+          .eq('student_id', profile.id)
+          .eq('status', 'active');
+
+        setEnrolledClasses(enrollments || []);
+      }
+    };
+
+    fetchEnrolledClasses();
+  }, [user]);
+
   // Filter assignments by student's enrolled classes
   const studentAssignments = assignments?.filter((assignment: any) => {
     // This would typically filter by the student's enrolled classes
@@ -316,6 +353,45 @@ export const StudentDashboardReal: React.FC = () => {
 
       {/* Main Content Grid */}
       <div className="grid gap-6 md:grid-cols-2">
+        {/* Enrolled Classes */}
+        <Card>
+          <CardHeader>
+            <CardTitle>My Classes</CardTitle>
+            <CardDescription>Classes you are enrolled in</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {enrolledClasses.length > 0 ? (
+                enrolledClasses.slice(0, 4).map((enrollment: any) => (
+                  <div key={enrollment.id} className="flex items-center justify-between p-3 rounded-lg border">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <BookOpen className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{enrollment.class?.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {enrollment.class?.description}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Teacher: {enrollment.class?.teacher?.first_name} {enrollment.class?.teacher?.last_name}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary">Active</Badge>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">No classes found</p>
+                  <p className="text-sm text-muted-foreground">You're not enrolled in any classes yet</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Subjects */}
         <Card>
           <CardHeader>
@@ -344,10 +420,20 @@ export const StudentDashboardReal: React.FC = () => {
                   </div>
                 );
               })}
+              {(!subjects || subjects.length === 0) && (
+                <div className="text-center py-8">
+                  <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">No subjects found</p>
+                  <p className="text-sm text-muted-foreground">Join a class to see subjects</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
+      </div>
 
+      {/* Second row for tasks and grades */}
+      <div className="grid gap-6 md:grid-cols-2">
         {/* Upcoming Tasks */}
         <Card>
           <CardHeader>

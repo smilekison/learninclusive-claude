@@ -433,7 +433,7 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
           </TabsContent>
 
           <TabsContent value="lessons" className="space-y-6">
-            <LessonManager subjectId={subject.id} subjectName={subject.name} />
+            <LessonManager subjectId={subject.id} />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">

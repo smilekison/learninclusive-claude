@@ -26,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { EnrollmentStatusList } from '@/components/students/EnrollmentStatusList';
+import { StudentLessons } from '@/components/students/StudentLessons';
 
 export const StudentDashboardReal: React.FC = () => {
   const { user } = useAuth();
@@ -418,7 +419,7 @@ export const StudentDashboardReal: React.FC = () => {
       </Card>
 
       {/* Main Content Grid */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Enrolled Classes */}
         <Card>
           <CardHeader>
@@ -680,7 +681,20 @@ export const StudentDashboardReal: React.FC = () => {
             and customizable display options. Contact your teacher or administrator for personalized settings.
           </p>
         </CardContent>
-      </Card>
+        </Card>
+
+        {/* Lessons Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Lessons</CardTitle>
+            <CardDescription>Latest lessons from your subjects</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <StudentLessons />
+            </div>
+          </CardContent>
+        </Card>
     </div>
   );
 };

@@ -12,78 +12,139 @@ const corsHeaders = {
 
 interface InvitationRequest {
   email: string;
-  role: string;
-  invitedBy: string;
-  additionalData?: any;
+  inviteType: 'teacher' | 'student' | 'subject_enrollment';
+  role?: string;
+  schoolName?: string;
+  subjectId?: string;
+  enrollmentLink?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { email, role, invitedBy, additionalData }: InvitationRequest = await req.json();
+    const { email, inviteType, role, schoolName, subjectId, enrollmentLink }: InvitationRequest = await req.json();
+    
+    console.log('Sending invitation:', { email, inviteType, role, schoolName, subjectId });
 
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Generate invitation token
-    const token = crypto.randomUUID();
-    const inviteUrl = `${Deno.env.get('SITE_URL')}/auth?invite=${token}`;
+    let emailResponse;
 
-    // Store invitation in database
-    const { error: dbError } = await supabase
-      .from('email_invitations')
-      .insert({
-        email,
-        role,
-        invited_by: invitedBy,
-        token,
-        additional_data: additionalData || {}
+    if (inviteType === 'subject_enrollment') {
+      // Get subject details
+      const { data: subject } = await supabase
+        .from('subjects')
+        .select(`
+          name,
+          description,
+          class:classes(name, teacher:profiles!teacher_id(first_name, last_name))
+        `)
+        .eq('id', subjectId)
+        .single();
+
+      emailResponse = await resend.emails.send({
+        from: "LMS System <onboarding@resend.dev>",
+        to: [email],
+        subject: `You're invited to join ${subject?.name || 'a subject'}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1>You're Invited to Join a Subject!</h1>
+            <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h2>${subject?.name || 'Subject'}</h2>
+              ${subject?.description ? `<p><strong>Description:</strong> ${subject.description}</p>` : ''}
+              <p><strong>Class:</strong> ${subject?.class?.name || 'Class'}</p>
+              <p><strong>Teacher:</strong> ${subject?.class?.teacher?.first_name} ${subject?.class?.teacher?.last_name}</p>
+            </div>
+            <p>Click the link below to enroll in this subject:</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${enrollmentLink}" 
+                 style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                Enroll Now
+              </a>
+            </div>
+            <p style="color: #666; font-size: 14px;">
+              If you already have an account, simply click the link above. If you're new, you'll be able to create an account during the enrollment process.
+            </p>
+            <p style="color: #666; font-size: 14px;">
+              If you have any questions, please contact your teacher or administrator.
+            </p>
+          </div>
+        `,
       });
+    } else {
+      // Existing invitation logic for teachers/students
+      const token = crypto.randomUUID();
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-    if (dbError) {
-      throw new Error(`Database error: ${dbError.message}`);
+      // Get inviter profile
+      const authHeader = req.headers.get('authorization');
+      if (!authHeader) throw new Error('No authorization header');
+
+      const token_user = authHeader.replace('Bearer ', '');
+      const { data: { user }, error: userError } = await supabase.auth.getUser(token_user);
+      if (userError || !user) throw new Error('Invalid user token');
+
+      const { data: inviterProfile } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!inviterProfile) throw new Error('Inviter profile not found');
+
+      // Store invitation in database
+      const { error: inviteError } = await supabase
+        .from('email_invitations')
+        .insert({
+          email,
+          token,
+          role: role || 'student',
+          expires_at: expiresAt.toISOString(),
+          invited_by: inviterProfile.id,
+          additional_data: { school_name: schoolName }
+        });
+
+      if (inviteError) throw inviteError;
+
+      const inviteUrl = `${req.headers.get('origin') || 'http://localhost:8080'}/auth?invite=${token}`;
+
+      emailResponse = await resend.emails.send({
+        from: "LMS System <onboarding@resend.dev>",
+        to: [email],
+        subject: `You're invited to join as a ${role}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1>You're Invited!</h1>
+            <p>Hello! You've been invited by ${inviterProfile.first_name} ${inviterProfile.last_name} to join ${schoolName || 'our learning management system'} as a ${role}.</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${inviteUrl}" 
+                 style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                Accept Invitation
+              </a>
+            </div>
+            
+            <p style="color: #666; font-size: 14px;">
+              This invitation will expire in 7 days. If you have any questions, please contact your administrator.
+            </p>
+            <p style="color: #666; font-size: 14px;">
+              Invitation link: <a href="${inviteUrl}">${inviteUrl}</a>
+            </p>
+          </div>
+        `,
+      });
     }
 
-    // Send invitation email
-    const emailResponse = await resend.emails.send({
-      from: "ILS Learning <onboarding@resend.dev>",
-      to: [email],
-      subject: `You're invited to join ILS Learning as a ${role}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #2563eb;">Welcome to ILS Learning!</h1>
-          <p>You've been invited to join our Inclusive Learning System as a <strong>${role}</strong>.</p>
-          
-          <p>Click the button below to set up your account:</p>
-          
-          <a href="${inviteUrl}" 
-             style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 16px 0;">
-            Set Up Your Account
-          </a>
-          
-          <p>Or copy and paste this link in your browser:</p>
-          <p style="background-color: #f3f4f6; padding: 12px; border-radius: 4px; word-break: break-all;">
-            ${inviteUrl}
-          </p>
-          
-          <p>This invitation will expire in 7 days.</p>
-          
-          <hr style="margin: 32px 0; border: none; border-top: 1px solid #e5e7eb;">
-          <p style="color: #6b7280; font-size: 14px;">
-            If you didn't expect this invitation, you can safely ignore this email.
-          </p>
-        </div>
-      `,
-    });
+    console.log("Email sent successfully:", emailResponse);
 
-    console.log("Invitation email sent successfully:", emailResponse);
-
-    return new Response(JSON.stringify({ success: true, inviteUrl }), {
+    return new Response(JSON.stringify(emailResponse), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

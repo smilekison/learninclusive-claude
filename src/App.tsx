@@ -40,6 +40,7 @@ const StudentSubjectsPage = React.lazy(() => import("./pages/StudentSubjectsPage
 const SubmissionsPage = React.lazy(() => import("./pages/SubmissionsPage").then(module => ({ default: module.SubmissionsPage })));
 
 const VideoManagementPage = React.lazy(() => import("./pages/VideoManagementPage").then(module => ({ default: module.VideoManagementPage })));
+import { EnrollSubjectPage } from '@/pages/EnrollSubjectPage';
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -262,7 +263,8 @@ const AppContent = () => {
           }
         />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-        <Route path="*" element={<NotFound />} />
+            <Route path="/enroll-subject" element={<EnrollSubjectPage />} />
+            <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
   );

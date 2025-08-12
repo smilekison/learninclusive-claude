@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserPlus, Users, X, Search } from 'lucide-react';
+import { UserPlus, Users, X, Search, Mail } from 'lucide-react';
 
 interface Student {
   id: string;
@@ -39,7 +39,9 @@ export const StudentEnrollmentPanel: React.FC<StudentEnrollmentPanelProps> = ({
   const [availableStudents, setAvailableStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [addStudentOpen, setAddStudentOpen] = useState(false);
+  const [inviteByEmailOpen, setInviteByEmailOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
 
   // Fetch enrolled students
   const fetchEnrolledStudents = async () => {
@@ -159,6 +161,45 @@ export const StudentEnrollmentPanel: React.FC<StudentEnrollmentPanelProps> = ({
     }
   };
 
+  const handleSendInviteEmail = async () => {
+    if (!inviteEmail.trim()) return;
+
+    try {
+      setIsLoading(true);
+
+      // Create enrollment link (you can customize this URL)
+      const enrollmentLink = `${window.location.origin}/enroll-subject?subject=${subjectId}&email=${encodeURIComponent(inviteEmail)}`;
+
+      const { error } = await supabase.functions.invoke('send-invitation', {
+        body: {
+          email: inviteEmail,
+          inviteType: 'subject_enrollment',
+          subjectId: subjectId,
+          enrollmentLink: enrollmentLink
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Invitation Sent',
+        description: `Enrollment invitation sent to ${inviteEmail}`,
+      });
+
+      setInviteByEmailOpen(false);
+      setInviteEmail('');
+    } catch (error: any) {
+      console.error('Error sending invitation:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to send invitation',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleRemoveStudent = async (studentId: string) => {
     try {
       setIsLoading(true);
@@ -204,17 +245,18 @@ export const StudentEnrollmentPanel: React.FC<StudentEnrollmentPanelProps> = ({
                 Enrolled Students ({enrolledStudents.length})
               </CardTitle>
             </div>
-            <Dialog open={addStudentOpen} onOpenChange={setAddStudentOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Add Student
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Add Student to Class</DialogTitle>
-                </DialogHeader>
+            <div className="flex gap-2">
+              <Dialog open={addStudentOpen} onOpenChange={setAddStudentOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Add Existing Student
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Add Existing Student</DialogTitle>
+                  </DialogHeader>
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="search">Search Students</Label>
@@ -263,8 +305,55 @@ export const StudentEnrollmentPanel: React.FC<StudentEnrollmentPanelProps> = ({
                     </div>
                   </ScrollArea>
                 </div>
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
+              
+              <Dialog open={inviteByEmailOpen} onOpenChange={setInviteByEmailOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    <Mail className="w-4 h-4 mr-2" />
+                    Invite by Email
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Invite Student by Email</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="inviteEmail">Student Email</Label>
+                      <Input
+                        id="inviteEmail"
+                        type="email"
+                        value={inviteEmail}
+                        onChange={(e) => setInviteEmail(e.target.value)}
+                        placeholder="student@example.com"
+                      />
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      The student will receive an email with a link to enroll in this subject.
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setInviteByEmailOpen(false);
+                          setInviteEmail('');
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={handleSendInviteEmail}
+                        disabled={!inviteEmail.trim() || isLoading}
+                      >
+                        Send Invitation
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </CardHeader>
         <CardContent>

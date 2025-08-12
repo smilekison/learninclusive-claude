@@ -58,9 +58,12 @@ export const StudentLessons: React.FC = () => {
         .from('profiles')
         .select('id, role')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
-      if (profileError || !userProfile) return [];
+      if (profileError || !userProfile) {
+        console.error('StudentLessons: Profile not found:', profileError);
+        return [];
+      }
 
       // Get lessons from enrolled classes
       const { data: lessonsData, error: lessonsError } = await supabase

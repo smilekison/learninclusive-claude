@@ -192,7 +192,11 @@ export const StudentSubjectDetailView: React.FC = () => {
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4" />
-                    <span>Teacher: {subject.class.teacher.first_name} {subject.class.teacher.last_name}</span>
+                    <span>
+                      Teacher: {subject.class.teacher 
+                        ? `${subject.class.teacher.first_name} ${subject.class.teacher.last_name}` 
+                        : 'Not assigned'}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <BookOpen className="w-4 h-4" />

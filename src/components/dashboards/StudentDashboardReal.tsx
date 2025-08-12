@@ -85,9 +85,17 @@ export const StudentDashboardReal: React.FC = () => {
   
   React.useEffect(() => {
     const fetchStudentAssignments = async () => {
-      if (!user) return;
+      console.log('🔍 StudentDashboard: Starting fetchStudentAssignments');
+      console.log('🔍 StudentDashboard: User:', user);
+      
+      if (!user) {
+        console.log('❌ StudentDashboard: No user found');
+        return;
+      }
       
       try {
+        console.log('🔍 StudentDashboard: Fetching profile for user_id:', user.id);
+        
         // Get student's profile ID using the correct user_id from auth
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
@@ -95,11 +103,16 @@ export const StudentDashboardReal: React.FC = () => {
           .eq('user_id', user.id)
           .maybeSingle();
 
+        console.log('🔍 StudentDashboard: Profile query result:', { profile, error: profileError });
+
         if (profileError || !profile) {
-          console.error('Student profile not found:', profileError);
+          console.error('❌ StudentDashboard: Student profile not found:', profileError);
           setStudentAssignments([]);
           return;
         }
+
+        console.log('✅ StudentDashboard: Found profile:', profile);
+        console.log('🔍 StudentDashboard: Fetching enrollments for student_id:', profile.id);
 
         // First, get the student's class enrollments
         const { data: enrollments, error: enrollmentError } = await supabase
@@ -121,17 +134,27 @@ export const StudentDashboardReal: React.FC = () => {
           .eq('student_id', profile.id)
           .eq('status', 'active');
 
+        console.log('🔍 StudentDashboard: Enrollments query result:', { enrollments, error: enrollmentError });
+
         if (enrollmentError) {
-          console.error('Error fetching enrollments:', enrollmentError);
+          console.error('❌ StudentDashboard: Error fetching enrollments:', enrollmentError);
           setStudentAssignments([]);
           return;
         }
 
+        console.log('✅ StudentDashboard: Found enrollments:', enrollments?.length || 0);
+
         // Extract all assignments from enrolled classes
         const allAssignments: any[] = [];
-        enrollments?.forEach(enrollment => {
-          enrollment.classes?.subjects?.forEach((subject: any) => {
-            subject.assignments?.forEach((assignment: any) => {
+        enrollments?.forEach((enrollment, enrollmentIndex) => {
+          console.log(`🔍 StudentDashboard: Processing enrollment ${enrollmentIndex}:`, enrollment);
+          
+          enrollment.classes?.subjects?.forEach((subject: any, subjectIndex: number) => {
+            console.log(`🔍 StudentDashboard: Processing subject ${subjectIndex}:`, subject);
+            
+            subject.assignments?.forEach((assignment: any, assignmentIndex: number) => {
+              console.log(`🔍 StudentDashboard: Processing assignment ${assignmentIndex}:`, assignment);
+              
               if (assignment.is_active) {
                 allAssignments.push({
                   ...assignment,
@@ -144,14 +167,17 @@ export const StudentDashboardReal: React.FC = () => {
                     }
                   }
                 });
+              } else {
+                console.log('⚠️ StudentDashboard: Skipping inactive assignment:', assignment.id);
               }
             });
           });
         });
 
+        console.log('✅ StudentDashboard: Final assignments array:', allAssignments);
         setStudentAssignments(allAssignments);
       } catch (error) {
-        console.error('Error fetching student assignments:', error);
+        console.error('❌ StudentDashboard: Error fetching student assignments:', error);
         setStudentAssignments([]);
       }
     };

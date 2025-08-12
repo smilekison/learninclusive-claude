@@ -49,21 +49,35 @@ export const StudentLessons: React.FC = () => {
 
   // Fetch lessons for student's enrolled classes
   const { data: lessons = [], isLoading } = useQuery({
-    queryKey: ['student-lessons'],
+    queryKey: ['student-lessons', user?.authUserId],
     queryFn: async () => {
-      if (!user) return [];
+      if (!user?.authUserId) {
+        console.log('StudentLessons: No auth user ID available, user object:', user);
+        return [];
+      }
       
-      // Get user profile
+      console.log('StudentLessons: Fetching profile for auth user:', user.authUserId);
+      
+      // Get user profile using the auth user ID
       const { data: userProfile, error: profileError } = await supabase
         .from('profiles')
         .select('id, role')
-        .eq('user_id', user.id)
+        .eq('user_id', user.authUserId)
         .maybeSingle();
       
-      if (profileError || !userProfile) {
-        console.error('StudentLessons: Profile not found:', profileError);
+      console.log('StudentLessons: Profile query result:', { userProfile, profileError });
+      
+      if (profileError) {
+        console.error('StudentLessons: Profile query error:', profileError);
         return [];
       }
+      
+      if (!userProfile) {
+        console.log('StudentLessons: Profile not found for auth user:', user.authUserId);
+        return [];
+      }
+
+      console.log('StudentLessons: Profile found, fetching lessons for student ID:', userProfile.id);
 
       // Get lessons from enrolled classes
       const { data: lessonsData, error: lessonsError } = await supabase

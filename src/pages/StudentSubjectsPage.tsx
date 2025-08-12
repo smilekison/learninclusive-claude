@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSubjects, useSupabaseMutation } from '@/hooks/useSupabaseQuery';
-import { supabase } from '@/integrations/supabase/client';
+import { useStudentSubjects, useAssignments } from '@/hooks/useSupabaseQuery';
 import { 
   ArrowLeft,
   BookOpen,
@@ -17,21 +16,11 @@ import {
 export const StudentSubjectsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: subjects = [] } = useSubjects();
-
-  // Filter subjects for enrolled classes
-  const [studentSubjects, setStudentSubjects] = useState<any[]>([]);
+  const { data: studentSubjects = [] } = useStudentSubjects();
+  const assignmentsResponse = useAssignments();
   
-  React.useEffect(() => {
-    const fetchStudentSubjects = async () => {
-      if (!user) return;
-      
-      // For now, return empty subjects until student enrollment system is properly implemented
-      setStudentSubjects([]);
-    };
-
-    fetchStudentSubjects();
-  }, [user]);
+  // Handle the assignments data properly based on the hook structure
+  const assignments = Array.isArray(assignmentsResponse?.data) ? assignmentsResponse.data : [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -58,12 +47,13 @@ export const StudentSubjectsPage: React.FC = () => {
 
         {/* Subjects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {studentSubjects.map((subject: any) => {
-            const upcomingAssignments = subject.assignments?.filter((a: any) => {
+          {Array.isArray(studentSubjects) && studentSubjects.map((subject: any) => {
+            const subjectAssignments = assignments.filter((a: any) => a.subject_id === subject.id);
+            const upcomingAssignments = subjectAssignments.filter((a: any) => {
               const due = new Date(a.due_date);
               const now = new Date();
               return due > now;
-            }).length || 0;
+            }).length;
 
             return (
               <Card key={subject.id} className="hover:shadow-md transition-shadow">
@@ -101,7 +91,7 @@ export const StudentSubjectsPage: React.FC = () => {
             );
           })}
           
-          {studentSubjects.length === 0 && (
+          {(!Array.isArray(studentSubjects) || studentSubjects.length === 0) && (
             <div className="col-span-full text-center py-12">
               <BookOpen className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No subjects found</h3>

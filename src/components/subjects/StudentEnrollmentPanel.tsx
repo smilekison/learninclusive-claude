@@ -119,14 +119,16 @@ export const StudentEnrollmentPanel: React.FC<StudentEnrollmentPanelProps> = ({
   };
 
   useEffect(() => {
-    fetchEnrolledStudents();
+    if (classId) {
+      fetchEnrolledStudents();
+    }
   }, [classId]);
 
   useEffect(() => {
-    if (addStudentOpen) {
+    if (addStudentOpen && classId) {
       fetchAvailableStudents();
     }
-  }, [addStudentOpen, enrolledStudents, searchTerm]);
+  }, [addStudentOpen, enrolledStudents, searchTerm, classId]);
 
   const handleEnrollStudent = async (studentId: string) => {
     try {
@@ -154,7 +156,7 @@ export const StudentEnrollmentPanel: React.FC<StudentEnrollmentPanelProps> = ({
         description: `${student?.first_name} ${student?.last_name} has been enrolled successfully`,
       });
 
-      // Refresh data
+      // Refresh enrolled students list
       await fetchEnrolledStudents();
       setAddStudentOpen(false);
     } catch (error: any) {

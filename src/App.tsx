@@ -41,6 +41,7 @@ const SubmissionsPage = React.lazy(() => import("./pages/SubmissionsPage").then(
 
 const VideoManagementPage = React.lazy(() => import("./pages/VideoManagementPage").then(module => ({ default: module.VideoManagementPage })));
 import { EnrollSubjectPage } from '@/pages/EnrollSubjectPage';
+import { QuickUserSwitcher } from '@/components/auth/QuickUserSwitcher';
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -287,7 +288,8 @@ const App = () => (
                   <ChatbotDrawer />
                   <UniversalAssistBar />
                   
-                  <Toaster />
+        <Toaster />
+        <QuickUserSwitcher />
                   <Sonner />
                   <BrowserRouter>
                     <LiveAnnouncer />

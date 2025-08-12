@@ -42,103 +42,101 @@ export const StudentAssignmentsPage: React.FC = () => {
           .from('profiles')
           .select('id')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
-        console.log('Profile query result:', { profile, error: profileError });
+        console.log('Profile query result:', { profile, error: profileError, userId: user.id });
 
         if (profileError || !profile) {
           console.error('Student profile not found:', profileError);
+          setStudentAssignments([]);
           return;
         }
 
-        // Fetch assignments using a simplified query
-        const { data: assignments, error } = await supabase
-          .from('assignments')
+        // First, get the student's class enrollments
+        const { data: enrollments, error: enrollmentError } = await supabase
+          .from('student_enrollments')
           .select(`
-            *,
-            subjects!inner(
+            class_id,
+            classes!inner(
               id,
               name,
-              classes!inner(
+              subjects(
                 id,
-                name
+                name,
+                assignments(
+                  *
+                )
               )
             )
           `)
-          .eq('subjects.classes.student_enrollments.student_id', profile.id)
-          .eq('subjects.classes.student_enrollments.status', 'active')
-          .eq('is_active', true)
-          .order('created_at', { ascending: false });
+          .eq('student_id', profile.id)
+          .eq('status', 'active');
 
-        console.log('Assignments query result:', { assignments, error });
+        console.log('Enrollments query result:', { enrollments, error: enrollmentError });
 
-        if (error) {
-          console.error('Error fetching assignments:', error);
-          // Try a different approach - get assignments by joining through enrollments
-          const { data: altAssignments, error: altError } = await supabase
-            .from('student_enrollments')
-            .select(`
-              classes!inner(
-                subjects!inner(
-                  assignments!inner(
-                    *,
-                    assignment_submissions(
-                      id,
-                      submitted_at,
-                      score,
-                      feedback,
-                      submission_text,
-                      file_path,
-                      student_id
-                    )
-                  )
-                )
-              )
-            `)
-            .eq('student_id', profile.id)
-            .eq('status', 'active');
-
-          if (altError) {
-            console.error('Alternative query also failed:', altError);
-            return;
-          }
-
-          // Transform the data structure
-          const transformedAssignments = altAssignments?.flatMap(enrollment => 
-            enrollment.classes?.subjects?.flatMap((subject: any) =>
-              subject.assignments?.map((assignment: any) => ({
-                ...assignment,
-                subject: {
-                  id: subject.id,
-                  name: subject.name,
-                  class: {
-                    id: (enrollment.classes as any)?.id,
-                    name: (enrollment.classes as any)?.name
-                  }
-                },
-                submissions: assignment.assignment_submissions?.filter((sub: any) => sub.student_id === profile.id) || []
-              }))
-            ).filter(Boolean)
-          ).filter(Boolean) || [];
-
-          setStudentAssignments(transformedAssignments);
+        if (enrollmentError) {
+          console.error('Error fetching enrollments:', enrollmentError);
+          setStudentAssignments([]);
           return;
         }
 
-        // Fetch submissions for these assignments
-        const assignmentIds = assignments?.map(a => a.id) || [];
-        const { data: submissions } = await supabase
-          .from('assignment_submissions')
-          .select('*')
-          .in('assignment_id', assignmentIds)
-          .eq('student_id', profile.id);
+        // Extract all assignments from enrolled classes
+        const allAssignments: any[] = [];
+        enrollments?.forEach(enrollment => {
+          enrollment.classes?.subjects?.forEach((subject: any) => {
+            subject.assignments?.forEach((assignment: any) => {
+              if (assignment.is_active) {
+                allAssignments.push({
+                  ...assignment,
+                  subject: {
+                    id: subject.id,
+                    name: subject.name,
+                    class: {
+                      id: enrollment.classes?.id,
+                      name: enrollment.classes?.name
+                    }
+                  }
+                });
+              }
+            });
+          });
+        });
 
-        // Combine assignments with submissions
-        const processedAssignments = assignments?.map(assignment => ({
+        console.log('All assignments found:', allAssignments);
+
+        // Now get submissions for these assignments
+        const assignmentIds = allAssignments.map(a => a.id);
+        let submissions: any[] = [];
+        
+        if (assignmentIds.length > 0) {
+          const { data: submissionData, error: submissionError } = await supabase
+            .from('assignment_submissions')
+            .select('*')
+            .in('assignment_id', assignmentIds)
+            .eq('student_id', profile.id);
+
+          if (submissionError) {
+            console.error('Error fetching submissions:', submissionError);
+          } else {
+            submissions = submissionData || [];
+          }
+        }
+
+        console.log('Submissions found:', submissions);
+
+        // Combine assignments with their submissions
+        const processedAssignments = allAssignments.map(assignment => ({
           ...assignment,
-          subject: assignment.subjects,
-          submissions: submissions?.filter(sub => sub.assignment_id === assignment.id) || []
-        })) || [];
+          submissions: submissions.filter(sub => sub.assignment_id === assignment.id)
+        }));
+
+        // Sort by due date and creation date
+        processedAssignments.sort((a, b) => {
+          if (a.due_date && b.due_date) {
+            return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+          }
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
 
         setStudentAssignments(processedAssignments);
       } catch (error) {

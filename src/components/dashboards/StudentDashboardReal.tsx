@@ -80,11 +80,84 @@ export const StudentDashboardReal: React.FC = () => {
     fetchEnrolledClasses();
   }, [user]);
 
-  // Filter assignments by student's enrolled classes
-  const studentAssignments = assignments?.filter((assignment: any) => {
-    // This would typically filter by the student's enrolled classes
-    return true; // For now, show all assignments
-  }) || [];
+  // Fetch assignments for student's enrolled classes
+  const [studentAssignments, setStudentAssignments] = useState<any[]>([]);
+  
+  React.useEffect(() => {
+    const fetchStudentAssignments = async () => {
+      if (!user) return;
+      
+      try {
+        // Get student's profile ID using the correct user_id from auth
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (profileError || !profile) {
+          console.error('Student profile not found:', profileError);
+          setStudentAssignments([]);
+          return;
+        }
+
+        // First, get the student's class enrollments
+        const { data: enrollments, error: enrollmentError } = await supabase
+          .from('student_enrollments')
+          .select(`
+            class_id,
+            classes!inner(
+              id,
+              name,
+              subjects(
+                id,
+                name,
+                assignments(
+                  *
+                )
+              )
+            )
+          `)
+          .eq('student_id', profile.id)
+          .eq('status', 'active');
+
+        if (enrollmentError) {
+          console.error('Error fetching enrollments:', enrollmentError);
+          setStudentAssignments([]);
+          return;
+        }
+
+        // Extract all assignments from enrolled classes
+        const allAssignments: any[] = [];
+        enrollments?.forEach(enrollment => {
+          enrollment.classes?.subjects?.forEach((subject: any) => {
+            subject.assignments?.forEach((assignment: any) => {
+              if (assignment.is_active) {
+                allAssignments.push({
+                  ...assignment,
+                  subject: {
+                    id: subject.id,
+                    name: subject.name,
+                    class: {
+                      id: enrollment.classes?.id,
+                      name: enrollment.classes?.name
+                    }
+                  }
+                });
+              }
+            });
+          });
+        });
+
+        setStudentAssignments(allAssignments);
+      } catch (error) {
+        console.error('Error fetching student assignments:', error);
+        setStudentAssignments([]);
+      }
+    };
+
+    fetchStudentAssignments();
+  }, [user]);
 
   // Filter upcoming assignments (next 7 days)
   const upcomingAssignments = studentAssignments.filter((assignment: any) => {

@@ -44,19 +44,19 @@ export const StudentSubjectDetailView: React.FC = () => {
 
   // Get user profile with role
   const { data: userProfile } = useQuery({
-    queryKey: ['user-profile'],
+    queryKey: ['user-profile', user?.authUserId],
     queryFn: async () => {
-      if (!user) return null;
+      if (!user?.authUserId) return null;
       const { data, error } = await supabase
         .from('profiles')
         .select('id, role')
-        .eq('user_id', user.id)
+        .eq('user_id', user.authUserId)
         .single();
       
       if (error) throw error;
       return data;
     },
-    enabled: !!user
+    enabled: !!user?.authUserId
   });
 
   // Fetch subject details
@@ -98,6 +98,24 @@ export const StudentSubjectDetailView: React.FC = () => {
         .eq('subject_id', id)
         .eq('is_active', true)
         .order('due_date', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id
+  });
+
+  // Fetch lessons for this subject
+  const { data: lessons = [] } = useQuery({
+    queryKey: ['subject-lessons', id],
+    queryFn: async () => {
+      if (!id) return [];
+      
+      const { data, error } = await supabase
+        .from('lessons')
+        .select('*')
+        .eq('subject_id', id)
+        .order('lesson_order', { ascending: true });
 
       if (error) throw error;
       return data || [];
@@ -483,6 +501,48 @@ export const StudentSubjectDetailView: React.FC = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Lessons Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Lessons</CardTitle>
+            <CardDescription>Course lessons and materials</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {lessons.length > 0 ? (
+                lessons.map((lesson) => (
+                  <div key={lesson.id} className="p-4 border rounded-lg hover:border-primary/50 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge variant="outline">#{lesson.lesson_order}</Badge>
+                          <span className="text-xs text-muted-foreground">
+                            Added {formatDate(lesson.created_at)}
+                          </span>
+                        </div>
+                        <h4 className="font-medium mb-1">{lesson.title}</h4>
+                        <p className="text-sm text-muted-foreground mb-2">{lesson.description}</p>
+                        {lesson.content && (
+                          <div className="mt-3 p-3 bg-muted rounded-lg">
+                            <p className="text-sm whitespace-pre-wrap">{lesson.content}</p>
+                          </div>
+                        )}
+                      </div>
+                      <BookOpen className="w-5 h-5 text-primary" />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">No lessons available yet</p>
+                  <p className="text-sm text-muted-foreground">Check back later for new content from your teacher</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Additional info for teachers/principals */}
         {userProfile?.role !== 'student' && (

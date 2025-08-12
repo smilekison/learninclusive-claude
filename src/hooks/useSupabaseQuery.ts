@@ -957,25 +957,51 @@ export const useStudentSubjects = () => {
         .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
         .maybeSingle();
       
-      if (!profile) return { data: [], error: null };
+      console.log('useStudentSubjects - Profile:', profile);
       
-      return await supabase
+      if (!profile) {
+        console.log('useStudentSubjects - No profile found');
+        return [];
+      }
+      
+      // Get subjects from student's enrolled classes
+      const { data, error } = await supabase
         .from('subjects')
         .select(`
           *,
           class:classes!inner(
             id,
             name,
-            teacher:profiles!classes_teacher_id_fkey(first_name, last_name),
-            student_enrollments!inner(
-              student_id,
-              status
-            )
+            description,
+            teacher:profiles!classes_teacher_id_fkey(first_name, last_name)
           )
         `)
-        .eq('class.student_enrollments.student_id', profile.id)
-        .eq('class.student_enrollments.status', 'active')
         .eq('is_active', true);
+      
+      if (error) {
+        console.error('useStudentSubjects - Error:', error);
+        throw error;
+      }
+      
+      console.log('useStudentSubjects - All subjects:', data?.length);
+      
+      // Filter subjects by student's enrolled classes
+      const { data: enrollments } = await supabase
+        .from('student_enrollments')
+        .select('class_id')
+        .eq('student_id', profile.id)
+        .eq('status', 'active');
+      
+      console.log('useStudentSubjects - Enrollments:', enrollments);
+      
+      const enrolledClassIds = enrollments?.map(e => e.class_id) || [];
+      const studentSubjects = data?.filter(subject => 
+        enrolledClassIds.includes(subject.class_id)
+      ) || [];
+      
+      console.log('useStudentSubjects - Filtered subjects:', studentSubjects.length);
+      
+      return studentSubjects;
     },
   });
 };

@@ -33,12 +33,8 @@ export const StudentDashboardReal: React.FC = () => {
   const navigate = useNavigate();
   const { data: stats } = useStudentStats();
   const { data: assignments } = useAssignments();
-  const { data: subjectsData } = useStudentSubjects();
-  const subjects = subjectsData?.data || [];
-  
-  console.log('StudentDashboard - subjectsData:', subjectsData);
-  console.log('StudentDashboard - subjects array:', subjects);
-  console.log('StudentDashboard - subjects length:', subjects.length);
+  const { data: studentSubjects } = useStudentSubjects();
+  const subjects = Array.isArray(studentSubjects) ? studentSubjects : [];
   const { data: notifications } = useNotifications();
   const createNotification = useCreateNotification();
 

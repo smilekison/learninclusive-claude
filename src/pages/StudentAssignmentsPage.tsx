@@ -74,7 +74,7 @@ export const StudentAssignmentsPage: React.FC = () => {
             )
           `)
           .eq('subject.class.student_enrollments.student_id', profile.id)
-          .eq('subject.class.student_enrollments.status', 'approved')
+          .eq('subject.class.student_enrollments.status', 'active')
           .eq('is_active', true)
           .order('created_at', { ascending: false });
 

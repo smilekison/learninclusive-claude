@@ -46,6 +46,7 @@ export const StudentEnrollmentPanel: React.FC<StudentEnrollmentPanelProps> = ({
   // Fetch enrolled students
   const fetchEnrolledStudents = async () => {
     try {
+      console.log('Fetching enrolled students for class:', classId);
       const { data, error } = await supabase
         .from('student_enrollments')
         .select(`
@@ -62,6 +63,8 @@ export const StudentEnrollmentPanel: React.FC<StudentEnrollmentPanelProps> = ({
 
       if (error) throw error;
 
+      console.log('Fetched enrollment data:', data);
+
       const students = data?.map(enrollment => ({
         id: enrollment.student.id,
         first_name: enrollment.student.first_name,
@@ -71,6 +74,7 @@ export const StudentEnrollmentPanel: React.FC<StudentEnrollmentPanelProps> = ({
         status: enrollment.status
       })) || [];
 
+      console.log('Processed students:', students);
       setEnrolledStudents(students);
     } catch (error: any) {
       console.error('Error fetching enrolled students:', error);
@@ -128,6 +132,7 @@ export const StudentEnrollmentPanel: React.FC<StudentEnrollmentPanelProps> = ({
     try {
       setIsLoading(true);
 
+      console.log('Enrolling student:', studentId, 'in class:', classId);
       const { error } = await supabase
         .from('student_enrollments')
         .insert({
@@ -136,7 +141,10 @@ export const StudentEnrollmentPanel: React.FC<StudentEnrollmentPanelProps> = ({
           status: 'active'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Enrollment error:', error);
+        throw error;
+      }
 
       // Find the student details
       const student = availableStudents.find(s => s.id === studentId);

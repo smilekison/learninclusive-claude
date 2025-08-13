@@ -782,14 +782,16 @@ export const StudentAssignmentsPage: React.FC = () => {
         </Tabs>
 
         {/* Advanced Submission Dialog */}
-        <AdvancedSubmissionDialog
-          open={submissionDialog}
-          onOpenChange={setSubmissionDialog}
-          assignment={selectedAssignment}
-          existingSubmission={selectedAssignment?.submissions?.[0]}
-          onSubmit={handleAdvancedSubmission}
-          isLoading={submitAssignmentMutation.isPending}
-        />
+        {selectedAssignment && (
+          <AdvancedSubmissionDialog
+            open={submissionDialog}
+            onOpenChange={setSubmissionDialog}
+            assignment={selectedAssignment}
+            existingSubmission={selectedAssignment?.submissions?.[0]}
+            onSubmit={handleAdvancedSubmission}
+            isLoading={submitAssignmentMutation.isPending}
+          />
+        )}
       </main>
     </div>
   );

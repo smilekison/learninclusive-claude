@@ -701,43 +701,131 @@ export const StudentAssignmentsPage: React.FC = () => {
                               </div>
                             </div>
 
-                            {submission && submission.feedback && (
-                              <div>
-                                <h4 className="font-medium mb-2 text-accent">Teacher Feedback</h4>
-                                <div className="p-3 bg-accent/10 rounded-lg border border-accent/20">
-                                  <p className="text-sm text-foreground">{submission.feedback}</p>
-                                </div>
-                              </div>
-                            )}
-
-                            {submission && submission.grading_notes && (
-                              <div>
-                                <h4 className="font-medium mb-2 text-primary">Grading Notes</h4>
-                                <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
-                                  <p className="text-sm text-foreground">{submission.grading_notes}</p>
-                                </div>
-                              </div>
-                            )}
-
-                            {submission && submission.score !== null && submission.score !== undefined && assignment?.max_score && (
-                              <div>
-                                <h4 className="font-medium mb-2 text-success">Grade Details</h4>
-                                <div className="p-3 bg-success/10 rounded-lg border border-success/20">
-                                  <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div>
-                                      <span className="text-muted-foreground">Score:</span>
-                                      <span className="ml-2 font-semibold">{submission.score}/{assignment.max_score}</span>
-                                    </div>
-                                    <div>
-                                      <span className="text-muted-foreground">Percentage:</span>
-                                      <span className="ml-2 font-semibold">{Math.round((submission.score / assignment.max_score) * 100)}%</span>
-                                    </div>
-                                    {submission.graded_at && (
-                                      <div className="col-span-2">
-                                        <span className="text-muted-foreground">Graded on:</span>
-                                        <span className="ml-2">{new Date(submission.graded_at).toLocaleString()}</span>
+                            {/* Comprehensive Graded Assignment Details */}
+                            {submission && submission.score !== null && submission.score !== undefined && (
+                              <div className="space-y-6">
+                                {/* Grade Overview */}
+                                <div>
+                                  <h4 className="font-bold mb-3 text-success flex items-center gap-2">
+                                    <Star className="w-5 h-5" />
+                                    Grade Overview
+                                  </h4>
+                                  <div className="p-4 bg-gradient-to-r from-success/10 to-primary/10 rounded-lg border border-success/20">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                      <div className="text-center">
+                                        <div className="text-3xl font-bold text-success">
+                                          {submission.score}/{assignment.max_score}
+                                        </div>
+                                        <div className="text-sm text-muted-foreground">Final Score</div>
                                       </div>
-                                    )}
+                                      <div className="text-center">
+                                        <div className="text-3xl font-bold text-primary">
+                                          {Math.round((submission.score / assignment.max_score) * 100)}%
+                                        </div>
+                                        <div className="text-sm text-muted-foreground">Percentage</div>
+                                      </div>
+                                      <div className="text-center">
+                                        <div className="text-lg font-semibold text-accent capitalize">
+                                          {submission.submission_quality || 'Good'}
+                                        </div>
+                                        <div className="text-sm text-muted-foreground">Quality Rating</div>
+                                      </div>
+                                    </div>
+                                    <Progress 
+                                      value={(submission.score / assignment.max_score) * 100} 
+                                      className="mt-4 h-3"
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* Rubric Breakdown */}
+                                {submission.rubric_scores && Array.isArray(submission.rubric_scores) && submission.rubric_scores.length > 0 && (
+                                  <div>
+                                    <h4 className="font-bold mb-3 text-primary flex items-center gap-2">
+                                      <BarChart3 className="w-5 h-5" />
+                                      Rubric Breakdown
+                                    </h4>
+                                    <div className="space-y-3">
+                                      {submission.rubric_scores.map((rubric: any, index: number) => (
+                                        <div key={index} className="p-3 bg-card rounded-lg border border-muted">
+                                          <div className="flex justify-between items-center mb-2">
+                                            <span className="font-medium text-foreground">{rubric.criteria}</span>
+                                            <span className="font-bold text-primary">{rubric.score}/20</span>
+                                          </div>
+                                          <Progress 
+                                            value={(rubric.score / 20) * 100} 
+                                            className="h-2"
+                                          />
+                                          <div className="text-xs text-muted-foreground mt-1">
+                                            {Math.round((rubric.score / 20) * 100)}% - {rubric.score >= 18 ? 'Excellent' : rubric.score >= 15 ? 'Good' : rubric.score >= 12 ? 'Satisfactory' : 'Needs Improvement'}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Teacher Feedback */}
+                                {submission.feedback && (
+                                  <div>
+                                    <h4 className="font-bold mb-3 text-accent flex items-center gap-2">
+                                      <Eye className="w-5 h-5" />
+                                      Teacher Feedback
+                                    </h4>
+                                    <div className="p-4 bg-accent/10 rounded-lg border border-accent/20">
+                                      <p className="text-foreground leading-relaxed">{submission.feedback}</p>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Grading Notes */}
+                                {submission.grading_notes && (
+                                  <div>
+                                    <h4 className="font-bold mb-3 text-warning flex items-center gap-2">
+                                      <FileText className="w-5 h-5" />
+                                      Additional Notes
+                                    </h4>
+                                    <div className="p-4 bg-warning/10 rounded-lg border border-warning/20">
+                                      <p className="text-foreground leading-relaxed">{submission.grading_notes}</p>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Grading Information */}
+                                <div>
+                                  <h4 className="font-bold mb-3 text-muted-foreground flex items-center gap-2">
+                                    <Clock className="w-5 h-5" />
+                                    Grading Information
+                                  </h4>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="p-3 bg-muted/20 rounded-lg border border-muted">
+                                      <div className="text-sm text-muted-foreground">Graded On</div>
+                                      <div className="font-medium text-foreground">
+                                        {submission.graded_at ? new Date(submission.graded_at).toLocaleString() : 'Not available'}
+                                      </div>
+                                    </div>
+                                    <div className="p-3 bg-muted/20 rounded-lg border border-muted">
+                                      <div className="text-sm text-muted-foreground">Time Spent</div>
+                                      <div className="font-medium text-foreground">
+                                        {submission.time_spent_minutes ? `${submission.time_spent_minutes} minutes` : 'Not tracked'}
+                                      </div>
+                                    </div>
+                                    <div className="p-3 bg-muted/20 rounded-lg border border-muted">
+                                      <div className="text-sm text-muted-foreground">Attempt Number</div>
+                                      <div className="font-medium text-foreground">
+                                        {submission.attempt_number || 1} of {assignment.max_attempts}
+                                      </div>
+                                    </div>
+                                    <div className="p-3 bg-muted/20 rounded-lg border border-muted">
+                                      <div className="text-sm text-muted-foreground">Late Submission</div>
+                                      <div className="font-medium text-foreground">
+                                        {submission.late_submission ? (
+                                          <span className="text-destructive">Yes</span>
+                                        ) : (
+                                          <span className="text-success">No</span>
+                                        )}
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               </div>

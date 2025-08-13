@@ -163,21 +163,31 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode, onForgotPass
               type="button"
               className="block w-full text-left hover:text-primary hover:bg-background/50 p-1 rounded transition-colors"
               onClick={() => {
-                setEmail('teacher@riverside.edu');
+                setEmail('teacher1@riverside.edu');
                 setPassword('demo123');
               }}
             >
-              <strong>{t('auth.teacher')}:</strong> teacher@riverside.edu
+              <strong>{t('auth.teacher')}:</strong> teacher1@riverside.edu
             </button>
             <button
               type="button"
               className="block w-full text-left hover:text-primary hover:bg-background/50 p-1 rounded transition-colors"
               onClick={() => {
-                setEmail('student@riverside.edu');
+                setEmail('student1@riverside.edu');
                 setPassword('demo123');
               }}
             >
-              <strong>{t('auth.student')}:</strong> student@riverside.edu
+              <strong>{t('auth.student')}:</strong> student1@riverside.edu
+            </button>
+            <button
+              type="button"
+              className="block w-full text-left hover:text-primary hover:bg-background/50 p-1 rounded transition-colors"
+              onClick={() => {
+                setEmail('parent@riverside.edu');
+                setPassword('demo123');
+              }}
+            >
+              <strong>{t('auth.parent')}:</strong> parent@riverside.edu
             </button>
             <p className="pt-1"><strong>{t('auth.passwordLabel')}:</strong> demo123</p>
           </div>

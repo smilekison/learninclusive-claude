@@ -106,7 +106,16 @@ export const VideoManagementPage: React.FC = () => {
       .order('created_at', { ascending: false });
 
     if (user?.role === 'teacher') {
-      query = query.eq('uploaded_by', user.id);
+      // Get the user's profile ID for filtering
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user?.id)
+        .single();
+      
+      if (profile) {
+        query = query.eq('uploaded_by', profile.id);
+      }
     }
 
     const { data, error } = await query;
@@ -119,6 +128,15 @@ export const VideoManagementPage: React.FC = () => {
 
   const createMutation = useSupabaseMutation(
     async (payload: VideoFormState) => {
+      // Get the user's profile ID
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user?.id)
+        .single();
+      
+      if (!profile) throw new Error('Profile not found');
+
       const ytId = extractYouTubeId(payload.external_url || '');
       const isFile = !!payload.file_path;
       const insert = {
@@ -131,7 +149,7 @@ export const VideoManagementPage: React.FC = () => {
         school_id: payload.visibility === 'school' ? payload.school_id || null : null,
         external_url: isFile ? null : (payload.external_url || null),
         file_path: isFile ? payload.file_path : (ytId ? `youtube:${ytId}` : payload.external_url || null),
-        uploaded_by: user?.id,
+        uploaded_by: profile.id, // Use profile ID instead of user ID
         video_format: isFile ? 'mp4' : 'youtube',
         thumbnail_path: !isFile && ytId ? getYouTubeThumbnail(ytId) : null,
       } as any;
@@ -259,6 +277,15 @@ export const VideoManagementPage: React.FC = () => {
     else createMutation.mutate(payload);
   };
   const seedSamples = async () => {
+    // Get the user's profile ID
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', user?.id)
+      .single();
+    
+    if (!profile) throw new Error('Profile not found');
+
     const samples = signLanguageVideos.slice(0, 6).map((v) => ({
       title: v.title,
       description: `${v.channel} • ${v.uploadDate}`,
@@ -269,7 +296,7 @@ export const VideoManagementPage: React.FC = () => {
       school_id: null,
       external_url: `https://www.youtube.com/watch?v=${v.id}`,
       file_path: `https://www.youtube.com/watch?v=${v.id}`,
-      uploaded_by: user?.id,
+      uploaded_by: profile.id, // Use profile ID instead of user ID
       video_format: 'youtube',
       thumbnail_path: getYouTubeThumbnail(v.id)
     }));

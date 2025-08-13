@@ -636,14 +636,14 @@ export const StudentAssignmentsPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {submission && (
+                        {hasSubmission && submission && (
                           <div className="mt-3 p-3 bg-gradient-to-r from-success/10 to-primary/10 rounded-lg border border-success/20">
                             <div className="flex items-center justify-between">
                               <p className="text-sm font-semibold text-success flex items-center gap-2">
                                 <CheckCircle className="w-4 h-4" />
                                 Submitted {new Date(submission.submitted_at).toLocaleDateString()}
                               </p>
-                              {submission.score !== null && (
+                              {submission.score !== null && submission.score !== undefined && assignment?.max_score && (
                                 <div className="text-right">
                                   <p className="text-lg font-bold text-success">
                                     {submission.score}/{assignment.max_score}
@@ -654,7 +654,7 @@ export const StudentAssignmentsPage: React.FC = () => {
                                 </div>
                               )}
                             </div>
-                            {submission.score !== null && (
+                            {submission.score !== null && submission.score !== undefined && assignment?.max_score && (
                               <Progress 
                                 value={(submission.score / assignment.max_score) * 100} 
                                 className="mt-2 h-2"
@@ -688,7 +688,7 @@ export const StudentAssignmentsPage: React.FC = () => {
                               </div>
                             </div>
 
-                            {submission?.feedback && (
+                            {submission && submission.feedback && (
                               <div>
                                 <h4 className="font-medium mb-2 text-accent">Teacher Feedback</h4>
                                 <div className="p-3 bg-accent/10 rounded-lg border border-accent/20">
@@ -697,7 +697,7 @@ export const StudentAssignmentsPage: React.FC = () => {
                               </div>
                             )}
 
-                            {submission?.grading_notes && (
+                            {submission && submission.grading_notes && (
                               <div>
                                 <h4 className="font-medium mb-2 text-primary">Grading Notes</h4>
                                 <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
@@ -706,7 +706,7 @@ export const StudentAssignmentsPage: React.FC = () => {
                               </div>
                             )}
 
-                            {submission?.score !== null && (
+                            {submission && submission.score !== null && submission.score !== undefined && assignment?.max_score && (
                               <div>
                                 <h4 className="font-medium mb-2 text-success">Grade Details</h4>
                                 <div className="p-3 bg-success/10 rounded-lg border border-success/20">
@@ -730,7 +730,7 @@ export const StudentAssignmentsPage: React.FC = () => {
                               </div>
                             )}
 
-                            {submission?.submission_text && (
+                            {submission && submission.submission_text && (
                               <div>
                                 <h4 className="font-medium mb-2 text-muted-foreground">Your Submission</h4>
                                 <div className="p-3 bg-card rounded-lg border border-muted">

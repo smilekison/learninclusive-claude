@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { AuthContextType, User, RegisterData } from '@/types/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { cleanupAuthState } from '@/lib/authCleanup';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -155,6 +156,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<void> => {
     setLoading(true);
     try {
+      // Clean up existing state before login
+      cleanupAuthState();
+      
+      // Attempt global sign out first
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+        console.log('Global signout failed, continuing with login');
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -229,14 +241,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      // Clean up auth state first
+      cleanupAuthState();
+      
+      // Attempt global sign out
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Ignore errors and continue
+        console.log('Global signout failed, continuing with logout');
+      }
       
       setUser(null);
       toast({
         title: "Success",
         description: "Logged out successfully",
       });
+      
+      // Force page reload for clean state
+      setTimeout(() => {
+        window.location.href = '/auth';
+      }, 100);
     } catch (error: any) {
       console.error('Logout error:', error);
       toast({
@@ -244,6 +269,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         description: error.message || "Logout failed",
         variant: "destructive",
       });
+      
+      // Even on error, try to redirect
+      setTimeout(() => {
+        window.location.href = '/auth';
+      }, 100);
     }
   };
 

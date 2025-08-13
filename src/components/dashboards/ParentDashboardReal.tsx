@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/contexts/AuthContext';
+import { useParentChildren, useChildAssignments, useChildProgress } from '@/hooks/useParentData';
 import { 
   Users, 
   BookOpen, 
@@ -16,25 +17,28 @@ import {
   Eye,
   BarChart3,
   GraduationCap,
-  AlertCircle
+  AlertCircle,
+  Star,
+  Target,
+  BookMarked,
+  Brain
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TTSButton } from '@/components/accessibility/TTSButton';
 
 export const ParentDashboardReal: React.FC = () => {
   const { user } = useAuth();
+  const { data: children = [], isLoading: childrenLoading } = useParentChildren();
+  const [selectedChild, setSelectedChild] = useState<string>('');
   
-  // Mock data for parent dashboard
-  const children = [
-    {
-      id: '1',
-      name: 'Emma Thompson',
-      grade: 'Grade 5',
-      class: 'Mrs. Johnson\'s Class',
-      school: 'Lincoln Elementary',
-      profilePicture: '/placeholder.svg'
-    }
-  ];
+  // Use first child by default
+  const firstChildId = children[0]?.id;
+  const currentChildId = selectedChild || firstChildId;
+  
+  const { data: assignments = [], isLoading: assignmentsLoading } = useChildAssignments(currentChildId || '');
+  const { data: progress, isLoading: progressLoading } = useChildProgress(currentChildId || '');
+  
+  const currentChild = children.find(child => child.id === currentChildId);
 
   const recentActivity = [
     {
@@ -117,26 +121,54 @@ export const ParentDashboardReal: React.FC = () => {
         </Button>
       </div>
 
+      {/* Child Selection */}
+      {children.length > 1 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Select Child</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2 flex-wrap">
+              {children.map((child) => (
+                <Button
+                  key={child.id}
+                  variant={currentChildId === child.id ? "default" : "outline"}
+                  onClick={() => setSelectedChild(child.id)}
+                  className="flex items-center gap-2"
+                >
+                  <div className="w-6 h-6 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">
+                      {child.first_name[0]}{child.last_name[0]}
+                    </span>
+                  </div>
+                  {child.first_name} {child.last_name}
+                </Button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Child Overview Cards */}
       <div className="grid gap-6">
-        {children.map((child) => (
-          <Card key={child.id} className="p-6">
+        {!childrenLoading && currentChild && (
+          <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center">
                   <span className="text-2xl font-bold text-white">
-                    {child.name.split(' ').map(n => n[0]).join('')}
+                    {currentChild.first_name[0]}{currentChild.last_name[0]}
                   </span>
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground">{child.name}</h2>
-                  <p className="text-muted-foreground">{child.grade} • {child.class}</p>
-                  <p className="text-sm text-muted-foreground">{child.school}</p>
+                  <h2 className="text-xl font-semibold text-foreground">{currentChild.first_name} {currentChild.last_name}</h2>
+                  <p className="text-muted-foreground">Student • Active</p>
+                  <p className="text-sm text-muted-foreground">{currentChild.relationship_type}</p>
                 </div>
               </div>
               <TTSButton 
-                text={`${child.name}, ${child.grade}, ${child.class}, ${child.school}`}
-                ariaLabel={`Read ${child.name}'s information`}
+                text={`${currentChild.first_name} ${currentChild.last_name}, Student profile`}
+                ariaLabel={`Read ${currentChild.first_name}'s information`}
               />
             </div>
 
@@ -149,112 +181,170 @@ export const ParentDashboardReal: React.FC = () => {
               </TabsList>
 
               <TabsContent value="progress" className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-3">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Overall Grade</CardTitle>
-                      <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-success">A-</div>
-                      <p className="text-xs text-muted-foreground">
-                        +2% from last month
-                      </p>
-                    </CardContent>
-                  </Card>
+                {progressLoading ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">Loading progress data...</p>
+                  </div>
+                ) : progress ? (
+                  <>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                          <CardTitle className="text-sm font-medium">Overall Grade</CardTitle>
+                          <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold text-success">
+                            {progress.overallGrade}%
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Current average
+                          </p>
+                        </CardContent>
+                      </Card>
 
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Assignments Completed</CardTitle>
-                      <CheckCircle className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">18/20</div>
-                      <Progress value={90} className="mt-2" />
-                    </CardContent>
-                  </Card>
+                      <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                          <CardTitle className="text-sm font-medium">Assignments Completed</CardTitle>
+                          <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold">{progress.completedAssignments}</div>
+                          <p className="text-xs text-muted-foreground">
+                            Total graded
+                          </p>
+                        </CardContent>
+                      </Card>
 
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Video Learning Hours</CardTitle>
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">24.5hrs</div>
-                      <p className="text-xs text-muted-foreground">
-                        This month
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
+                      <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                          <CardTitle className="text-sm font-medium">Total Points</CardTitle>
+                          <Star className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold">{progress.totalScore}/{progress.totalMaxScore}</div>
+                          <p className="text-xs text-muted-foreground">
+                            Points earned
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </div>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      Subject Performance
-                      <TTSButton 
-                        text="Subject performance overview: Mathematics 95%, Science 92%, Language Arts 89%, Social Studies 87%"
-                        ariaLabel="Read subject performance data"
-                      />
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {[
-                      { subject: 'Mathematics', score: 95, trend: '+3%' },
-                      { subject: 'Science', score: 92, trend: '+1%' },
-                      { subject: 'Language Arts', score: 89, trend: '-1%' },
-                      { subject: 'Social Studies', score: 87, trend: '+2%' }
-                    ].map((item) => (
-                      <div key={item.subject} className="flex items-center justify-between">
-                        <span className="text-sm font-medium">{item.subject}</span>
-                        <div className="flex items-center gap-3">
-                          <Progress value={item.score} className="w-24" />
-                          <span className="text-sm font-bold w-8">{item.score}%</span>
-                          <Badge variant={item.trend.startsWith('+') ? 'default' : 'secondary'}>
-                            {item.trend}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          Subject Performance
+                          <TTSButton 
+                            text={`Subject performance: ${progress.subjectPerformance.map(s => `${s.subject} ${s.percentage}%`).join(', ')}`}
+                            ariaLabel="Read subject performance data"
+                          />
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {progress.subjectPerformance.map((item) => (
+                          <div key={item.subject} className="flex items-center justify-between">
+                            <span className="text-sm font-medium">{item.subject}</span>
+                            <div className="flex items-center gap-3">
+                              <Progress value={item.percentage} className="w-24" />
+                              <span className="text-sm font-bold w-12">{item.percentage}%</span>
+                              <Badge variant="outline">
+                                {item.assignmentCount} assignments
+                              </Badge>
+                            </div>
+                          </div>
+                        ))}
+                        {progress.subjectPerformance.length === 0 && (
+                          <p className="text-center text-muted-foreground py-4">
+                            No graded assignments yet
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No progress data available</p>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="assignments" className="space-y-4">
-                <div className="space-y-4">
-                  {[
-                    { title: 'Math: Fractions Worksheet', due: 'Due Tomorrow', status: 'pending', score: null },
-                    { title: 'Science: Plant Growth Lab Report', due: 'Submitted', status: 'completed', score: 95 },
-                    { title: 'Reading: Book Report on "Wonder"', due: 'Due in 3 days', status: 'in-progress', score: null },
-                    { title: 'History: Timeline Project', due: 'Submitted', status: 'completed', score: 92 }
-                  ].map((assignment, index) => (
-                    <Card key={index}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-3 h-3 rounded-full ${
-                              assignment.status === 'completed' ? 'bg-success' :
-                              assignment.status === 'pending' ? 'bg-warning' : 'bg-info'
-                            }`} />
-                            <div>
-                              <h3 className="font-medium">{assignment.title}</h3>
-                              <p className="text-sm text-muted-foreground">{assignment.due}</p>
+                {assignmentsLoading ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">Loading assignments...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {assignments.map((assignment) => {
+                      const submission = assignment.submissions?.[0];
+                      const isSubmitted = !!submission;
+                      const isGraded = submission?.score !== null;
+                      const isLate = assignment.due_date && submission ? 
+                        new Date(submission.submitted_at) > new Date(assignment.due_date) : false;
+                      
+                      return (
+                        <Card key={assignment.id}>
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-3 h-3 rounded-full ${
+                                  isGraded ? 'bg-success' :
+                                  isSubmitted ? 'bg-info' : 
+                                  assignment.due_date && new Date() > new Date(assignment.due_date) ? 'bg-destructive' : 'bg-warning'
+                                }`} />
+                                <div>
+                                  <h3 className="font-medium">{assignment.title}</h3>
+                                  <p className="text-sm text-muted-foreground">
+                                    {assignment.subject.name} • {assignment.subject.class.name}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {assignment.due_date ? 
+                                      `Due: ${new Date(assignment.due_date).toLocaleDateString()}` : 
+                                      'No due date'
+                                    }
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {isLate && (
+                                  <Badge variant="destructive" className="text-xs">Late</Badge>
+                                )}
+                                {isGraded && submission?.score !== null && (
+                                  <Badge variant="default">
+                                    {Math.round((submission.score / assignment.max_score) * 100)}%
+                                  </Badge>
+                                )}
+                                <Badge variant="outline">
+                                  {isGraded ? 'Graded' : isSubmitted ? 'Submitted' : 'Pending'}
+                                </Badge>
+                                <TTSButton 
+                                  text={`${assignment.title}, ${assignment.subject.name}, ${
+                                    isGraded ? `Score: ${Math.round((submission!.score! / assignment.max_score) * 100)}%` :
+                                    isSubmitted ? 'Submitted' : 'Pending submission'
+                                  }`}
+                                  ariaLabel={`Read assignment details for ${assignment.title}`}
+                                />
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {assignment.score && (
-                              <Badge variant="default">{assignment.score}%</Badge>
+                            {submission?.feedback && (
+                              <div className="mt-3 p-3 bg-muted rounded-lg">
+                                <p className="text-sm font-medium mb-1">Teacher Feedback:</p>
+                                <p className="text-sm text-muted-foreground">{submission.feedback}</p>
+                              </div>
                             )}
-                            <TTSButton 
-                              text={`${assignment.title}, ${assignment.due}${assignment.score ? `, Score: ${assignment.score}%` : ''}`}
-                              ariaLabel={`Read assignment details for ${assignment.title}`}
-                            />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                    {assignments.length === 0 && (
+                      <div className="text-center py-8">
+                        <BookOpen className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">No assignments found</h3>
+                        <p className="text-muted-foreground">No assignments have been assigned yet</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="accessibility" className="space-y-4">
@@ -283,8 +373,8 @@ export const ParentDashboardReal: React.FC = () => {
                         Learning Accommodations
                       </h4>
                       <p className="text-sm text-muted-foreground">
-                        Emma uses video captions and slower playback speeds for better comprehension. 
-                        She has completed 95% of video content with these accessibility features enabled.
+                        {currentChild?.first_name} uses video captions and slower playback speeds for better comprehension. 
+                        They have completed 95% of video content with these accessibility features enabled.
                       </p>
                     </div>
                   </CardContent>
@@ -323,7 +413,25 @@ export const ParentDashboardReal: React.FC = () => {
               </TabsContent>
             </Tabs>
           </Card>
-        ))}
+        )}
+        
+        {childrenLoading && (
+          <Card className="p-6">
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Loading children data...</p>
+            </div>
+          </Card>
+        )}
+
+        {!childrenLoading && children.length === 0 && (
+          <Card className="p-6">
+            <div className="text-center py-8">
+              <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No children found</h3>
+              <p className="text-muted-foreground">No student relationships have been established</p>
+            </div>
+          </Card>
+        )}
       </div>
 
       {/* Upcoming Events */}

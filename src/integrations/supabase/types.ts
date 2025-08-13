@@ -22,11 +22,16 @@ export type Database = {
           file_path: string | null
           graded_at: string | null
           graded_by: string | null
+          grading_notes: string | null
           id: string
+          late_submission: boolean | null
+          rubric_scores: Json | null
           score: number | null
           student_id: string
+          submission_quality: string | null
           submission_text: string | null
           submitted_at: string
+          time_spent_minutes: number | null
           updated_at: string
         }
         Insert: {
@@ -36,11 +41,16 @@ export type Database = {
           file_path?: string | null
           graded_at?: string | null
           graded_by?: string | null
+          grading_notes?: string | null
           id?: string
+          late_submission?: boolean | null
+          rubric_scores?: Json | null
           score?: number | null
           student_id: string
+          submission_quality?: string | null
           submission_text?: string | null
           submitted_at?: string
+          time_spent_minutes?: number | null
           updated_at?: string
         }
         Update: {
@@ -50,11 +60,16 @@ export type Database = {
           file_path?: string | null
           graded_at?: string | null
           graded_by?: string | null
+          grading_notes?: string | null
           id?: string
+          late_submission?: boolean | null
+          rubric_scores?: Json | null
           score?: number | null
           student_id?: string
+          submission_quality?: string | null
           submission_text?: string | null
           submitted_at?: string
+          time_spent_minutes?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -267,6 +282,39 @@ export type Database = {
           },
         ]
       }
+      grading_rubrics: {
+        Row: {
+          assignment_id: string
+          created_at: string
+          created_by: string
+          criteria: Json
+          id: string
+          name: string
+          total_points: number
+          updated_at: string
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string
+          created_by: string
+          criteria?: Json
+          id?: string
+          name: string
+          total_points?: number
+          updated_at?: string
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string
+          created_by?: string
+          criteria?: Json
+          id?: string
+          name?: string
+          total_points?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lessons: {
         Row: {
           content: string | null
@@ -403,6 +451,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      parent_student_relationships: {
+        Row: {
+          created_at: string
+          id: string
+          parent_id: string
+          relationship_type: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          parent_id: string
+          relationship_type?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          parent_id?: string
+          relationship_type?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { EnhancedGradingDialog } from '@/components/grading/EnhancedGradingDialog';
 
 export const SubmissionsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -39,6 +40,11 @@ export const SubmissionsPage: React.FC = () => {
         .update({
           score: data.score,
           feedback: data.feedback,
+          grading_notes: data.gradingNotes,
+          submission_quality: data.submissionQuality,
+          time_spent_minutes: data.timeSpentMinutes,
+          late_submission: data.lateSubmission,
+          rubric_scores: data.rubricScores,
           graded_at: new Date().toISOString(),
           graded_by: data.gradedBy
         })
@@ -56,8 +62,8 @@ export const SubmissionsPage: React.FC = () => {
     }
   );
 
-  const handleGradeSubmission = async () => {
-    if (!selectedSubmission || !score) return;
+  const handleGradeSubmission = async (gradeData: any) => {
+    if (!selectedSubmission) return;
     
     const { data: profile } = await supabase
       .from('profiles')
@@ -68,9 +74,7 @@ export const SubmissionsPage: React.FC = () => {
     if (!profile) return;
 
     gradeSubmissionMutation.mutate({
-      submissionId: selectedSubmission.id,
-      score: parseFloat(score),
-      feedback,
+      ...gradeData,
       gradedBy: profile.id
     });
   };
@@ -216,18 +220,17 @@ export const SubmissionsPage: React.FC = () => {
                       </DialogContent>
                     </Dialog>
 
-                    {submission.score === null && (
-                      <Button 
-                        size="sm"
-                        onClick={() => {
-                          setSelectedSubmission(submission);
-                          setGradeDialog(true);
-                        }}
-                      >
-                        <Star className="w-4 h-4 mr-1" />
-                        Grade
-                      </Button>
-                    )}
+                    <Button 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedSubmission(submission);
+                        setGradeDialog(true);
+                      }}
+                      variant={submission.score === null ? "default" : "outline"}
+                    >
+                      <Star className="w-4 h-4 mr-1" />
+                      {submission.score === null ? 'Grade' : 'Re-grade'}
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -244,57 +247,14 @@ export const SubmissionsPage: React.FC = () => {
           </div>
         )}
 
-        {/* Grading Dialog */}
-        <Dialog open={gradeDialog} onOpenChange={setGradeDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                Grade Assignment: {selectedSubmission?.assignment.title}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label>Student: {selectedSubmission?.student.first_name} {selectedSubmission?.student.last_name}</Label>
-              </div>
-              
-              <div>
-                <Label htmlFor="score">Score (out of {selectedSubmission?.assignment.max_score})</Label>
-                <Input
-                  id="score"
-                  type="number"
-                  min="0"
-                  max={selectedSubmission?.assignment.max_score}
-                  value={score}
-                  onChange={(e) => setScore(e.target.value)}
-                  placeholder="Enter score"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="feedback">Feedback (Optional)</Label>
-                <Textarea
-                  id="feedback"
-                  placeholder="Provide feedback to the student..."
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
-                  rows={4}
-                />
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setGradeDialog(false)}>
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleGradeSubmission} 
-                  disabled={gradeSubmissionMutation.isPending || !score}
-                >
-                  {gradeSubmissionMutation.isPending ? 'Grading...' : 'Grade Assignment'}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Enhanced Grading Dialog */}
+        <EnhancedGradingDialog
+          open={gradeDialog}
+          onOpenChange={setGradeDialog}
+          submission={selectedSubmission}
+          onGrade={handleGradeSubmission}
+          isLoading={gradeSubmissionMutation.isPending}
+        />
       </main>
     </div>
   );

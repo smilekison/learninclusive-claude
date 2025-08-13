@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,12 +18,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Truncate } from '@/components/ui/truncate';
 
 export const PrincipalDashboardReal: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: stats } = usePrincipalStats();
-  const { data: classes, refetch: refetchClasses } = useClasses();
-  const { data: teachers } = useProfiles('teacher');
+  const { data: stats, isLoading: statsLoading, error: statsError } = usePrincipalStats();
+  const { data: classes, refetch: refetchClasses, isLoading: classesLoading } = useClasses();
+  const { data: teachers, isLoading: teachersLoading } = useProfiles('teacher');
   
-  const { data: notifications } = useNotifications();
+  const { data: notifications, isLoading: notificationsLoading } = useNotifications();
 
   const [newTeacher, setNewTeacher] = useState({
     firstName: '',
@@ -123,6 +125,23 @@ export const PrincipalDashboardReal: React.FC = () => {
   // Calculate unread notifications
   const unreadNotifications = notifications?.filter((n: any) => !n.read) || [];
 
+  // Show loading state if critical data is still loading
+  if (statsLoading || !user) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="space-y-2">
+          <div className="h-8 bg-muted animate-pulse rounded"></div>
+          <div className="h-4 bg-muted animate-pulse rounded w-1/2"></div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-32 bg-muted animate-pulse rounded"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       {/* Welcome Section */}
@@ -139,7 +158,7 @@ export const PrincipalDashboardReal: React.FC = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card 
           className="cursor-pointer hover:shadow-md transition-all hover:scale-105"
-          onClick={() => window.location.href = '/teachers'}
+          onClick={() => navigate('/teachers')}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Teachers</CardTitle>
@@ -156,7 +175,7 @@ export const PrincipalDashboardReal: React.FC = () => {
 
         <Card 
           className="cursor-pointer hover:shadow-md transition-all hover:scale-105"
-          onClick={() => window.location.href = '/classes'}
+          onClick={() => navigate('/classes')}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Classes</CardTitle>
@@ -173,7 +192,7 @@ export const PrincipalDashboardReal: React.FC = () => {
 
         <Card 
           className="cursor-pointer hover:shadow-md transition-all hover:scale-105"
-          onClick={() => window.location.href = '/students'}
+          onClick={() => navigate('/students')}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Students</CardTitle>
@@ -190,7 +209,7 @@ export const PrincipalDashboardReal: React.FC = () => {
 
         <Card 
           className="cursor-pointer hover:shadow-md transition-all hover:scale-105"
-          onClick={() => window.location.href = '/subjects'}
+          onClick={() => navigate('/subjects')}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Subjects</CardTitle>
@@ -484,7 +503,7 @@ export const PrincipalDashboardReal: React.FC = () => {
             </div>
           </div>
           <Button 
-            onClick={() => window.location.href = '/insights'} 
+            onClick={() => navigate('/insights')} 
             className="w-full"
           >
             View Detailed Insights
@@ -500,7 +519,7 @@ export const PrincipalDashboardReal: React.FC = () => {
               <CardTitle>Recent Classes</CardTitle>
               <CardDescription>Overview of class activities</CardDescription>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => window.location.href = '/classes'}>View All</Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/classes')}>View All</Button>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -515,15 +534,23 @@ export const PrincipalDashboardReal: React.FC = () => {
                   <div className="text-right">
                     <p className="text-sm font-medium">{classItem.subjects?.length || 0} subjects</p>
                     <p className="text-xs text-muted-foreground">
-                      {(classItem.student_enrollments?.[0]?.count ?? (Array.isArray(classItem.student_enrollments) ? classItem.student_enrollments.length : 0) ?? 0)} students
+                      {Array.isArray(classItem.student_enrollments) 
+                        ? classItem.student_enrollments.length 
+                        : (classItem.student_enrollments?.[0]?.count || 0)} students
                     </p>
                     <Badge variant="secondary">Active</Badge>
                   </div>
                 </div>
-              ))}
-              {!classes?.length && (
-                <p className="text-center text-muted-foreground py-8">No classes created yet</p>
-              )}
+                ))}
+                {classesLoading ? (
+                  <div className="space-y-2">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="h-16 bg-muted animate-pulse rounded"></div>
+                    ))}
+                  </div>
+                ) : !classes?.length ? (
+                  <p className="text-center text-muted-foreground py-8">No classes created yet</p>
+                ) : null}
             </div>
           </CardContent>
         </Card>
@@ -542,41 +569,48 @@ export const PrincipalDashboardReal: React.FC = () => {
               </CardTitle>
               <CardDescription>Recent system notifications</CardDescription>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => window.location.href = '/insights'}>View All</Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/insights')}>View All</Button>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px]">
               <div className="space-y-4">
-                {notifications?.slice(0, 10).map((notification: any) => (
-                  <div 
-                    key={notification.id} 
-                    className={`flex items-start justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
-                      !notification.read ? 'bg-muted/50 border-primary/20' : ''
-                    }`}
-                    onClick={() => !notification.read && handleMarkNotificationRead(notification.id)}
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1 min-w-0">
-                        {notification.type === 'success' ? (
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                        ) : notification.type === 'warning' ? (
-                          <Clock className="h-4 w-4 text-yellow-500" />
-                        ) : (
-                          <Bell className="h-4 w-4 text-blue-500" />
-                        )}
-                        <Truncate lines={1} className="font-medium text-sm flex-1">{notification.title}</Truncate>
-                        {!notification.read && (
-                          <Badge variant="secondary" className="text-xs">New</Badge>
-                        )}
-                      </div>
-                      <Truncate lines={2} className="text-sm text-muted-foreground">{notification.message}</Truncate>
-                    </div>
-                    <p className="text-xs text-muted-foreground ml-2">
-                      {new Date(notification.created_at).toLocaleDateString()}
-                    </p>
+                {notificationsLoading ? (
+                  <div className="space-y-2">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="h-16 bg-muted animate-pulse rounded"></div>
+                    ))}
                   </div>
-                ))}
-                {!notifications?.length && (
+                ) : notifications?.length ? (
+                  notifications.slice(0, 10).map((notification: any) => (
+                    <div 
+                      key={notification.id} 
+                      className={`flex items-start justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
+                        !notification.read ? 'bg-muted/50 border-primary/20' : ''
+                      }`}
+                      onClick={() => !notification.read && handleMarkNotificationRead(notification.id)}
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1 min-w-0">
+                          {notification.type === 'success' ? (
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                          ) : notification.type === 'warning' ? (
+                            <Clock className="h-4 w-4 text-yellow-500" />
+                          ) : (
+                            <Bell className="h-4 w-4 text-blue-500" />
+                          )}
+                          <Truncate lines={1} className="font-medium text-sm flex-1">{notification.title}</Truncate>
+                          {!notification.read && (
+                            <Badge variant="secondary" className="text-xs">New</Badge>
+                          )}
+                        </div>
+                        <Truncate lines={2} className="text-sm text-muted-foreground">{notification.message}</Truncate>
+                      </div>
+                      <p className="text-xs text-muted-foreground ml-2">
+                        {new Date(notification.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ))
+                ) : (
                   <p className="text-center text-muted-foreground py-8">No notifications yet</p>
                 )}
               </div>

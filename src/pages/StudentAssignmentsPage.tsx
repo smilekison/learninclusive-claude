@@ -231,7 +231,7 @@ export const StudentAssignmentsPage: React.FC = () => {
 
   const getUrgencyIcon = (assignment: any) => {
     const hasSubmission = assignment.submissions && assignment.submissions.length > 0;
-    if (hasSubmission) return <CheckCircle className="h-4 w-4 text-green-500" />;
+    if (hasSubmission) return <CheckCircle className="h-4 w-4 text-success" />;
     
     if (!assignment.due_date) return <FileText className="h-4 w-4 text-muted-foreground" />;
     
@@ -239,9 +239,9 @@ export const StudentAssignmentsPage: React.FC = () => {
     const now = new Date();
     const diffDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 3600 * 24));
     
-    if (diffDays <= 1) return <AlertCircle className="h-4 w-4 text-red-500" />;
-    if (diffDays <= 3) return <Clock className="h-4 w-4 text-yellow-500" />;
-    return <Calendar className="h-4 w-4 text-blue-500" />;
+    if (diffDays <= 1) return <AlertCircle className="h-4 w-4 text-destructive" />;
+    if (diffDays <= 3) return <Clock className="h-4 w-4 text-warning" />;
+    return <Calendar className="h-4 w-4 text-primary" />;
   };
 
   return (
@@ -268,40 +268,40 @@ export const StudentAssignmentsPage: React.FC = () => {
         </div>
 
         {/* Progress Overview */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <Card className="mb-6 card-elevated border-l-4 border-l-primary">
+          <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
+            <CardTitle className="flex items-center gap-2 text-primary">
               <BarChart3 className="w-5 h-5" />
               Assignment Progress
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">{studentAssignments.length}</div>
-                <div className="text-sm text-blue-700">Total</div>
+              <div className="text-center p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg border border-primary/20">
+                <div className="text-3xl font-bold text-primary">{studentAssignments.length}</div>
+                <div className="text-sm font-medium text-primary/80 mt-1">Total</div>
               </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">
+              <div className="text-center p-6 bg-gradient-to-br from-success/10 to-success/5 rounded-lg border border-success/20">
+                <div className="text-3xl font-bold text-success">
                   {studentAssignments.filter(a => a.submissions?.length > 0).length}
                 </div>
-                <div className="text-sm text-green-700">Submitted</div>
+                <div className="text-sm font-medium text-success/80 mt-1">Submitted</div>
               </div>
-              <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                <div className="text-2xl font-bold text-yellow-600">
+              <div className="text-center p-6 bg-gradient-to-br from-warning/10 to-warning/5 rounded-lg border border-warning/20">
+                <div className="text-3xl font-bold text-warning">
                   {studentAssignments.filter(a => 
                     a.submissions?.length > 0 && a.submissions[0]?.score === null
                   ).length}
                 </div>
-                <div className="text-sm text-yellow-700">Pending</div>
+                <div className="text-sm font-medium text-warning/80 mt-1">Pending</div>
               </div>
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">
+              <div className="text-center p-6 bg-gradient-to-br from-accent/10 to-accent/5 rounded-lg border border-accent/20">
+                <div className="text-3xl font-bold text-accent">
                   {studentAssignments.filter(a => 
                     a.submissions?.length > 0 && a.submissions[0]?.score !== null
                   ).length}
                 </div>
-                <div className="text-sm text-purple-700">Graded</div>
+                <div className="text-sm font-medium text-accent/80 mt-1">Graded</div>
               </div>
             </div>
           </CardContent>
@@ -312,15 +312,32 @@ export const StudentAssignmentsPage: React.FC = () => {
             const hasSubmission = assignment.submissions && assignment.submissions.length > 0;
             const submission = hasSubmission ? assignment.submissions[0] : null;
 
+            const getBorderColor = () => {
+              if (hasSubmission) {
+                return submission?.score !== null ? 'border-l-success' : 'border-l-primary';
+              }
+              if (assignment.due_date && new Date(assignment.due_date) < new Date()) {
+                return 'border-l-destructive';
+              }
+              return 'border-l-muted-foreground';
+            };
+
+            const getCardGradient = () => {
+              if (hasSubmission) {
+                return submission?.score !== null 
+                  ? 'bg-gradient-to-br from-success/5 to-success/2' 
+                  : 'bg-gradient-to-br from-primary/5 to-primary/2';
+              }
+              if (assignment.due_date && new Date(assignment.due_date) < new Date()) {
+                return 'bg-gradient-to-br from-destructive/5 to-destructive/2';
+              }
+              return 'bg-gradient-to-br from-muted/5 to-background';
+            };
+
             return (
               <Card 
                 key={assignment.id} 
-                className="hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4"
-                style={{
-                  borderLeftColor: hasSubmission 
-                    ? submission?.score !== null ? '#22c55e' : '#3b82f6'
-                    : assignment.due_date && new Date(assignment.due_date) < new Date() ? '#ef4444' : '#6b7280'
-                }}
+                className={`card-elevated hover:shadow-medium transition-all duration-300 cursor-pointer border-l-4 ${getBorderColor()} ${getCardGradient()}`}
               >
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -360,12 +377,15 @@ export const StudentAssignmentsPage: React.FC = () => {
                     </div>
                     
                     {submission && (
-                      <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border">
+                      <div className="mt-4 p-4 bg-gradient-to-r from-success/10 to-primary/10 rounded-lg border border-success/20">
                         <div className="flex items-center justify-between mb-2">
-                          <p className="text-sm font-semibold text-green-700">✓ Submitted</p>
+                          <p className="text-sm font-semibold text-success flex items-center gap-2">
+                            <CheckCircle className="w-4 h-4" />
+                            Submitted
+                          </p>
                           {submission.score !== null && (
                             <div className="text-right">
-                              <p className="text-lg font-bold text-green-600">
+                              <p className="text-lg font-bold text-success">
                                 {submission.score}/{assignment.max_score}
                               </p>
                               <p className="text-xs text-muted-foreground">
@@ -379,15 +399,15 @@ export const StudentAssignmentsPage: React.FC = () => {
                             <strong>Submitted:</strong> {new Date(submission.submitted_at).toLocaleDateString()}
                           </p>
                           {submission.feedback && (
-                            <div className="mt-2 p-2 bg-white rounded border">
-                              <p className="text-xs font-medium text-blue-700">Teacher Feedback:</p>
-                              <p className="text-sm text-gray-700">{submission.feedback}</p>
+                            <div className="mt-2 p-3 bg-card rounded-lg border border-accent/20">
+                              <p className="text-xs font-medium text-accent mb-1">Teacher Feedback:</p>
+                              <p className="text-sm text-foreground">{submission.feedback}</p>
                             </div>
                           )}
                           {submission.submission_text && (
-                            <div className="mt-2 p-2 bg-white rounded border">
-                              <p className="text-xs font-medium text-gray-700">Your Submission:</p>
-                              <p className="text-sm text-gray-600">{submission.submission_text.substring(0, 100)}...</p>
+                            <div className="mt-2 p-3 bg-card rounded-lg border border-muted">
+                              <p className="text-xs font-medium text-muted-foreground mb-1">Your Submission:</p>
+                              <p className="text-sm text-foreground">{submission.submission_text.substring(0, 100)}...</p>
                             </div>
                           )}
                         </div>

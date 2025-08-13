@@ -165,11 +165,19 @@ export const StudentDashboardReal: React.FC = () => {
           .from('assignment_submissions')
           .select(`
             *,
-            assignment:assignments(title, max_score),
-            assignment.subject:subjects(name)
+            assignment:assignments(
+              id,
+              title, 
+              max_score,
+              subject:subjects(
+                id,
+                name
+              )
+            )
           `)
           .eq('student_id', profile.id)
-          .order('submitted_at', { ascending: false })
+          .not('score', 'is', null)
+          .order('graded_at', { ascending: false })
           .limit(4);
 
         setStudentGrades(submissions || []);
@@ -283,8 +291,8 @@ export const StudentDashboardReal: React.FC = () => {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{studentGrades.length}</div>
-            <p className="text-xs text-muted-foreground">Submitted this semester</p>
+            <div className="text-2xl font-bold">{studentGrades.filter(g => g.score !== null).length}</div>
+            <p className="text-xs text-muted-foreground">Graded this semester</p>
           </CardContent>
         </Card>
 
@@ -296,7 +304,12 @@ export const StudentDashboardReal: React.FC = () => {
           <CardContent>
             <div className="text-2xl font-bold">
               {studentGrades.length > 0 
-                ? Math.round(studentGrades.reduce((acc, grade) => acc + (grade.score || 0), 0) / studentGrades.length)
+                ? Math.round(
+                    studentGrades
+                      .filter(grade => grade.score !== null && grade.assignment?.max_score)
+                      .reduce((acc, grade) => acc + ((grade.score / grade.assignment.max_score) * 100), 0) / 
+                    studentGrades.filter(grade => grade.score !== null && grade.assignment?.max_score).length
+                  )
                 : 0}%
             </div>
             <p className="text-xs text-muted-foreground">Across all subjects</p>
@@ -587,18 +600,12 @@ export const StudentDashboardReal: React.FC = () => {
                           </p>
                         </div>
                         <div className="text-right">
-                          {grade.score ? (
-                            <>
-                              <p className={`text-lg font-bold ${getGradeColor(percentage)}`}>
-                                {grade.score}/{grade.assignment?.max_score || 100}
-                              </p>
-                              <p className="text-sm font-medium text-primary">
-                                {percentage}%
-                              </p>
-                            </>
-                          ) : (
-                            <p className="text-sm text-muted-foreground">Pending</p>
-                          )}
+                          <p className={`text-lg font-bold ${getGradeColor(percentage)}`}>
+                            {grade.score}/{grade.assignment.max_score}
+                          </p>
+                          <p className="text-sm font-medium text-primary">
+                            {percentage}%
+                          </p>
                         </div>
                       </div>
                       
@@ -622,7 +629,7 @@ export const StudentDashboardReal: React.FC = () => {
               ) : (
                 <div className="text-center py-8">
                   <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">No grades yet</p>
+                  <p className="text-muted-foreground">No graded assignments yet</p>
                   <p className="text-sm text-muted-foreground">Submit assignments to see your grades here.</p>
                   <Button 
                     variant="outline" 
@@ -640,9 +647,9 @@ export const StudentDashboardReal: React.FC = () => {
                     variant="outline" 
                     size="sm" 
                     className="w-full"
-                    onClick={() => navigate('/student/assignments?tab=graded')}
+                    onClick={() => navigate('/student/assignments')}
                   >
-                    View All Grades
+                    View All Assignments
                   </Button>
                 </div>
               )}

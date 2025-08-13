@@ -875,13 +875,22 @@ export const TeacherDashboardReal: React.FC = () => {
               </div>
               {hasMoreNotifications && (
                 <div className="flex justify-center mt-3">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setNotificationPage(notificationPage + 1)}
-                  >
-                    Load More
-                  </Button>
+                  <div className="flex flex-col gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setNotificationPage(notificationPage + 1)}
+                    >
+                      Load More
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => navigate('/notifications')}
+                    >
+                      View All Notifications
+                    </Button>
+                  </div>
                 </div>
               )}
             </ScrollArea>

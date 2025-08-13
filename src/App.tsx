@@ -38,6 +38,7 @@ const ClassesPage = React.lazy(() => import("./pages/ClassesPage").then(module =
 const BinPage = React.lazy(() => import("./pages/BinPage").then(module => ({ default: module.BinPage })));
 const StudentSubjectsPage = React.lazy(() => import("./pages/StudentSubjectsPage").then(module => ({ default: module.StudentSubjectsPage })));
 const SubmissionsPage = React.lazy(() => import("./pages/SubmissionsPage").then(module => ({ default: module.SubmissionsPage })));
+const NotificationsPage = React.lazy(() => import("./pages/NotificationsPage").then(module => ({ default: module.NotificationsPage })));
 
 const VideoManagementPage = React.lazy(() => import("./pages/VideoManagementPage").then(module => ({ default: module.VideoManagementPage })));
 import { EnrollSubjectPage } from '@/pages/EnrollSubjectPage';
@@ -263,6 +264,30 @@ const AppContent = () => {
           }
         />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route 
+          path="/notifications" 
+          element={
+            <ProtectedRoute allowedRoles={['principal', 'teacher', 'student']}>
+              <Layout>
+                <Suspense fallback={<LoadingScreen />}>
+                  <NotificationsPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/notifications/:notificationId" 
+          element={
+            <ProtectedRoute allowedRoles={['principal', 'teacher', 'student']}>
+              <Layout>
+                <Suspense fallback={<LoadingScreen />}>
+                  <NotificationsPage />
+                </Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
             <Route path="/enroll-subject" element={<EnrollSubjectPage />} />
             <Route path="*" element={<NotFound />} />
       </Routes>

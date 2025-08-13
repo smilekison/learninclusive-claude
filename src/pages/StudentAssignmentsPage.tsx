@@ -33,12 +33,10 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
+import { AdvancedSubmissionDialog } from '@/components/assignments/AdvancedSubmissionDialog';
 
 export const StudentAssignmentsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -325,9 +323,9 @@ export const StudentAssignmentsPage: React.FC = () => {
         .from('assignment_submissions')
         .insert({
           assignment_id: data.assignmentId,
-          student_id: user.id, // Use the profile ID directly from auth context
+          student_id: user.id,
           submission_text: data.submissionText,
-          file_path: data.file?.name || null
+          file_path: data.files?.[0]?.file?.name || null
         });
     },
     {
@@ -337,20 +335,27 @@ export const StudentAssignmentsPage: React.FC = () => {
         setSubmissionText('');
         setSubmissionFile(null);
         setSelectedAssignment(null);
-        // Refresh assignments
         window.location.reload();
       }
     }
   );
 
-  const handleSubmitAssignment = () => {
+  const handleAdvancedSubmission = (submissionData: any) => {
     if (!selectedAssignment) return;
     
-    submitAssignmentMutation.mutate({
+    const mutationData = {
       assignmentId: selectedAssignment.id,
-      submissionText,
-      file: submissionFile
-    });
+      submissionText: submissionData.submissionText,
+      files: submissionData.files,
+      links: submissionData.links,
+      codeContent: submissionData.codeContent,
+      codeLanguage: submissionData.codeLanguage,
+      notes: submissionData.notes,
+      timeSpent: submissionData.timeSpent,
+      wordCount: submissionData.wordCount
+    };
+
+    submitAssignmentMutation.mutate(mutationData);
   };
 
   const getStatusBadge = (assignment: any) => {
@@ -776,47 +781,15 @@ export const StudentAssignmentsPage: React.FC = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Submission Dialog */}
-        <Dialog open={submissionDialog} onOpenChange={setSubmissionDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Submit Assignment: {selectedAssignment?.title}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="submission-text">Submission Text</Label>
-                <Textarea
-                  id="submission-text"
-                  placeholder="Enter your submission text here..."
-                  value={submissionText}
-                  onChange={(e) => setSubmissionText(e.target.value)}
-                  rows={4}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="submission-file">Attach File (Optional)</Label>
-                <Input
-                  id="submission-file"
-                  type="file"
-                  onChange={(e) => setSubmissionFile(e.target.files?.[0] || null)}
-                />
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setSubmissionDialog(false)}>
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleSubmitAssignment} 
-                  disabled={submitAssignmentMutation.isPending || !submissionText.trim()}
-                >
-                  {submitAssignmentMutation.isPending ? 'Submitting...' : 'Submit'}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Advanced Submission Dialog */}
+        <AdvancedSubmissionDialog
+          open={submissionDialog}
+          onOpenChange={setSubmissionDialog}
+          assignment={selectedAssignment}
+          existingSubmission={selectedAssignment?.submissions?.[0]}
+          onSubmit={handleAdvancedSubmission}
+          isLoading={submitAssignmentMutation.isPending}
+        />
       </main>
     </div>
   );

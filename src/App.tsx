@@ -22,7 +22,7 @@ import { LoadingScreen } from "@/components/ui/loading-screen";
 import { Layout } from "./components/layout/Layout";
 
 // Lazy load all page components for better performance
-const AuthPage = React.lazy(() => import("./pages/AuthPage").then(module => ({ default: module.AuthPage })));
+const AuthPage = React.lazy(() => import("./pages/AuthPage"));
 const Dashboard = React.lazy(() => import("./pages/Dashboard").then(module => ({ default: module.Dashboard })));
 const InsightsPage = React.lazy(() => import("./pages/InsightsPage").then(module => ({ default: module.InsightsPage })));
 const VideoHomepage = React.lazy(() => import("./pages/VideoHomepage").then(module => ({ default: module.VideoHomepage })));

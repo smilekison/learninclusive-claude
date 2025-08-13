@@ -35,20 +35,13 @@ export const SubmissionsPage: React.FC = () => {
 
   const gradeSubmissionMutation = useSupabaseMutation(
     async (data: any) => {
-      return await supabase
-        .from('assignment_submissions')
-        .update({
-          score: data.score,
-          feedback: data.feedback,
-          grading_notes: data.gradingNotes,
-          submission_quality: data.submissionQuality,
-          time_spent_minutes: data.timeSpentMinutes,
-          late_submission: data.lateSubmission,
-          rubric_scores: data.rubricScores,
-          graded_at: new Date().toISOString(),
-          graded_by: data.gradedBy
-        })
-        .eq('id', data.submissionId);
+      // Use the edge function for grading
+      const { data: result, error } = await supabase.functions.invoke('grade-assignment', {
+        body: data
+      });
+      
+      if (error) throw error;
+      return result;
     },
     {
       successMessage: "Assignment graded successfully!",
@@ -74,7 +67,13 @@ export const SubmissionsPage: React.FC = () => {
     if (!profile) return;
 
     gradeSubmissionMutation.mutate({
-      ...gradeData,
+      submissionId: selectedSubmission.id,
+      score: gradeData.score,
+      feedback: gradeData.feedback,
+      gradingNotes: gradeData.gradingNotes,
+      submissionQuality: gradeData.submissionQuality,
+      timeSpentMinutes: gradeData.timeSpentMinutes,
+      rubricScores: gradeData.rubricScores,
       gradedBy: profile.id
     });
   };

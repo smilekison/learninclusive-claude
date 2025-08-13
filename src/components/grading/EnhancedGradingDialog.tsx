@@ -85,7 +85,6 @@ export const EnhancedGradingDialog: React.FC<EnhancedGradingDialogProps> = ({
 
   const handleSubmit = () => {
     const gradeData = {
-      submissionId: submission.id,
       score: parseFloat(score),
       feedback,
       gradingNotes,
@@ -95,9 +94,7 @@ export const EnhancedGradingDialog: React.FC<EnhancedGradingDialogProps> = ({
         criteriaId,
         score,
         criteria: rubricCriteria.find(c => c.id === criteriaId)?.name
-      })),
-      lateSubmission: submission.due_date ? 
-        new Date(submission.submitted_at) > new Date(submission.assignment.due_date) : false
+      }))
     };
     
     onGrade(gradeData);

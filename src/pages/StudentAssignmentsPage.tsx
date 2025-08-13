@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -47,6 +48,8 @@ export const StudentAssignmentsPage: React.FC = () => {
   const [selectedAssignment, setSelectedAssignment] = useState<any>(null);
   const [submissionText, setSubmissionText] = useState('');
   const [submissionFile, setSubmissionFile] = useState<File | null>(null);
+  const [gradeDetailsModal, setGradeDetailsModal] = useState(false);
+  const [selectedGradedSubmission, setSelectedGradedSubmission] = useState<any>(null);
   
   // New state for filtering and search
   const [activeTab, setActiveTab] = useState('all');
@@ -701,132 +704,60 @@ export const StudentAssignmentsPage: React.FC = () => {
                               </div>
                             </div>
 
-                            {/* Comprehensive Graded Assignment Details */}
+                            {/* Simple graded indicator in card */}
                             {submission && submission.score !== null && submission.score !== undefined && (
-                              <div className="space-y-6">
-                                {/* Grade Overview */}
-                                <div>
-                                  <h4 className="font-bold mb-3 text-success flex items-center gap-2">
-                                    <Star className="w-5 h-5" />
-                                    Grade Overview
-                                  </h4>
-                                  <div className="p-4 bg-gradient-to-r from-success/10 to-primary/10 rounded-lg border border-success/20">
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                      <div className="text-center">
-                                        <div className="text-3xl font-bold text-success">
-                                          {submission.score}/{assignment.max_score}
-                                        </div>
-                                        <div className="text-sm text-muted-foreground">Final Score</div>
+                              <div>
+                                <h4 className="font-medium mb-2 text-success">Grade Summary</h4>
+                                <div className="p-3 bg-success/10 rounded-lg border border-success/20">
+                                  <div className="flex justify-between items-center">
+                                    <div>
+                                      <div className="text-lg font-bold text-success">
+                                        {submission.score}/{assignment.max_score} ({Math.round((submission.score / assignment.max_score) * 100)}%)
                                       </div>
-                                      <div className="text-center">
-                                        <div className="text-3xl font-bold text-primary">
-                                          {Math.round((submission.score / assignment.max_score) * 100)}%
-                                        </div>
-                                        <div className="text-sm text-muted-foreground">Percentage</div>
-                                      </div>
-                                      <div className="text-center">
-                                        <div className="text-lg font-semibold text-accent capitalize">
-                                          {submission.submission_quality || 'Good'}
-                                        </div>
-                                        <div className="text-sm text-muted-foreground">Quality Rating</div>
+                                      <div className="text-sm text-muted-foreground">
+                                        Quality: {submission.submission_quality || 'Good'}
                                       </div>
                                     </div>
-                                    <Progress 
-                                      value={(submission.score / assignment.max_score) * 100} 
-                                      className="mt-4 h-3"
-                                    />
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedGradedSubmission({ assignment, submission });
+                                        setGradeDetailsModal(true);
+                                      }}
+                                      className="hover-scale"
+                                    >
+                                      <Eye className="w-4 h-4 mr-2" />
+                                      View Details
+                                    </Button>
                                   </div>
+                                  <Progress 
+                                    value={(submission.score / assignment.max_score) * 100} 
+                                    className="mt-3 h-2"
+                                  />
                                 </div>
+                              </div>
+                            )}
 
-                                {/* Rubric Breakdown */}
-                                {submission.rubric_scores && Array.isArray(submission.rubric_scores) && submission.rubric_scores.length > 0 && (
-                                  <div>
-                                    <h4 className="font-bold mb-3 text-primary flex items-center gap-2">
-                                      <BarChart3 className="w-5 h-5" />
-                                      Rubric Breakdown
-                                    </h4>
-                                    <div className="space-y-3">
-                                      {submission.rubric_scores.map((rubric: any, index: number) => (
-                                        <div key={index} className="p-3 bg-card rounded-lg border border-muted">
-                                          <div className="flex justify-between items-center mb-2">
-                                            <span className="font-medium text-foreground">{rubric.criteria}</span>
-                                            <span className="font-bold text-primary">{rubric.score}/20</span>
-                                          </div>
-                                          <Progress 
-                                            value={(rubric.score / 20) * 100} 
-                                            className="h-2"
-                                          />
-                                          <div className="text-xs text-muted-foreground mt-1">
-                                            {Math.round((rubric.score / 20) * 100)}% - {rubric.score >= 18 ? 'Excellent' : rubric.score >= 15 ? 'Good' : rubric.score >= 12 ? 'Satisfactory' : 'Needs Improvement'}
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Teacher Feedback */}
-                                {submission.feedback && (
-                                  <div>
-                                    <h4 className="font-bold mb-3 text-accent flex items-center gap-2">
-                                      <Eye className="w-5 h-5" />
-                                      Teacher Feedback
-                                    </h4>
-                                    <div className="p-4 bg-accent/10 rounded-lg border border-accent/20">
-                                      <p className="text-foreground leading-relaxed">{submission.feedback}</p>
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Grading Notes */}
-                                {submission.grading_notes && (
-                                  <div>
-                                    <h4 className="font-bold mb-3 text-warning flex items-center gap-2">
-                                      <FileText className="w-5 h-5" />
-                                      Additional Notes
-                                    </h4>
-                                    <div className="p-4 bg-warning/10 rounded-lg border border-warning/20">
-                                      <p className="text-foreground leading-relaxed">{submission.grading_notes}</p>
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Grading Information */}
-                                <div>
-                                  <h4 className="font-bold mb-3 text-muted-foreground flex items-center gap-2">
-                                    <Clock className="w-5 h-5" />
-                                    Grading Information
-                                  </h4>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="p-3 bg-muted/20 rounded-lg border border-muted">
-                                      <div className="text-sm text-muted-foreground">Graded On</div>
-                                      <div className="font-medium text-foreground">
-                                        {submission.graded_at ? new Date(submission.graded_at).toLocaleString() : 'Not available'}
-                                      </div>
-                                    </div>
-                                    <div className="p-3 bg-muted/20 rounded-lg border border-muted">
-                                      <div className="text-sm text-muted-foreground">Time Spent</div>
-                                      <div className="font-medium text-foreground">
-                                        {submission.time_spent_minutes ? `${submission.time_spent_minutes} minutes` : 'Not tracked'}
-                                      </div>
-                                    </div>
-                                    <div className="p-3 bg-muted/20 rounded-lg border border-muted">
-                                      <div className="text-sm text-muted-foreground">Attempt Number</div>
-                                      <div className="font-medium text-foreground">
-                                        {submission.attempt_number || 1} of {assignment.max_attempts}
-                                      </div>
-                                    </div>
-                                    <div className="p-3 bg-muted/20 rounded-lg border border-muted">
-                                      <div className="text-sm text-muted-foreground">Late Submission</div>
-                                      <div className="font-medium text-foreground">
-                                        {submission.late_submission ? (
-                                          <span className="text-destructive">Yes</span>
-                                        ) : (
-                                          <span className="text-success">No</span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
+                            {/* Teacher Feedback Preview */}
+                            {submission && submission.feedback && (
+                              <div>
+                                <h4 className="font-medium mb-2 text-accent">Teacher Feedback</h4>
+                                <div className="p-3 bg-accent/10 rounded-lg border border-accent/20">
+                                  <p className="text-sm text-foreground line-clamp-3">{submission.feedback}</p>
+                                  {submission.feedback.length > 150 && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedGradedSubmission({ assignment, submission });
+                                        setGradeDetailsModal(true);
+                                      }}
+                                      className="mt-2 p-0 h-auto text-accent"
+                                    >
+                                      Read more...
+                                    </Button>
+                                  )}
                                 </div>
                               </div>
                             )}
@@ -858,31 +789,44 @@ export const StudentAssignmentsPage: React.FC = () => {
                             </Button>
                           ) : (
                             <div className="flex gap-2 w-full">
-                              <Button 
-                                variant="outline" 
-                                className="flex-1 hover-scale"
-                                onClick={() => {
-                                  setSelectedAssignment(assignment);
-                                  setSubmissionText(submission?.submission_text || '');
-                                  setSubmissionDialog(true);
-                                }}
-                              >
-                                <Eye className="w-4 h-4 mr-2" />
-                                View Details
-                              </Button>
-                              {submission?.score === null && (
+                              {submission?.score !== null ? (
                                 <Button 
-                                  variant="secondary" 
                                   className="flex-1 hover-scale"
                                   onClick={() => {
-                                    setSelectedAssignment(assignment);
-                                    setSubmissionText('');
-                                    setSubmissionDialog(true);
+                                    setSelectedGradedSubmission({ assignment, submission });
+                                    setGradeDetailsModal(true);
                                   }}
                                 >
-                                  <Edit className="w-4 h-4 mr-2" />
-                                  Resubmit
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  View Grade Details
                                 </Button>
+                              ) : (
+                                <>
+                                  <Button 
+                                    variant="outline" 
+                                    className="flex-1 hover-scale"
+                                    onClick={() => {
+                                      setSelectedAssignment(assignment);
+                                      setSubmissionText(submission?.submission_text || '');
+                                      setSubmissionDialog(true);
+                                    }}
+                                  >
+                                    <Eye className="w-4 h-4 mr-2" />
+                                    View Submission
+                                  </Button>
+                                  <Button 
+                                    variant="secondary" 
+                                    className="flex-1 hover-scale"
+                                    onClick={() => {
+                                      setSelectedAssignment(assignment);
+                                      setSubmissionText('');
+                                      setSubmissionDialog(true);
+                                    }}
+                                  >
+                                    <Edit className="w-4 h-4 mr-2" />
+                                    Resubmit
+                                  </Button>
+                                </>
                               )}
                             </div>
                           )}
@@ -926,6 +870,163 @@ export const StudentAssignmentsPage: React.FC = () => {
             isLoading={submitAssignmentMutation.isPending}
           />
         )}
+
+        {/* Grade Details Modal */}
+        <Dialog open={gradeDetailsModal} onOpenChange={setGradeDetailsModal}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Star className="w-5 h-5 text-success" />
+                Grade Details - {selectedGradedSubmission?.assignment?.title}
+              </DialogTitle>
+              <DialogDescription>
+                Comprehensive grading breakdown and feedback for your submission
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedGradedSubmission && (
+              <div className="space-y-6 mt-6">
+                {/* Grade Overview */}
+                <div>
+                  <h4 className="font-bold mb-3 text-success flex items-center gap-2">
+                    <Target className="w-5 h-5" />
+                    Grade Overview
+                  </h4>
+                  <div className="p-4 bg-gradient-to-r from-success/10 to-primary/10 rounded-lg border border-success/20">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-success">
+                          {selectedGradedSubmission.submission.score}/{selectedGradedSubmission.assignment.max_score}
+                        </div>
+                        <div className="text-sm text-muted-foreground">Final Score</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-primary">
+                          {Math.round((selectedGradedSubmission.submission.score / selectedGradedSubmission.assignment.max_score) * 100)}%
+                        </div>
+                        <div className="text-sm text-muted-foreground">Percentage</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-semibold text-accent capitalize">
+                          {selectedGradedSubmission.submission.submission_quality || 'Good'}
+                        </div>
+                        <div className="text-sm text-muted-foreground">Quality Rating</div>
+                      </div>
+                    </div>
+                    <Progress 
+                      value={(selectedGradedSubmission.submission.score / selectedGradedSubmission.assignment.max_score) * 100} 
+                      className="mt-4 h-3"
+                    />
+                  </div>
+                </div>
+
+                {/* Rubric Breakdown */}
+                {selectedGradedSubmission.submission.rubric_scores && Array.isArray(selectedGradedSubmission.submission.rubric_scores) && selectedGradedSubmission.submission.rubric_scores.length > 0 && (
+                  <div>
+                    <h4 className="font-bold mb-3 text-primary flex items-center gap-2">
+                      <BarChart3 className="w-5 h-5" />
+                      Rubric Breakdown
+                    </h4>
+                    <div className="space-y-3">
+                      {selectedGradedSubmission.submission.rubric_scores.map((rubric: any, index: number) => (
+                        <div key={index} className="p-3 bg-card rounded-lg border border-muted">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="font-medium text-foreground">{rubric.criteria}</span>
+                            <span className="font-bold text-primary">{rubric.score}/20</span>
+                          </div>
+                          <Progress 
+                            value={(rubric.score / 20) * 100} 
+                            className="h-2"
+                          />
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {Math.round((rubric.score / 20) * 100)}% - {rubric.score >= 18 ? 'Excellent' : rubric.score >= 15 ? 'Good' : rubric.score >= 12 ? 'Satisfactory' : 'Needs Improvement'}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Teacher Feedback */}
+                {selectedGradedSubmission.submission.feedback && (
+                  <div>
+                    <h4 className="font-bold mb-3 text-accent flex items-center gap-2">
+                      <Eye className="w-5 h-5" />
+                      Teacher Feedback
+                    </h4>
+                    <div className="p-4 bg-accent/10 rounded-lg border border-accent/20">
+                      <p className="text-foreground leading-relaxed whitespace-pre-wrap">{selectedGradedSubmission.submission.feedback}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Grading Notes */}
+                {selectedGradedSubmission.submission.grading_notes && (
+                  <div>
+                    <h4 className="font-bold mb-3 text-warning flex items-center gap-2">
+                      <FileText className="w-5 h-5" />
+                      Additional Notes
+                    </h4>
+                    <div className="p-4 bg-warning/10 rounded-lg border border-warning/20">
+                      <p className="text-foreground leading-relaxed whitespace-pre-wrap">{selectedGradedSubmission.submission.grading_notes}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Your Submission */}
+                {selectedGradedSubmission.submission.submission_text && (
+                  <div>
+                    <h4 className="font-bold mb-3 text-muted-foreground flex items-center gap-2">
+                      <Upload className="w-5 h-5" />
+                      Your Submission
+                    </h4>
+                    <div className="p-4 bg-muted/10 rounded-lg border border-muted">
+                      <p className="text-foreground leading-relaxed whitespace-pre-wrap">{selectedGradedSubmission.submission.submission_text}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Grading Information */}
+                <div>
+                  <h4 className="font-bold mb-3 text-muted-foreground flex items-center gap-2">
+                    <Clock className="w-5 h-5" />
+                    Grading Information
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-3 bg-muted/20 rounded-lg border border-muted">
+                      <div className="text-sm text-muted-foreground">Graded On</div>
+                      <div className="font-medium text-foreground">
+                        {selectedGradedSubmission.submission.graded_at ? new Date(selectedGradedSubmission.submission.graded_at).toLocaleString() : 'Not available'}
+                      </div>
+                    </div>
+                    <div className="p-3 bg-muted/20 rounded-lg border border-muted">
+                      <div className="text-sm text-muted-foreground">Time Spent</div>
+                      <div className="font-medium text-foreground">
+                        {selectedGradedSubmission.submission.time_spent_minutes ? `${selectedGradedSubmission.submission.time_spent_minutes} minutes` : 'Not tracked'}
+                      </div>
+                    </div>
+                    <div className="p-3 bg-muted/20 rounded-lg border border-muted">
+                      <div className="text-sm text-muted-foreground">Attempt Number</div>
+                      <div className="font-medium text-foreground">
+                        {selectedGradedSubmission.submission.attempt_number || 1} of {selectedGradedSubmission.assignment.max_attempts}
+                      </div>
+                    </div>
+                    <div className="p-3 bg-muted/20 rounded-lg border border-muted">
+                      <div className="text-sm text-muted-foreground">Late Submission</div>
+                      <div className="font-medium text-foreground">
+                        {selectedGradedSubmission.submission.late_submission ? (
+                          <span className="text-destructive">Yes</span>
+                        ) : (
+                          <span className="text-success">No</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );

@@ -90,7 +90,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           email: authUser.user?.email || '',
           firstName: profile.first_name,
           lastName: profile.last_name,
-          role: profile.role as 'principal' | 'teacher' | 'student',
+          role: profile.role as 'principal' | 'teacher' | 'student' | 'parent',
           createdAt: new Date(profile.created_at),
           updatedAt: new Date(profile.updated_at),
         };

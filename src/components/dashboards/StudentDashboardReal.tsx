@@ -177,8 +177,10 @@ export const StudentDashboardReal: React.FC = () => {
           `)
           .eq('student_id', profile.id)
           .not('score', 'is', null)
-          .order('graded_at', { ascending: false })
+          .order('updated_at', { ascending: false })
           .limit(4);
+
+        console.log('Graded submissions found:', submissions);
 
         setStudentGrades(submissions || []);
       }

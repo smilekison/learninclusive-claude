@@ -214,18 +214,58 @@ export const SubmissionsPage: React.FC = () => {
                     </div>
 
                     {submission.score !== null && (
-                      <div className="mt-3 p-3 bg-muted rounded-lg">
-                        <p className="text-sm font-medium text-green-600">
-                          Score: {submission.score}/{submission.assignment.max_score}
-                        </p>
-                        {submission.feedback && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            Feedback: {submission.feedback}
+                      <div className="mt-3 p-3 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-sm font-semibold text-green-700 dark:text-green-400">
+                            Score: {submission.score}/{submission.assignment.max_score} ({Math.round((submission.score / submission.assignment.max_score) * 100)}%)
                           </p>
+                          <Badge variant="default" className="text-xs">Graded</Badge>
+                        </div>
+                        
+                        {submission.feedback && (
+                          <div className="mb-2">
+                            <p className="text-xs font-medium text-muted-foreground mb-1">Teacher Feedback:</p>
+                            <p className="text-sm text-foreground bg-white/50 dark:bg-black/20 p-2 rounded">
+                              {submission.feedback}
+                            </p>
+                          </div>
                         )}
-                        <p className="text-sm text-muted-foreground">
-                          Graded: {new Date(submission.graded_at).toLocaleDateString()}
-                        </p>
+
+                        {submission.submission_quality && (
+                          <div className="mb-2">
+                            <p className="text-xs font-medium text-muted-foreground mb-1">Quality Rating:</p>
+                            <Badge variant="secondary" className="text-xs">{submission.submission_quality}</Badge>
+                          </div>
+                        )}
+
+                        {submission.grading_notes && (
+                          <div className="mb-2">
+                            <p className="text-xs font-medium text-muted-foreground mb-1">Grading Notes:</p>
+                            <p className="text-xs text-muted-foreground italic">
+                              {submission.grading_notes}
+                            </p>
+                          </div>
+                        )}
+
+                        {submission.rubric_scores && submission.rubric_scores.length > 0 && (
+                          <div className="mb-2">
+                            <p className="text-xs font-medium text-muted-foreground mb-1">Rubric Scores:</p>
+                            <div className="flex flex-wrap gap-1">
+                              {submission.rubric_scores.map((score: any, index: number) => (
+                                <Badge key={index} variant="outline" className="text-xs">
+                                  {score.criteria}: {score.score}/{score.maxScore}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex justify-between items-center text-xs text-muted-foreground pt-1 border-t border-white/20">
+                          <span>Graded: {new Date(submission.graded_at).toLocaleDateString()}</span>
+                          {submission.time_spent_minutes && (
+                            <span>Time: {submission.time_spent_minutes}min</span>
+                          )}
+                        </div>
                       </div>
                     )}
 

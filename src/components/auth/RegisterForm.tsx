@@ -153,6 +153,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode }) => {
                 <SelectItem value="principal">Principal</SelectItem>
                 <SelectItem value="teacher">Teacher</SelectItem>
                 <SelectItem value="student">Student</SelectItem>
+                <SelectItem value="parent">Parent</SelectItem>
               </SelectContent>
             </Select>
           </div>

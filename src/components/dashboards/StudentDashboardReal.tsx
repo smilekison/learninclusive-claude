@@ -94,22 +94,9 @@ export const StudentDashboardReal: React.FC = () => {
       }
       
       try {
-        // Get user profile with role
-        const { data: userProfile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, role')
-          .eq('user_id', user.id)
-          .single();
-        
-        console.log('🔍 StudentDashboard: Profile query result:', { userProfile, error: profileError });
-
-        if (profileError || !userProfile) {
-          console.error('❌ StudentDashboard: Student profile not found:', profileError);
-          setStudentAssignments([]);
-          return;
-        }
-
-        console.log('✅ StudentDashboard: Found profile:', userProfile);
+        // We already have the profile ID from the auth context
+        const userProfile = { id: user.id, role: user.role };
+        console.log('✅ StudentDashboard: Using profile from auth context:', userProfile);
 
         // Use the working query from get_student_assignments function or similar approach
         const { data: assignmentsData, error: assignmentsError } = await supabase

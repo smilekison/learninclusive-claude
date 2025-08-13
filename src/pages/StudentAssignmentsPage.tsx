@@ -43,24 +43,9 @@ export const StudentAssignmentsPage: React.FC = () => {
       }
       
       try {
-        console.log('🔍 StudentAssignmentsPage: Fetching profile for user_id:', user.id);
-        
-        // Get student's profile ID using the correct user_id from auth
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        console.log('🔍 StudentAssignmentsPage: Profile query result:', { profile, error: profileError, userId: user.id });
-
-        if (profileError || !profile) {
-          console.error('❌ StudentAssignmentsPage: Student profile not found:', profileError);
-          setStudentAssignments([]);
-          return;
-        }
-
-        console.log('✅ StudentAssignmentsPage: Found profile:', profile);
+        // We already have the profile ID from the auth context
+        const profile = { id: user.id };
+        console.log('✅ StudentAssignmentsPage: Using profile from auth context:', profile);
         console.log('🔍 StudentAssignmentsPage: Fetching enrollments for student_id:', profile.id);
 
         // First, get the student's class enrollments
@@ -185,19 +170,13 @@ export const StudentAssignmentsPage: React.FC = () => {
 
   const submitAssignmentMutation = useSupabaseMutation(
     async (data: any) => {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user?.id)
-        .single();
-
-      if (!profile) throw new Error('Profile not found');
+      if (!user?.id) throw new Error('User not found');
 
       return await supabase
         .from('assignment_submissions')
         .insert({
           assignment_id: data.assignmentId,
-          student_id: profile.id,
+          student_id: user.id, // Use the profile ID directly from auth context
           submission_text: data.submissionText,
           file_path: data.file?.name || null
         });

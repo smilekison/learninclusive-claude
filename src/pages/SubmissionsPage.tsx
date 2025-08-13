@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSupabaseMutation } from '@/hooks/useSupabaseQuery';
+import { useSupabaseMutation, useRecentSubmissions } from '@/hooks/useSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   ArrowLeft,
@@ -25,51 +25,12 @@ export const SubmissionsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [submissions, setSubmissions] = useState<any[]>([]);
+  const { data: submissions = [], error, isLoading } = useRecentSubmissions(100); // Get more submissions
   const [gradeDialog, setGradeDialog] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
   const [score, setScore] = useState('');
   const [feedback, setFeedback] = useState('');
 
-  React.useEffect(() => {
-    const fetchSubmissions = async () => {
-      if (!user) return;
-      
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (profile) {
-        // Get submissions for assignments in teacher's subjects
-        const { data: submissionsData } = await supabase
-          .from('assignment_submissions')
-          .select(`
-            *,
-            assignment:assignments(
-              title, 
-              max_score,
-              subject:subjects(
-                name,
-                class:classes(name, teacher_id)
-              )
-            ),
-            student:profiles(first_name, last_name)
-          `)
-          .order('submitted_at', { ascending: false });
-
-        // Filter for this teacher's submissions
-        const teacherSubmissions = submissionsData?.filter((sub: any) => 
-          sub.assignment?.subject?.class?.teacher_id === profile.id
-        ) || [];
-
-        setSubmissions(teacherSubmissions);
-      }
-    };
-
-    fetchSubmissions();
-  }, [user]);
 
   const gradeSubmissionMutation = useSupabaseMutation(
     async (data: any) => {
@@ -90,9 +51,8 @@ export const SubmissionsPage: React.FC = () => {
         setScore('');
         setFeedback('');
         setSelectedSubmission(null);
-        // Refresh submissions
-        window.location.reload();
-      }
+      },
+      invalidateKeys: [['recent-submissions']]
     }
   );
 
@@ -147,8 +107,23 @@ export const SubmissionsPage: React.FC = () => {
           </p>
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Loading submissions...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-12">
+            <p className="text-destructive">Error loading submissions: {error.message}</p>
+          </div>
+        )}
+
         {/* Submissions Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {!isLoading && !error && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {submissions.map((submission: any) => {
             return (
               <Card key={submission.id} className="hover:shadow-md transition-shadow">
@@ -259,14 +234,15 @@ export const SubmissionsPage: React.FC = () => {
             );
           })}
           
-          {submissions.length === 0 && (
-            <div className="col-span-full text-center py-12">
-              <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No submissions found</h3>
-              <p className="text-muted-foreground">No students have submitted assignments yet</p>
-            </div>
-          )}
-        </div>
+            {submissions.length === 0 && (
+              <div className="col-span-full text-center py-12">
+                <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No submissions found</h3>
+                <p className="text-muted-foreground">No students have submitted assignments yet</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Grading Dialog */}
         <Dialog open={gradeDialog} onOpenChange={setGradeDialog}>

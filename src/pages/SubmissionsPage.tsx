@@ -35,17 +35,52 @@ export const SubmissionsPage: React.FC = () => {
 
   const gradeSubmissionMutation = useSupabaseMutation(
     async (data: any) => {
-      // Use the edge function for grading
-      const { data: result, error } = await supabase.functions.invoke('grade-assignment', {
-        body: data
-      });
-      
-      if (error) throw error;
-      return result;
+      console.log('Grading submission with data:', data);
+      try {
+        // Use the edge function for grading
+        const { data: result, error } = await supabase.functions.invoke('grade-assignment', {
+          body: data
+        });
+        
+        console.log('Edge function result:', result);
+        console.log('Edge function error:', error);
+        
+        if (error) {
+          console.error('Edge function error:', error);
+          throw error;
+        }
+        return result;
+      } catch (err) {
+        console.error('Failed to grade assignment:', err);
+        // Also try direct database update as fallback
+        console.log('Attempting direct database update as fallback...');
+        const fallbackResult = await supabase
+          .from('assignment_submissions')
+          .update({
+            score: data.score,
+            feedback: data.feedback,
+            grading_notes: data.gradingNotes,
+            submission_quality: data.submissionQuality,
+            time_spent_minutes: data.timeSpentMinutes,
+            rubric_scores: data.rubricScores || [],
+            graded_at: new Date().toISOString(),
+            graded_by: data.gradedBy
+          })
+          .eq('id', data.submissionId);
+        
+        if (fallbackResult.error) {
+          console.error('Fallback update failed:', fallbackResult.error);
+          throw fallbackResult.error;
+        }
+        
+        console.log('Fallback update succeeded');
+        return fallbackResult;
+      }
     },
     {
       successMessage: "Assignment graded successfully!",
-      onSuccess: () => {
+      onSuccess: (data) => {
+        console.log('Grade submission success:', data);
         setGradeDialog(false);
         setScore('');
         setFeedback('');
@@ -56,7 +91,13 @@ export const SubmissionsPage: React.FC = () => {
   );
 
   const handleGradeSubmission = async (gradeData: any) => {
-    if (!selectedSubmission) return;
+    if (!selectedSubmission) {
+      console.error('No submission selected');
+      return;
+    }
+    
+    console.log('Handle grade submission called with:', gradeData);
+    console.log('Selected submission:', selectedSubmission);
     
     const { data: profile } = await supabase
       .from('profiles')
@@ -64,9 +105,14 @@ export const SubmissionsPage: React.FC = () => {
       .eq('user_id', user?.id)
       .single();
 
-    if (!profile) return;
+    if (!profile) {
+      console.error('No profile found for user');
+      return;
+    }
 
-    gradeSubmissionMutation.mutate({
+    console.log('Teacher profile:', profile);
+
+    const submissionData = {
       submissionId: selectedSubmission.id,
       score: gradeData.score,
       feedback: gradeData.feedback,
@@ -75,7 +121,10 @@ export const SubmissionsPage: React.FC = () => {
       timeSpentMinutes: gradeData.timeSpentMinutes,
       rubricScores: gradeData.rubricScores,
       gradedBy: profile.id
-    });
+    };
+
+    console.log('Submitting grade data:', submissionData);
+    gradeSubmissionMutation.mutate(submissionData);
   };
 
   const getStatusBadge = (submission: any) => {

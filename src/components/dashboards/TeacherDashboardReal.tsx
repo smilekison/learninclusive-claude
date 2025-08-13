@@ -850,20 +850,59 @@ export const TeacherDashboardReal: React.FC = () => {
             <ScrollArea className="h-64">
               <div className="space-y-3">
                 {paginatedNotifications.map((notification: any) => (
-                  <div key={notification.id} className="flex items-start gap-3 p-3 border rounded-lg">
+                  <div 
+                    key={notification.id} 
+                    className={`flex items-start gap-3 p-3 border rounded-lg transition-all cursor-pointer hover:shadow-md ${
+                      !notification.read ? 'border-primary/50 bg-primary/5' : ''
+                    }`}
+                    onClick={() => {
+                      // Navigate based on notification type
+                      switch (notification.type) {
+                        case 'assignment':
+                          navigate('/assignments');
+                          break;
+                        case 'submission':
+                          navigate('/submissions');
+                          break;
+                        case 'grade':
+                          navigate('/student/assignments');
+                          break;
+                        case 'deadline':
+                          navigate('/assignments');
+                          break;
+                        case 'enrollment':
+                          navigate('/students');
+                          break;
+                        default:
+                          navigate('/notifications');
+                      }
+                    }}
+                  >
                     <div className="flex-1">
-                      <h4 className="font-medium text-sm">{notification.title}</h4>
+                      <h4 className={`font-medium text-sm ${!notification.read ? 'font-semibold' : ''}`}>
+                        {notification.title}
+                        {!notification.read && <span className="ml-2 w-2 h-2 bg-primary rounded-full inline-block" />}
+                      </h4>
                       <p className="text-sm text-muted-foreground">{notification.message}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(notification.created_at).toLocaleDateString()}
-                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(notification.created_at).toLocaleDateString()}
+                        </span>
+                        <span className="text-xs bg-muted px-2 py-1 rounded">
+                          {notification.type}
+                        </span>
+                      </div>
                     </div>
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => handleMarkNotificationRead(notification.id)}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent navigation when clicking tick
+                        handleMarkNotificationRead(notification.id);
+                      }}
+                      className="hover:bg-success/10"
                     >
-                      <CheckCircle className="h-4 w-4" />
+                      <CheckCircle className="h-4 w-4 text-success" />
                     </Button>
                   </div>
                 ))}

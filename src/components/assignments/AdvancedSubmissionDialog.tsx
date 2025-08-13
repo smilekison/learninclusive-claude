@@ -157,8 +157,11 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
     if (!assignment) return;
     
     Array.from(files).forEach(file => {
-      // Validate file type
-      const allowedTypes = assignment.allowed_file_types || ['pdf', 'doc', 'docx', 'txt', 'jpg', 'png'];
+      // Validate file type - if no allowed types specified, allow common types
+      const allowedTypes = assignment.allowed_file_types && assignment.allowed_file_types.length > 0 
+        ? assignment.allowed_file_types 
+        : ['pdf', 'doc', 'docx', 'txt', 'jpg', 'jpeg', 'png', 'gif', 'xlsx', 'xls', 'ppt', 'pptx', 'zip', 'rar'];
+      
       const fileExtension = file.name.split('.').pop()?.toLowerCase();
       
       if (fileExtension && !allowedTypes.includes(fileExtension)) {
@@ -395,18 +398,23 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
                        <Label className="text-xs text-muted-foreground">Subject</Label>
                        <p className="font-medium">{assignment?.subject?.name || 'Unknown'}</p>
                      </div>
-                     {assignment?.allowed_file_types?.length > 0 && (
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Allowed Files</Label>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {assignment.allowed_file_types.map((type: string) => (
-                            <Badge key={type} variant="outline" className="text-xs">
-                              {type}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                      {assignment?.allowed_file_types?.length > 0 ? (
+                       <div>
+                         <Label className="text-xs text-muted-foreground">Allowed Files</Label>
+                         <div className="flex flex-wrap gap-1 mt-1">
+                           {assignment.allowed_file_types.map((type: string) => (
+                             <Badge key={type} variant="outline" className="text-xs">
+                               {type}
+                             </Badge>
+                           ))}
+                         </div>
+                       </div>
+                     ) : (
+                       <div>
+                         <Label className="text-xs text-muted-foreground">Allowed Files</Label>
+                         <p className="text-sm text-muted-foreground">Most common file types accepted</p>
+                       </div>
+                     )}
                   </CardContent>
                 </Card>
 
@@ -551,7 +559,11 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
                         Click to upload or drag and drop files here
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Max 10MB per file • Allowed: {assignment.allowed_file_types?.join(', ') || 'All types'}
+                        Max 10MB per file • Allowed: {
+                          assignment.allowed_file_types && assignment.allowed_file_types.length > 0 
+                            ? assignment.allowed_file_types.join(', ') 
+                            : 'pdf, doc, docx, txt, jpg, jpeg, png, gif, xlsx, xls, ppt, pptx, zip, rar'
+                        }
                       </p>
                     </div>
 

@@ -84,6 +84,16 @@ export const EnhancedGradingDialog: React.FC<EnhancedGradingDialogProps> = ({
   };
 
   const handleSubmit = () => {
+    console.log('handleSubmit called');
+    console.log('Current score:', score);
+    console.log('Current feedback:', feedback);
+    console.log('Current submission:', submission);
+    
+    if (!score) {
+      console.error('No score provided');
+      return;
+    }
+    
     const gradeData = {
       score: parseFloat(score),
       feedback,
@@ -97,6 +107,7 @@ export const EnhancedGradingDialog: React.FC<EnhancedGradingDialogProps> = ({
       }))
     };
     
+    console.log('Calling onGrade with:', gradeData);
     onGrade(gradeData);
   };
 
@@ -339,10 +350,14 @@ export const EnhancedGradingDialog: React.FC<EnhancedGradingDialogProps> = ({
             ) : (
               <>
                 <CheckCircle className="w-4 h-4" />
-                Submit Grade
+                Submit Grade {!score && "(Enter score first)"}
               </>
             )}
           </Button>
+          {/* Debug info */}
+          <div className="text-xs text-muted-foreground mt-2">
+            Debug: Score = "{score}", Disabled = {(isLoading || !score).toString()}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

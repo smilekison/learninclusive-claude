@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAssignments, useSupabaseMutation } from '@/hooks/useSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,13 +17,28 @@ import {
   AlertCircle,
   CheckCircle,
   Upload,
-  BarChart3
+  BarChart3,
+  Search,
+  Filter,
+  GraduationCap,
+  Target,
+  TrendingUp,
+  BookOpen,
+  Star,
+  Timer,
+  Download,
+  Eye,
+  Edit,
+  Archive,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Progress } from '@/components/ui/progress';
 
 export const StudentAssignmentsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -31,6 +49,13 @@ export const StudentAssignmentsPage: React.FC = () => {
   const [selectedAssignment, setSelectedAssignment] = useState<any>(null);
   const [submissionText, setSubmissionText] = useState('');
   const [submissionFile, setSubmissionFile] = useState<File | null>(null);
+  
+  // New state for filtering and search
+  const [activeTab, setActiveTab] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('due_date');
+  const [subjectFilter, setSubjectFilter] = useState('all');
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
 
   React.useEffect(() => {
     const fetchStudentAssignments = async () => {
@@ -168,6 +193,130 @@ export const StudentAssignmentsPage: React.FC = () => {
     fetchStudentAssignments();
   }, [user]);
 
+  // Filtering and sorting logic
+  const filteredAssignments = useMemo(() => {
+    let filtered = [...studentAssignments];
+
+    // Search filter
+    if (searchQuery) {
+      filtered = filtered.filter(assignment => 
+        assignment.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        assignment.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        assignment.subject?.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Subject filter
+    if (subjectFilter !== 'all') {
+      filtered = filtered.filter(assignment => assignment.subject?.id === subjectFilter);
+    }
+
+    // Tab filter
+    switch (activeTab) {
+      case 'pending':
+        filtered = filtered.filter(assignment => 
+          !assignment.submissions?.length || assignment.submissions.length === 0
+        );
+        break;
+      case 'submitted':
+        filtered = filtered.filter(assignment => 
+          assignment.submissions?.length > 0 && assignment.submissions[0]?.score === null
+        );
+        break;
+      case 'graded':
+        filtered = filtered.filter(assignment => 
+          assignment.submissions?.length > 0 && assignment.submissions[0]?.score !== null
+        );
+        break;
+      case 'overdue':
+        filtered = filtered.filter(assignment => {
+          if (!assignment.due_date) return false;
+          const hasSubmission = assignment.submissions?.length > 0;
+          if (hasSubmission) return false;
+          return new Date(assignment.due_date) < new Date();
+        });
+        break;
+      case 'due-soon':
+        filtered = filtered.filter(assignment => {
+          if (!assignment.due_date) return false;
+          const hasSubmission = assignment.submissions?.length > 0;
+          if (hasSubmission) return false;
+          const due = new Date(assignment.due_date);
+          const now = new Date();
+          const diffDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 3600 * 24));
+          return diffDays >= 0 && diffDays <= 7;
+        });
+        break;
+    }
+
+    // Sort
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'due_date':
+          if (!a.due_date && !b.due_date) return 0;
+          if (!a.due_date) return 1;
+          if (!b.due_date) return -1;
+          return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+        case 'created_at':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case 'title':
+          return a.title.localeCompare(b.title);
+        case 'subject':
+          return a.subject?.name.localeCompare(b.subject?.name) || 0;
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [studentAssignments, searchQuery, subjectFilter, activeTab, sortBy]);
+
+  // Get unique subjects for filter
+  const uniqueSubjects = useMemo(() => {
+    const subjects = studentAssignments.map(a => a.subject).filter(Boolean);
+    return subjects.filter((subject, index, self) => 
+      self.findIndex(s => s.id === subject.id) === index
+    );
+  }, [studentAssignments]);
+
+  // Toggle card expansion
+  const toggleCardExpansion = (assignmentId: string) => {
+    const newExpanded = new Set(expandedCards);
+    if (newExpanded.has(assignmentId)) {
+      newExpanded.delete(assignmentId);
+    } else {
+      newExpanded.add(assignmentId);
+    }
+    setExpandedCards(newExpanded);
+  };
+
+  // Get assignment statistics for each tab
+  const getTabStats = () => {
+    const total = studentAssignments.length;
+    const pending = studentAssignments.filter(a => !a.submissions?.length || a.submissions.length === 0).length;
+    const submitted = studentAssignments.filter(a => a.submissions?.length > 0 && a.submissions[0]?.score === null).length;
+    const graded = studentAssignments.filter(a => a.submissions?.length > 0 && a.submissions[0]?.score !== null).length;
+    const overdue = studentAssignments.filter(a => {
+      if (!a.due_date) return false;
+      const hasSubmission = a.submissions?.length > 0;
+      if (hasSubmission) return false;
+      return new Date(a.due_date) < new Date();
+    }).length;
+    const dueSoon = studentAssignments.filter(a => {
+      if (!a.due_date) return false;
+      const hasSubmission = a.submissions?.length > 0;
+      if (hasSubmission) return false;
+      const due = new Date(a.due_date);
+      const now = new Date();
+      const diffDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 3600 * 24));
+      return diffDays >= 0 && diffDays <= 7;
+    }).length;
+
+    return { total, pending, submitted, graded, overdue, dueSoon };
+  };
+
+  const tabStats = getTabStats();
+
   const submitAssignmentMutation = useSupabaseMutation(
     async (data: any) => {
       if (!user?.id) throw new Error('User not found');
@@ -244,6 +393,22 @@ export const StudentAssignmentsPage: React.FC = () => {
     return <Calendar className="h-4 w-4 text-primary" />;
   };
 
+  const getPriorityLevel = (assignment: any) => {
+    if (!assignment.due_date) return 'low';
+    const hasSubmission = assignment.submissions?.length > 0;
+    if (hasSubmission) return 'completed';
+    
+    const due = new Date(assignment.due_date);
+    const now = new Date();
+    const diffDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 3600 * 24));
+    
+    if (diffDays < 0) return 'overdue';
+    if (diffDays <= 1) return 'urgent';
+    if (diffDays <= 3) return 'high';
+    if (diffDays <= 7) return 'medium';
+    return 'low';
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <main className="max-w-7xl mx-auto p-6 space-y-6">
@@ -306,174 +471,310 @@ export const StudentAssignmentsPage: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-        {/* Assignments Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {studentAssignments.map((assignment: any) => {
-            const hasSubmission = assignment.submissions && assignment.submissions.length > 0;
-            const submission = hasSubmission ? assignment.submissions[0] : null;
-
-            const getBorderColor = () => {
-              if (hasSubmission) {
-                return submission?.score !== null ? 'border-l-success' : 'border-l-primary';
-              }
-              if (assignment.due_date && new Date(assignment.due_date) < new Date()) {
-                return 'border-l-destructive';
-              }
-              return 'border-l-muted-foreground';
-            };
-
-            const getCardGradient = () => {
-              if (hasSubmission) {
-                return submission?.score !== null 
-                  ? 'bg-gradient-to-br from-success/5 to-success/2' 
-                  : 'bg-gradient-to-br from-primary/5 to-primary/2';
-              }
-              if (assignment.due_date && new Date(assignment.due_date) < new Date()) {
-                return 'bg-gradient-to-br from-destructive/5 to-destructive/2';
-              }
-              return 'bg-gradient-to-br from-muted/5 to-background';
-            };
-
-            return (
-              <Card 
-                key={assignment.id} 
-                className={`card-elevated hover:shadow-medium transition-all duration-300 cursor-pointer border-l-4 ${getBorderColor()} ${getCardGradient()}`}
-              >
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      {getUrgencyIcon(assignment)}
-                      {assignment.title}
-                    </CardTitle>
-                    {getStatusBadge(assignment)}
-                  </div>
-                  <CardDescription className="text-sm">
-                    {assignment.description || 'No description available'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3 mb-4">
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <FileText className="w-4 h-4" />
-                        <span>Subject: {assignment.subject?.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Calendar className="w-4 h-4" />
-                        <span>Class: {assignment.subject?.class?.name}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      {assignment.due_date && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Clock className="w-4 h-4" />
-                          <span>Due: {new Date(assignment.due_date).toLocaleDateString()}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <span>Max Score: {assignment.max_score} points</span>
-                      </div>
-                    </div>
-                    
-                    {submission && (
-                      <div className="mt-4 p-4 bg-gradient-to-r from-success/10 to-primary/10 rounded-lg border border-success/20">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-sm font-semibold text-success flex items-center gap-2">
-                            <CheckCircle className="w-4 h-4" />
-                            Submitted
-                          </p>
-                          {submission.score !== null && (
-                            <div className="text-right">
-                              <p className="text-lg font-bold text-success">
-                                {submission.score}/{assignment.max_score}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                ({Math.round((submission.score / assignment.max_score) * 100)}%)
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                        <div className="space-y-1 text-sm">
-                          <p className="text-muted-foreground">
-                            <strong>Submitted:</strong> {new Date(submission.submitted_at).toLocaleDateString()}
-                          </p>
-                          {submission.feedback && (
-                            <div className="mt-2 p-3 bg-card rounded-lg border border-accent/20">
-                              <p className="text-xs font-medium text-accent mb-1">Teacher Feedback:</p>
-                              <p className="text-sm text-foreground">{submission.feedback}</p>
-                            </div>
-                          )}
-                          {submission.submission_text && (
-                            <div className="mt-2 p-3 bg-card rounded-lg border border-muted">
-                              <p className="text-xs font-medium text-muted-foreground mb-1">Your Submission:</p>
-                              <p className="text-sm text-foreground">{submission.submission_text.substring(0, 100)}...</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    {!hasSubmission ? (
-                      <Button 
-                        className="flex-1" 
-                        onClick={() => {
-                          setSelectedAssignment(assignment);
-                          setSubmissionDialog(true);
-                        }}
-                      >
-                        <Upload className="w-4 h-4 mr-2" />
-                        Submit Assignment
-                      </Button>
-                    ) : (
-                      <div className="flex gap-2 w-full">
-                        <Button 
-                          variant="outline" 
-                          className="flex-1"
-                          onClick={() => {
-                            setSelectedAssignment(assignment);
-                            setSubmissionText(submission?.submission_text || '');
-                            setSubmissionDialog(true);
-                          }}
-                        >
-                          View Submission
-                        </Button>
-                        {submission?.score === null && (
-                          <Button 
-                            variant="secondary" 
-                            className="flex-1"
-                            onClick={() => {
-                              setSelectedAssignment(assignment);
-                              setSubmissionText('');
-                              setSubmissionDialog(true);
-                            }}
-                          >
-                            Resubmit
-                          </Button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-          
-          {studentAssignments.length === 0 && (
-            <div className="col-span-full text-center py-12">
-              <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No assignments found</h3>
-              <p className="text-muted-foreground mb-4">
-                You need to be enrolled in a class to see assignments. Please join a subject using an invitation code.
-              </p>
-              <Button onClick={() => window.location.href = '/join-subject'}>
-                Join a Subject
-              </Button>
+        
+        {/* Search and Filters */}
+        <Card className="animate-fade-in">
+          <CardContent className="pt-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Search assignments, subjects, or descriptions..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select value={subjectFilter} onValueChange={setSubjectFilter}>
+                <SelectTrigger className="w-full md:w-48">
+                  <SelectValue placeholder="Filter by subject" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Subjects</SelectItem>
+                  {uniqueSubjects.map(subject => (
+                    <SelectItem key={subject.id} value={subject.id}>
+                      {subject.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full md:w-48">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="due_date">Due Date</SelectItem>
+                  <SelectItem value="created_at">Date Added</SelectItem>
+                  <SelectItem value="title">Title A-Z</SelectItem>
+                  <SelectItem value="subject">Subject</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          )}
-        </div>
+          </CardContent>
+        </Card>
+
+        {/* Tabbed Assignment View */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="animate-fade-in">
+          <TabsList className="grid w-full grid-cols-6 bg-muted/30">
+            <TabsTrigger value="all" className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              All ({tabStats.total})
+            </TabsTrigger>
+            <TabsTrigger value="pending" className="flex items-center gap-2">
+              <Timer className="w-4 h-4" />
+              Pending ({tabStats.pending})
+            </TabsTrigger>
+            <TabsTrigger value="due-soon" className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" />
+              Due Soon ({tabStats.dueSoon})
+            </TabsTrigger>
+            <TabsTrigger value="overdue" className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              Overdue ({tabStats.overdue})
+            </TabsTrigger>
+            <TabsTrigger value="submitted" className="flex items-center gap-2">
+              <Upload className="w-4 h-4" />
+              Submitted ({tabStats.submitted})
+            </TabsTrigger>
+            <TabsTrigger value="graded" className="flex items-center gap-2">
+              <Star className="w-4 h-4" />
+              Graded ({tabStats.graded})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value={activeTab} className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredAssignments.map((assignment: any) => {
+                const hasSubmission = assignment.submissions && assignment.submissions.length > 0;
+                const submission = hasSubmission ? assignment.submissions[0] : null;
+                const priorityLevel = getPriorityLevel(assignment);
+                const isExpanded = expandedCards.has(assignment.id);
+
+                const getBorderColor = () => {
+                  if (hasSubmission) {
+                    return submission?.score !== null ? 'border-l-success' : 'border-l-primary';
+                  }
+                  if (assignment.due_date && new Date(assignment.due_date) < new Date()) {
+                    return 'border-l-destructive';
+                  }
+                  return 'border-l-muted-foreground';
+                };
+
+                const getCardGradient = () => {
+                  if (hasSubmission) {
+                    return submission?.score !== null 
+                      ? 'bg-gradient-to-br from-success/5 to-success/2' 
+                      : 'bg-gradient-to-br from-primary/5 to-primary/2';
+                  }
+                  if (assignment.due_date && new Date(assignment.due_date) < new Date()) {
+                    return 'bg-gradient-to-br from-destructive/5 to-destructive/2';
+                  }
+                  return 'bg-gradient-to-br from-muted/5 to-background';
+                };
+
+                const getPriorityColor = () => {
+                  switch (priorityLevel) {
+                    case 'urgent': return 'text-destructive';
+                    case 'high': return 'text-warning';
+                    case 'medium': return 'text-primary';
+                    case 'overdue': return 'text-destructive';
+                    case 'completed': return 'text-success';
+                    default: return 'text-muted-foreground';
+                  }
+                };
+
+                return (
+                  <Card 
+                    key={assignment.id} 
+                    className={`card-elevated hover:shadow-medium transition-all duration-300 border-l-4 ${getBorderColor()} ${getCardGradient()} animate-scale-in`}
+                  >
+                    <Collapsible open={isExpanded} onOpenChange={() => toggleCardExpansion(assignment.id)}>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              {getUrgencyIcon(assignment)}
+                              <CardTitle className="text-lg line-clamp-2">{assignment.title}</CardTitle>
+                              <Badge className={getPriorityColor()}>{priorityLevel.toUpperCase()}</Badge>
+                            </div>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
+                              <span className="flex items-center gap-1">
+                                <BookOpen className="w-3 h-3" />
+                                {assignment.subject?.name}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <GraduationCap className="w-3 h-3" />
+                                {assignment.subject?.class?.name}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {getStatusBadge(assignment)}
+                            <CollapsibleTrigger asChild>
+                              <Button variant="ghost" size="sm" className="hover-scale">
+                                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                              </Button>
+                            </CollapsibleTrigger>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          {assignment.due_date && (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Clock className="w-4 h-4" />
+                              <span>Due: {new Date(assignment.due_date).toLocaleDateString()}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Target className="w-4 h-4" />
+                            <span>{assignment.max_score} points</span>
+                          </div>
+                        </div>
+
+                        {submission && (
+                          <div className="mt-3 p-3 bg-gradient-to-r from-success/10 to-primary/10 rounded-lg border border-success/20">
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm font-semibold text-success flex items-center gap-2">
+                                <CheckCircle className="w-4 h-4" />
+                                Submitted {new Date(submission.submitted_at).toLocaleDateString()}
+                              </p>
+                              {submission.score !== null && (
+                                <div className="text-right">
+                                  <p className="text-lg font-bold text-success">
+                                    {submission.score}/{assignment.max_score}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {Math.round((submission.score / assignment.max_score) * 100)}%
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                            {submission.score !== null && (
+                              <Progress 
+                                value={(submission.score / assignment.max_score) * 100} 
+                                className="mt-2 h-2"
+                              />
+                            )}
+                          </div>
+                        )}
+                      </CardHeader>
+
+                      <CollapsibleContent className="animate-accordion-down">
+                        <CardContent className="pt-0">
+                          <div className="space-y-4">
+                            <div>
+                              <h4 className="font-medium mb-2 text-foreground">Description</h4>
+                              <p className="text-sm text-muted-foreground">
+                                {assignment.description || 'No description provided'}
+                              </p>
+                            </div>
+
+                            <div>
+                              <h4 className="font-medium mb-2 text-foreground">Assignment Details</h4>
+                              <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                  <Calendar className="w-4 h-4" />
+                                  <span>Created: {new Date(assignment.created_at).toLocaleDateString()}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                  <TrendingUp className="w-4 h-4" />
+                                  <span>Max Attempts: {assignment.max_attempts}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {submission?.feedback && (
+                              <div>
+                                <h4 className="font-medium mb-2 text-accent">Teacher Feedback</h4>
+                                <div className="p-3 bg-card rounded-lg border border-accent/20">
+                                  <p className="text-sm text-foreground">{submission.feedback}</p>
+                                </div>
+                              </div>
+                            )}
+
+                            {submission?.submission_text && (
+                              <div>
+                                <h4 className="font-medium mb-2 text-muted-foreground">Your Submission</h4>
+                                <div className="p-3 bg-card rounded-lg border border-muted">
+                                  <p className="text-sm text-foreground">{submission.submission_text}</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </CollapsibleContent>
+
+                      <CardContent className="pt-0">
+                        <div className="flex gap-2">
+                          {!hasSubmission ? (
+                            <Button 
+                              className="flex-1 hover-scale" 
+                              onClick={() => {
+                                setSelectedAssignment(assignment);
+                                setSubmissionDialog(true);
+                              }}
+                            >
+                              <Upload className="w-4 h-4 mr-2" />
+                              Submit Assignment
+                            </Button>
+                          ) : (
+                            <div className="flex gap-2 w-full">
+                              <Button 
+                                variant="outline" 
+                                className="flex-1 hover-scale"
+                                onClick={() => {
+                                  setSelectedAssignment(assignment);
+                                  setSubmissionText(submission?.submission_text || '');
+                                  setSubmissionDialog(true);
+                                }}
+                              >
+                                <Eye className="w-4 h-4 mr-2" />
+                                View Details
+                              </Button>
+                              {submission?.score === null && (
+                                <Button 
+                                  variant="secondary" 
+                                  className="flex-1 hover-scale"
+                                  onClick={() => {
+                                    setSelectedAssignment(assignment);
+                                    setSubmissionText('');
+                                    setSubmissionDialog(true);
+                                  }}
+                                >
+                                  <Edit className="w-4 h-4 mr-2" />
+                                  Resubmit
+                                </Button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Collapsible>
+                  </Card>
+                );
+              })}
+              
+              {filteredAssignments.length === 0 && (
+                <div className="col-span-full text-center py-12 animate-fade-in">
+                  <FileText className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">No assignments found</h3>
+                  <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+                    {activeTab === 'all' 
+                      ? "You don't have any assignments yet. Enroll in a class to see assignments."
+                      : `No assignments match the current filter: ${activeTab.replace('-', ' ')}`
+                    }
+                  </p>
+                  {activeTab === 'all' && (
+                    <Button onClick={() => window.location.href = '/join-subject'} className="hover-scale">
+                      <BookOpen className="w-4 h-4 mr-2" />
+                      Join a Subject
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
 
         {/* Submission Dialog */}
         <Dialog open={submissionDialog} onOpenChange={setSubmissionDialog}>

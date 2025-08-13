@@ -691,8 +691,41 @@ export const StudentAssignmentsPage: React.FC = () => {
                             {submission?.feedback && (
                               <div>
                                 <h4 className="font-medium mb-2 text-accent">Teacher Feedback</h4>
-                                <div className="p-3 bg-card rounded-lg border border-accent/20">
+                                <div className="p-3 bg-accent/10 rounded-lg border border-accent/20">
                                   <p className="text-sm text-foreground">{submission.feedback}</p>
+                                </div>
+                              </div>
+                            )}
+
+                            {submission?.grading_notes && (
+                              <div>
+                                <h4 className="font-medium mb-2 text-primary">Grading Notes</h4>
+                                <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
+                                  <p className="text-sm text-foreground">{submission.grading_notes}</p>
+                                </div>
+                              </div>
+                            )}
+
+                            {submission?.score !== null && (
+                              <div>
+                                <h4 className="font-medium mb-2 text-success">Grade Details</h4>
+                                <div className="p-3 bg-success/10 rounded-lg border border-success/20">
+                                  <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                      <span className="text-muted-foreground">Score:</span>
+                                      <span className="ml-2 font-semibold">{submission.score}/{assignment.max_score}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-muted-foreground">Percentage:</span>
+                                      <span className="ml-2 font-semibold">{Math.round((submission.score / assignment.max_score) * 100)}%</span>
+                                    </div>
+                                    {submission.graded_at && (
+                                      <div className="col-span-2">
+                                        <span className="text-muted-foreground">Graded on:</span>
+                                        <span className="ml-2">{new Date(submission.graded_at).toLocaleString()}</span>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             )}

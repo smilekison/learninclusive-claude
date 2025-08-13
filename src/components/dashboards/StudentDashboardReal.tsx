@@ -578,28 +578,42 @@ export const StudentDashboardReal: React.FC = () => {
                     ? Math.round((grade.score / grade.assignment.max_score) * 100)
                     : 0;
                   return (
-                    <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
-                      <div>
-                        <p className="font-medium">{grade.assignment?.title || 'Assignment'}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {grade.assignment?.subject?.name || 'Subject'}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(grade.submitted_at).toLocaleDateString()}
-                        </p>
+                    <div key={index} className="p-3 rounded-lg border bg-gradient-to-r from-primary/5 to-accent/5">
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <p className="font-medium">{grade.assignment?.title || 'Assignment'}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {grade.assignment?.subject?.name || 'Subject'}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          {grade.score ? (
+                            <>
+                              <p className={`text-lg font-bold ${getGradeColor(percentage)}`}>
+                                {grade.score}/{grade.assignment?.max_score || 100}
+                              </p>
+                              <p className="text-sm font-medium text-primary">
+                                {percentage}%
+                              </p>
+                            </>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">Pending</p>
+                          )}
+                        </div>
                       </div>
-                      <div className="text-right">
-                        {grade.score ? (
-                          <>
-                            <p className={`text-lg font-bold ${getGradeColor(percentage)}`}>
-                              {grade.score}/{grade.assignment?.max_score || 100}
-                            </p>
-                            <p className={`text-sm ${getGradeColor(percentage)}`}>
-                              {percentage}%
-                            </p>
-                          </>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">Pending</p>
+                      
+                      {/* Show feedback if available */}
+                      {grade.feedback && (
+                        <div className="mt-2 p-2 bg-background/50 rounded border">
+                          <p className="text-xs text-muted-foreground mb-1">Teacher feedback:</p>
+                          <p className="text-sm text-foreground">{grade.feedback}</p>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                        <span>Submitted: {new Date(grade.submitted_at).toLocaleDateString()}</span>
+                        {grade.graded_at && (
+                          <span>Graded: {new Date(grade.graded_at).toLocaleDateString()}</span>
                         )}
                       </div>
                     </div>
@@ -610,6 +624,26 @@ export const StudentDashboardReal: React.FC = () => {
                   <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground">No grades yet</p>
                   <p className="text-sm text-muted-foreground">Submit assignments to see your grades here.</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-2"
+                    onClick={() => navigate('/student/assignments')}
+                  >
+                    View All Assignments
+                  </Button>
+                </div>
+              )}
+              {studentGrades.length > 0 && (
+                <div className="mt-4 pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => navigate('/student/assignments?tab=graded')}
+                  >
+                    View All Grades
+                  </Button>
                 </div>
               )}
             </div>

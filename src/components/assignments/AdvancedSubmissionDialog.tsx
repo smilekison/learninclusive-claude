@@ -120,6 +120,8 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
   }, [submissionData.text, submissionData.notes, submissionData.codeContent]);
 
   const saveDraft = async () => {
+    if (!assignment?.id) return;
+    
     try {
       localStorage.setItem(`assignment_draft_${assignment.id}`, JSON.stringify({
         ...submissionData,
@@ -134,6 +136,8 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
   };
 
   const loadDraft = () => {
+    if (!assignment?.id) return;
+    
     try {
       const draft = localStorage.getItem(`assignment_draft_${assignment.id}`);
       if (draft) {
@@ -150,6 +154,8 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
   };
 
   const handleFileUpload = (files: FileList) => {
+    if (!assignment) return;
+    
     Array.from(files).forEach(file => {
       // Validate file type
       const allowedTypes = assignment.allowed_file_types || ['pdf', 'doc', 'docx', 'txt', 'jpg', 'png'];
@@ -303,7 +309,9 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
     onSubmit(finalSubmission);
     
     // Clear draft after successful submission
-    localStorage.removeItem(`assignment_draft_${assignment.id}`);
+    if (assignment?.id) {
+      localStorage.removeItem(`assignment_draft_${assignment.id}`);
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -321,7 +329,7 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
   };
 
   const getDueStatus = () => {
-    if (!assignment.due_date) return { status: 'no-deadline', color: 'text-muted-foreground', text: 'No deadline' };
+    if (!assignment?.due_date) return { status: 'no-deadline', color: 'text-muted-foreground', text: 'No deadline' };
     
     const due = new Date(assignment.due_date);
     const now = new Date();
@@ -342,7 +350,7 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl">Submit Assignment: {assignment.title}</DialogTitle>
+            <DialogTitle className="text-xl">Submit Assignment: {assignment?.title || 'Loading...'}</DialogTitle>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="flex items-center gap-1">
                 <Timer className="w-3 h-3" />
@@ -374,20 +382,20 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
                       Assignment Info
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3 text-sm">
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Max Score</Label>
-                      <p className="font-medium">{assignment.max_score} points</p>
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Max Attempts</Label>
-                      <p className="font-medium">{assignment.max_attempts}</p>
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Subject</Label>
-                      <p className="font-medium">{assignment.subject?.name}</p>
-                    </div>
-                    {assignment.allowed_file_types?.length > 0 && (
+                   <CardContent className="space-y-3 text-sm">
+                     <div>
+                       <Label className="text-xs text-muted-foreground">Max Score</Label>
+                       <p className="font-medium">{assignment?.max_score || 0} points</p>
+                     </div>
+                     <div>
+                       <Label className="text-xs text-muted-foreground">Max Attempts</Label>
+                       <p className="font-medium">{assignment?.max_attempts || 0}</p>
+                     </div>
+                     <div>
+                       <Label className="text-xs text-muted-foreground">Subject</Label>
+                       <p className="font-medium">{assignment?.subject?.name || 'Unknown'}</p>
+                     </div>
+                     {assignment?.allowed_file_types?.length > 0 && (
                       <div>
                         <Label className="text-xs text-muted-foreground">Allowed Files</Label>
                         <div className="flex flex-wrap gap-1 mt-1">

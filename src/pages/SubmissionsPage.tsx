@@ -99,14 +99,17 @@ export const SubmissionsPage: React.FC = () => {
     console.log('Handle grade submission called with:', gradeData);
     console.log('Selected submission:', selectedSubmission);
     
+    // Get current user profile, fallback to user_id if profile doesn't exist
     const { data: profile } = await supabase
       .from('profiles')
       .select('id')
       .eq('user_id', user?.id)
       .single();
 
-    if (!profile) {
-      console.error('No profile found for user');
+    const gradedBy = profile?.id || user?.id;
+    
+    if (!gradedBy) {
+      console.error('No user found for grading');
       return;
     }
 
@@ -120,7 +123,7 @@ export const SubmissionsPage: React.FC = () => {
       submissionQuality: gradeData.submissionQuality,
       timeSpentMinutes: gradeData.timeSpentMinutes,
       rubricScores: gradeData.rubricScores,
-      gradedBy: profile.id
+      gradedBy: gradedBy
     };
 
     console.log('Submitting grade data:', submissionData);

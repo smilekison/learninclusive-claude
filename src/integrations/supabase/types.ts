@@ -629,6 +629,7 @@ export type Database = {
           status: string
           student_id: string
           subject_id: string
+          teacher_feedback: string | null
           updated_at: string
         }
         Insert: {
@@ -641,6 +642,7 @@ export type Database = {
           status?: string
           student_id: string
           subject_id: string
+          teacher_feedback?: string | null
           updated_at?: string
         }
         Update: {
@@ -653,6 +655,7 @@ export type Database = {
           status?: string
           student_id?: string
           subject_id?: string
+          teacher_feedback?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -983,6 +986,10 @@ export type Database = {
         Args: { target_table: string; target_column: string; code_len?: number }
         Returns: string
       }
+      generate_unique_invitation_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_current_profile_id: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -990,6 +997,22 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_student_assignments: {
+        Args: { student_profile_id: string }
+        Returns: {
+          id: string
+          title: string
+          description: string
+          due_date: string
+          max_score: number
+          created_at: string
+          updated_at: string
+          subject_id: string
+          is_active: boolean
+          subject: Json
+          submissions: Json
+        }[]
       }
       get_user_profile_id: {
         Args: Record<PropertyKey, never>
@@ -1036,7 +1059,7 @@ export type Database = {
       }
       request_subject_enrollment: {
         Args: { invitation_code: string }
-        Returns: Json
+        Returns: string
       }
       restore_deleted_item: {
         Args: { deleted_item_id: string }

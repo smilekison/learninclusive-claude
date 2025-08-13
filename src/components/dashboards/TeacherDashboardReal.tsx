@@ -196,37 +196,43 @@ export const TeacherDashboardReal: React.FC = () => {
   const calculateEngagementData = () => {
     const data: any[] = [];
     
-    // Generate insights for subjects
+    // Generate insights for subjects with real data
     teacherSubjects.forEach((subject: any) => {
       const studentCount = subject.class?.student_enrollments?.length || 0;
-      const avgAttendance = Math.floor(Math.random() * 25) + 75; // Mock data
-      const avgAssignmentCompletion = Math.floor(Math.random() * 25) + 70;
-      const avgParticipation = Math.floor(Math.random() * 30) + 70;
+      const subjectAssignments = activeAssignments.filter((a: any) => a.subject_id === subject.id);
+      const subjectSubmissions = recentSubmissions.filter((s: any) => 
+        subjectAssignments.some((a: any) => a.id === s.assignment_id)
+      );
+      
+      const completionRate = subjectAssignments.length > 0 ? 
+        Math.round((subjectSubmissions.length / (subjectAssignments.length * studentCount)) * 100) : 0;
+      
+      const gradedSubmissions = subjectSubmissions.filter((s: any) => s.score);
+      const gradingRate = subjectSubmissions.length > 0 ? 
+        Math.round((gradedSubmissions.length / subjectSubmissions.length) * 100) : 100;
       
       let riskLevel: 'low' | 'medium' | 'high' = 'low';
-      if (avgAttendance < 75 || avgAssignmentCompletion < 75 || avgParticipation < 75) {
-        if (avgAttendance < 60 || avgAssignmentCompletion < 60 || avgParticipation < 60) {
-          riskLevel = 'high';
-        } else {
-          riskLevel = 'medium';
-        }
+      if (completionRate < 60 || gradingRate < 50) {
+        riskLevel = 'high';
+      } else if (completionRate < 80 || gradingRate < 80) {
+        riskLevel = 'medium';
       }
       
       data.push({
         id: subject.id,
         name: subject.name,
         type: 'subject' as const,
-        engagementScore: Math.round((avgAttendance + avgAssignmentCompletion + avgParticipation) / 3),
+        engagementScore: Math.round((completionRate + gradingRate) / 2),
         riskLevel,
         metrics: {
-          attendanceRate: avgAttendance,
-          assignmentCompletion: avgAssignmentCompletion,
-          participationScore: avgParticipation,
-          lastActivity: '2 hours ago'
+          attendanceRate: completionRate,
+          assignmentCompletion: completionRate,
+          participationScore: gradingRate,
+          lastActivity: subjectSubmissions.length > 0 ? 'Recent activity' : 'No recent activity'
         },
         trends: {
-          engagement: Math.random() > 0.5 ? 'up' : 'down',
-          performance: Math.random() > 0.5 ? 'up' : 'stable'
+          engagement: completionRate > 75 ? 'up' : 'down',
+          performance: gradingRate > 75 ? 'up' : 'stable'
         }
       });
     });
@@ -603,20 +609,24 @@ export const TeacherDashboardReal: React.FC = () => {
                         <CardTitle>Student Performance Overview</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span>High Performers (A-B+)</span>
-                            <span className="font-medium">65%</span>
+                        {stats ? (
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span>Total Students</span>
+                              <span className="font-medium">{stats.totalStudents}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span>Active Assignments</span>
+                              <span className="font-medium">{activeAssignments.length}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span>Pending Submissions</span>
+                              <span className="font-medium">{recentSubmissions.filter((s: any) => !s.score).length}</span>
+                            </div>
                           </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Average Performers (B-C+)</span>
-                            <span className="font-medium">28%</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Needs Support (C and below)</span>
-                            <span className="font-medium">7%</span>
-                          </div>
-                        </div>
+                        ) : (
+                          <div className="text-center text-muted-foreground">Loading student data...</div>
+                        )}
                       </CardContent>
                     </Card>
                   </TabsContent>
@@ -676,12 +686,12 @@ export const TeacherDashboardReal: React.FC = () => {
                             <span className="font-medium">{stats?.totalSubjects || 0}</span>
                           </div>
                           <div className="flex justify-between text-sm">
-                            <span>Average Engagement Score</span>
-                            <span className="font-medium">84%</span>
+                            <span>Active Classes</span>
+                            <span className="font-medium">{teacherClasses.length}</span>
                           </div>
                           <div className="flex justify-between text-sm">
-                            <span>Best Performing Subject</span>
-                            <span className="font-medium">{teacherSubjects[0]?.name || 'N/A'}</span>
+                            <span>Recent Submissions</span>
+                            <span className="font-medium">{recentSubmissions.length}</span>
                           </div>
                         </div>
                       </CardContent>
@@ -708,12 +718,12 @@ export const TeacherDashboardReal: React.FC = () => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-4 gap-4 text-center">
             <div>
-              <div className="text-2xl font-bold text-success">84%</div>
-              <div className="text-xs text-muted-foreground">Avg Engagement</div>
+              <div className="text-2xl font-bold text-success">{teacherSubjects.length}</div>
+              <div className="text-xs text-muted-foreground">Active Subjects</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-warning">8</div>
-              <div className="text-xs text-muted-foreground">Students at Risk</div>
+              <div className="text-2xl font-bold text-warning">{unreadNotifications.length}</div>
+              <div className="text-xs text-muted-foreground">Unread Notifications</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-blue-600">
@@ -722,8 +732,8 @@ export const TeacherDashboardReal: React.FC = () => {
               <div className="text-xs text-muted-foreground">Pending Grades</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-green-600">87%</div>
-              <div className="text-xs text-muted-foreground">Completion Rate</div>
+              <div className="text-2xl font-bold text-green-600">{stats?.totalStudents || 0}</div>
+              <div className="text-xs text-muted-foreground">Total Students</div>
             </div>
           </div>
           <div className="flex gap-2">
@@ -779,9 +789,6 @@ export const TeacherDashboardReal: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* Subject Enrollment Manager */}
-      <SubjectEnrollmentManager />
 
       {/* Main Content Grid */}
       <div className="grid gap-6 md:grid-cols-2">
@@ -881,8 +888,6 @@ export const TeacherDashboardReal: React.FC = () => {
           </CardContent>
       </Card>
 
-      {/* Subject Enrollment Requests Section */}
-      <SubjectEnrollmentRequestsManager />
     </div>
 
       {/* Engagement Insights */}

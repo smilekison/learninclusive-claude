@@ -319,14 +319,27 @@ export const StudentAssignmentsPage: React.FC = () => {
     async (data: any) => {
       if (!user?.id) throw new Error('User not found');
 
-      return await supabase
-        .from('assignment_submissions')
-        .insert({
-          assignment_id: data.assignmentId,
-          student_id: user.id,
-          submission_text: data.submissionText,
-          file_path: data.files?.[0]?.file?.name || null
-        });
+      // Get the student's profile ID
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile) throw new Error('Profile not found');
+
+      // Use the edge function for submission
+      const { data: result, error } = await supabase.functions.invoke('submit-assignment', {
+        body: {
+          assignmentId: data.assignmentId,
+          studentId: profile.id,
+          submissionText: data.submissionText,
+          filePath: data.files?.[0]?.file?.name || null
+        }
+      });
+
+      if (error) throw error;
+      return result;
     },
     {
       successMessage: "Assignment submitted successfully!",

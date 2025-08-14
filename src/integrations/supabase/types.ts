@@ -1073,6 +1073,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_parent_student_ids_for_user: {
+        Args: Record<PropertyKey, never>
+        Returns: string[]
+      }
       get_student_assignments: {
         Args: { student_profile_id: string }
         Returns: {

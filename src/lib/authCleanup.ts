@@ -22,3 +22,24 @@ export const cleanupAuthState = () => {
     });
   }
 };
+
+export const forceAuthCleanupAndReload = () => {
+  console.log('Forcing complete auth cleanup and reload...');
+  
+  // Clear all localStorage
+  try {
+    localStorage.clear();
+  } catch (e) {
+    console.warn('Could not clear localStorage:', e);
+  }
+  
+  // Clear all sessionStorage
+  try {
+    sessionStorage?.clear();
+  } catch (e) {
+    console.warn('Could not clear sessionStorage:', e);
+  }
+  
+  // Force reload to completely reset state
+  window.location.href = '/auth';
+};

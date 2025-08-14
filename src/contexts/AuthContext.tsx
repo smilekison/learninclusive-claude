@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { AuthContextType, User, RegisterData } from '@/types/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { cleanupAuthState } from '@/lib/authCleanup';
+import { cleanupAuthState, forceAuthCleanupAndReload } from '@/lib/authCleanup';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -124,32 +124,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error: any) {
       console.error('Error fetching user profile:', error);
       
-      // If we haven't retried and it's not a permanent error, try again
-      if (retryCount < 2 && error?.code !== 'PGRST116') {
-        console.log('Retrying profile fetch due to error...');
-        setTimeout(() => {
-          fetchUserProfile(userId, retryCount + 1);
-        }, 1000 * (retryCount + 1));
-        return;
-      }
-      
       toast({
         title: "Error",
         description: "Failed to load user profile. Please try logging in again.",
         variant: "destructive",
       });
-      setUser(null);
       
-      // If profile loading fails completely, sign out
-      if (retryCount >= 2) {
-        console.log('Profile loading failed after retries, signing out');
-        supabase.auth.signOut();
-      }
+      // Force cleanup and reload to resolve auth limbo
+      setTimeout(() => {
+        forceAuthCleanupAndReload();
+      }, 2000);
     } finally {
-      // Only set loading to false on the final attempt or if we succeeded
-      if (retryCount === 0) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 

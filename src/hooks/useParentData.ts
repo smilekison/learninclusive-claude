@@ -44,27 +44,20 @@ export const useParentChildren = () => {
       console.log('useParentChildren called for user:', user?.id);
       if (!user?.id) throw new Error('User not authenticated');
 
-      const { data: parentProfile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('role', 'parent')
-        .single();
-
-      console.log('Parent profile query result:', { parentProfile, profileError });
-      if (profileError) throw profileError;
-      if (!parentProfile) throw new Error('Parent profile not found');
+      // Since we already have the user profile ID from AuthContext, we can use it directly
+      const parentProfileId = user.id;
+      console.log('Using parent profile ID:', parentProfileId);
 
       // Get all student relationships for this parent
       const { data: relationshipData, error: relError } = await supabase
         .from('parent_student_relationships')
         .select('student_id, relationship_type')
-        .eq('parent_id', parentProfile.id);
+        .eq('parent_id', parentProfileId);
 
       console.log('Relationship data query result:', { relationshipData, relError });
       if (relError) throw relError;
       if (!relationshipData || relationshipData.length === 0) {
-        console.log('No relationships found for parent:', parentProfile.id);
+        console.log('No relationships found for parent:', parentProfileId);
         return [];
       }
 

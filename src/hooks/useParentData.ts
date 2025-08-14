@@ -41,15 +41,18 @@ export const useParentChildren = () => {
   return useQuery({
     queryKey: ['parent-children', user?.id],
     queryFn: async () => {
+      console.log('useParentChildren called for user:', user?.id);
       if (!user?.id) throw new Error('User not authenticated');
 
-      const { data: parentProfile } = await supabase
+      const { data: parentProfile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
         .eq('user_id', user.id)
         .eq('role', 'parent')
         .single();
 
+      console.log('Parent profile query result:', { parentProfile, profileError });
+      if (profileError) throw profileError;
       if (!parentProfile) throw new Error('Parent profile not found');
 
       // Get all student relationships for this parent
@@ -58,26 +61,36 @@ export const useParentChildren = () => {
         .select('student_id, relationship_type')
         .eq('parent_id', parentProfile.id);
 
+      console.log('Relationship data query result:', { relationshipData, relError });
       if (relError) throw relError;
-      if (!relationshipData || relationshipData.length === 0) return [];
+      if (!relationshipData || relationshipData.length === 0) {
+        console.log('No relationships found for parent:', parentProfile.id);
+        return [];
+      }
 
       // Get student profiles
       const studentIds = relationshipData.map(rel => rel.student_id);
+      console.log('Student IDs to fetch:', studentIds);
+      
       const { data: students, error: studentsError } = await supabase
         .from('profiles')
         .select('id, first_name, last_name, role, parent_email')
         .in('id', studentIds);
 
+      console.log('Students query result:', { students, studentsError });
       if (studentsError) throw studentsError;
 
       // Combine relationship data with student profiles
-      return students?.map(student => {
+      const result = students?.map(student => {
         const relationship = relationshipData.find(rel => rel.student_id === student.id);
         return {
           ...student,
           relationship_type: relationship?.relationship_type || 'parent'
         };
       }) as ParentChild[] || [];
+      
+      console.log('Final parent children result:', result);
+      return result;
     },
     enabled: !!user?.id,
   });

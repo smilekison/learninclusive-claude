@@ -24,15 +24,22 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode, onForgotPass
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    console.log('LOGIN FORM: Starting login attempt');
+    console.log('LOGIN FORM: Email:', email);
 
     if (!email || !password) {
+      console.log('LOGIN FORM: Missing email or password');
       setError('Please fill in all fields');
       return;
     }
 
     try {
+      console.log('LOGIN FORM: Calling login function');
       await login(email, password);
+      console.log('LOGIN FORM: Login function completed successfully');
     } catch (err) {
+      console.error('LOGIN FORM: Login failed with error:', err);
       setError('Invalid email or password');
     }
   };

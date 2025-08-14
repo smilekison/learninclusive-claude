@@ -39,15 +39,16 @@ export const useParentChildren = () => {
   const { user } = useAuth();
   
   return useQuery({
-    queryKey: ['parent-children', user?.id],
+    queryKey: ['parent-children', user?.authUserId],
     queryFn: async () => {
-      console.log('useParentChildren called for user:', user?.id);
-      if (!user?.id) throw new Error('User not authenticated');
+      console.log('useParentChildren called for auth user ID:', user?.authUserId);
+      console.log('User object:', user);
+      if (!user?.authUserId) throw new Error('User not authenticated');
 
       const { data: parentProfile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('user_id', user.authUserId)
         .eq('role', 'parent')
         .single();
 
@@ -92,7 +93,7 @@ export const useParentChildren = () => {
       console.log('Final parent children result:', result);
       return result;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.authUserId,
   });
 };
 

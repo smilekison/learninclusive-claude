@@ -52,26 +52,32 @@ export const useParentChildren = () => {
 
       if (!parentProfile) throw new Error('Parent profile not found');
 
-      const { data: relationships, error } = await supabase
+      // Get all student relationships for this parent
+      const { data: relationshipData, error: relError } = await supabase
         .from('parent_student_relationships')
-        .select(`
-          relationship_type,
-          student:student_id (
-            id,
-            first_name,
-            last_name,
-            role,
-            parent_email
-          )
-        `)
+        .select('student_id, relationship_type')
         .eq('parent_id', parentProfile.id);
 
-      if (error) throw error;
+      if (relError) throw relError;
+      if (!relationshipData || relationshipData.length === 0) return [];
 
-      return relationships?.map(rel => ({
-        ...(rel.student as any),
-        relationship_type: rel.relationship_type
-      })) as ParentChild[] || [];
+      // Get student profiles
+      const studentIds = relationshipData.map(rel => rel.student_id);
+      const { data: students, error: studentsError } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, role, parent_email')
+        .in('id', studentIds);
+
+      if (studentsError) throw studentsError;
+
+      // Combine relationship data with student profiles
+      return students?.map(student => {
+        const relationship = relationshipData.find(rel => rel.student_id === student.id);
+        return {
+          ...student,
+          relationship_type: relationship?.relationship_type || 'parent'
+        };
+      }) as ParentChild[] || [];
     },
     enabled: !!user?.id,
   });

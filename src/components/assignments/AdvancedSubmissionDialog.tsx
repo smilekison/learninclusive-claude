@@ -389,7 +389,7 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
             status: 'uploaded', 
             progress: 100,
             path: uploadedFile.path,
-            uploadedFile
+            uploadedAt: new Date().toISOString()
           } : f
         )
       }));
@@ -517,7 +517,7 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
         status: f.status, 
         name: f.file.name,
         progress: f.progress,
-        hasUploadedFile: !!f.uploadedFile
+        hasUploadedFile: f.status === 'uploaded' && !!f.path
       }))
     });
     
@@ -543,8 +543,13 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
 
     // Prepare uploaded files data for the backend
     const finalUploadedFiles = submissionData.files
-      .filter(f => f.status === 'uploaded' && f.uploadedFile)
-      .map(f => f.uploadedFile!);
+      .filter(f => f.status === 'uploaded' && f.path)
+      .map(f => ({
+        name: f.file.name,
+        path: f.path,
+        size: f.file.size,
+        type: f.file.type
+      }));
 
     console.log('📎 HANDLE SUBMIT: Final uploaded files prepared:', finalUploadedFiles);
 

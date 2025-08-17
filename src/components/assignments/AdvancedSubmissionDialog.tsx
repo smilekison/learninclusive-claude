@@ -288,15 +288,15 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
         throw new Error('Assignment ID not found');
       }
 
-      // Use the student profile ID directly from auth context
-      const studentProfileId = user.id;
-      console.log('📤 UPLOAD FILE TO STORAGE: Using student profile ID:', studentProfileId);
+      // Use the auth user ID for storage foldering (matches RLS policies)
+      const folderUserId = user.authUserId || user.id;
+      console.log('📤 UPLOAD FILE TO STORAGE: Using folder user ID:', folderUserId);
 
-      // Create file path: studentProfileId/assignmentId/timestamp-filename  
+      // Create file path: authUserId/assignmentId/timestamp-filename  
       const timestamp = Date.now();
       const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
       const fileName = `${timestamp}-${sanitizedFileName}`;
-      const filePath = `${studentProfileId}/${assignment.id}/${fileName}`;
+      const filePath = `${folderUserId}/${assignment.id}/${fileName}`;
 
       console.log('📤 UPLOAD FILE TO STORAGE: File path:', filePath);
 

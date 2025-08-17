@@ -480,33 +480,30 @@ export const TeacherDashboardReal: React.FC = () => {
 
             <Dialog open={isStudentDialogOpen} onOpenChange={setIsStudentDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline">
-                  <Plus className="w-4 h-4 mr-2" />
+                <Button className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
                   Add Student
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Add New Student</DialogTitle>
-                  <div className="text-sm text-muted-foreground">
-                    Creates a student account with default password: <code className="bg-muted px-2 py-1 rounded">demo123</code>
-                  </div>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="student-firstName">First Name</Label>
+                      <Label htmlFor="firstName">First Name</Label>
                       <Input
-                        id="student-firstName"
+                        id="firstName"
                         value={newStudent.firstName}
                         onChange={(e) => setNewStudent({ ...newStudent, firstName: e.target.value })}
                         required
                       />
                     </div>
                     <div>
-                      <Label htmlFor="student-lastName">Last Name</Label>
+                      <Label htmlFor="lastName">Last Name</Label>
                       <Input
-                        id="student-lastName"
+                        id="lastName"
                         value={newStudent.lastName}
                         onChange={(e) => setNewStudent({ ...newStudent, lastName: e.target.value })}
                         required
@@ -514,9 +511,9 @@ export const TeacherDashboardReal: React.FC = () => {
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="student-email">Email</Label>
+                    <Label htmlFor="email">Email</Label>
                     <Input
-                      id="student-email"
+                      id="email"
                       type="email"
                       value={newStudent.email}
                       onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
@@ -525,9 +522,9 @@ export const TeacherDashboardReal: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="student-parentEmail">Parent Email (Optional)</Label>
+                    <Label htmlFor="parentEmail">Parent Email (Optional)</Label>
                     <Input
-                      id="student-parentEmail"
+                      id="parentEmail"
                       type="email"
                       value={newStudent.parentEmail}
                       onChange={(e) => setNewStudent({ ...newStudent, parentEmail: e.target.value })}
@@ -535,26 +532,31 @@ export const TeacherDashboardReal: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="student-class">Class</Label>
+                    <Label htmlFor="class">Class</Label>
                     <Select value={newStudent.classId} onValueChange={(value) => setNewStudent({ ...newStudent, classId: value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a class" />
                       </SelectTrigger>
                       <SelectContent>
-                        {teacherClasses.map((cls: any) => (
-                          <SelectItem key={cls.id} value={cls.id}>
-                            {cls.name}
-                          </SelectItem>
-                        ))}
+                        {teacherClasses && teacherClasses.length > 0 ? (
+                          teacherClasses.map((cls: any) => (
+                            <SelectItem key={cls.id} value={cls.id}>
+                              {cls.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-classes" disabled>No classes available</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
-                   <Button 
-                     onClick={handleAddStudent} 
-                     disabled={addStudentMutation.isPending || !newStudent.email || !newStudent.firstName || !newStudent.lastName || !newStudent.classId}
-                   >
-                     {addStudentMutation.isPending ? 'Creating Account...' : 'Create Student Account'}
-                   </Button>
+                  <Button 
+                    onClick={handleAddStudent} 
+                    disabled={addStudentMutation.isPending || !newStudent.email || !newStudent.firstName || !newStudent.lastName || !newStudent.classId}
+                    className="w-full"
+                  >
+                    {addStudentMutation.isPending ? 'Adding...' : 'Add Student'}
+                  </Button>
                 </div>
               </DialogContent>
             </Dialog>

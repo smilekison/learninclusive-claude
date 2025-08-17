@@ -88,8 +88,18 @@ const handler = async (req: Request): Promise<Response> => {
       if (!authHeader) throw new Error('No authorization header');
 
       const token_user = authHeader.replace('Bearer ', '');
+      
+      // Use service role to verify the token instead of getUser
       const { data: { user }, error: userError } = await supabase.auth.getUser(token_user);
-      if (userError || !user) throw new Error('Invalid user token');
+      
+      if (userError) {
+        console.error('User token verification error:', userError);
+        throw new Error(`Invalid user token: ${userError.message}`);
+      }
+      
+      if (!user) {
+        throw new Error('No user found for provided token');
+      }
 
       const { data: inviterProfile } = await supabase
         .from('profiles')

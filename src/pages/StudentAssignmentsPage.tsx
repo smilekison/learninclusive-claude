@@ -371,7 +371,7 @@ export const StudentAssignmentsPage: React.FC = () => {
       }
       
       console.log('✅ Assignment submitted successfully');
-      return result;
+      return { data: result, error: null };
     },
     {
       successMessage: "Assignment submitted successfully!",

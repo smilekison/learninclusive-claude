@@ -203,9 +203,9 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
         return updated;
       });
 
-      console.log('📁 HANDLE FILE CHANGE: Starting upload simulation...');
+      console.log('📁 HANDLE FILE CHANGE: Starting actual upload...');
       // Start upload immediately
-      simulateUpload(fileId);
+      handleSingleFileUpload(fileId);
     });
     
     // Reset the input
@@ -268,8 +268,8 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
       }));
 
       console.log(`📁 HANDLE FILE UPLOAD: Starting upload for file ID: ${fileId}`);
-      // Simulate upload progress
-      simulateUpload(fileId);
+      // Start actual upload
+      handleSingleFileUpload(fileId);
     });
   };
 
@@ -329,18 +329,18 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
     }
   };
 
-  const simulateUpload = async (fileId: string) => {
-    console.log('🚀 SIMULATE UPLOAD: Starting for fileId:', fileId);
+  const handleSingleFileUpload = async (fileId: string) => {
+    console.log('🚀 HANDLE SINGLE FILE UPLOAD: Starting for fileId:', fileId);
     
     const file = submissionData.files.find(f => f.id === fileId);
-    console.log('🚀 SIMULATE UPLOAD: Found file:', file ? file.file.name : 'NOT FOUND');
+    console.log('🚀 HANDLE SINGLE FILE UPLOAD: Found file:', file ? file.file.name : 'NOT FOUND');
     
     if (!file || !assignment?.id) {
-      console.log('❌ SIMULATE UPLOAD: Missing file or assignment ID');
+      console.log('❌ HANDLE SINGLE FILE UPLOAD: Missing file or assignment ID');
       return;
     }
 
-    console.log('🚀 SIMULATE UPLOAD: Setting status to uploading...');
+    console.log('🚀 HANDLE SINGLE FILE UPLOAD: Setting status to uploading...');
     setSubmissionData(prev => ({
       ...prev,
       files: prev.files.map(f => 
@@ -349,18 +349,18 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
     }));
 
     try {
-      console.log('🔍 SIMULATE UPLOAD: Getting user from auth context...');
-      console.log('🔍 SIMULATE UPLOAD: User object:', user);
+      console.log('🔍 HANDLE SINGLE FILE UPLOAD: Getting user from auth context...');
+      console.log('🔍 HANDLE SINGLE FILE UPLOAD: User object:', user);
       
       if (!user?.id) {
-        console.log('❌ SIMULATE UPLOAD: No user or user ID found');
+        console.log('❌ HANDLE SINGLE FILE UPLOAD: No user or user ID found');
         throw new Error('User not authenticated or no profile ID');
       }
 
-      console.log('✅ SIMULATE UPLOAD: Using profile ID from auth context:', user.id);
+      console.log('✅ HANDLE SINGLE FILE UPLOAD: Using profile ID from auth context:', user.id);
 
       // Update progress during upload with interval
-      console.log('📊 SIMULATE UPLOAD: Starting progress tracking...');
+      console.log('📊 HANDLE SINGLE FILE UPLOAD: Starting progress tracking...');
       const progressInterval = setInterval(() => {
         setSubmissionData(prev => ({
           ...prev,
@@ -372,15 +372,15 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
         }));
       }, 200);
 
-      console.log('📤 SIMULATE UPLOAD: Calling uploadFileToStorage...');
+      console.log('📤 HANDLE SINGLE FILE UPLOAD: Calling uploadFileToStorage...');
       // Upload file to Supabase storage
       const uploadedFile = await uploadFileToStorage(file.file, fileId, user.id, assignment.id);
-      console.log('✅ SIMULATE UPLOAD: Upload completed:', uploadedFile);
+      console.log('✅ HANDLE SINGLE FILE UPLOAD: Upload completed:', uploadedFile);
 
       clearInterval(progressInterval);
-      console.log('📊 SIMULATE UPLOAD: Progress interval cleared');
+      console.log('📊 HANDLE SINGLE FILE UPLOAD: Progress interval cleared');
 
-      console.log('✅ SIMULATE UPLOAD: Setting final status...');
+      console.log('✅ HANDLE SINGLE FILE UPLOAD: Setting final status...');
       setSubmissionData(prev => ({
         ...prev,
         files: prev.files.map(f => 
@@ -394,15 +394,15 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
         )
       }));
 
-      console.log('🎉 SIMULATE UPLOAD: Showing success toast...');
+      console.log('🎉 HANDLE SINGLE FILE UPLOAD: Showing success toast...');
       toast({
         title: "File uploaded successfully",
         description: `${file.file.name} has been uploaded to the server`
       });
 
-      console.log('✅ SIMULATE UPLOAD: Process complete');
+      console.log('✅ HANDLE SINGLE FILE UPLOAD: Process complete');
     } catch (error) {
-      console.error('💥 SIMULATE UPLOAD: Error occurred:', error);
+      console.error('💥 HANDLE SINGLE FILE UPLOAD: Error occurred:', error);
       
       setSubmissionData(prev => ({
         ...prev,
@@ -411,7 +411,7 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
         )
       }));
 
-      console.log('❌ SIMULATE UPLOAD: Showing error toast...');
+      console.log('❌ HANDLE SINGLE FILE UPLOAD: Showing error toast...');
       toast({
         title: "Upload failed",
         description: `Failed to upload ${file.file.name}. Please try again.`,

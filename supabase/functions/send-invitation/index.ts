@@ -12,11 +12,15 @@ const corsHeaders = {
 
 interface InvitationRequest {
   email: string;
-  inviteType: 'teacher' | 'student' | 'subject_enrollment';
+  inviteType?: 'teacher' | 'student' | 'subject_enrollment';
   role?: string;
   schoolName?: string;
   subjectId?: string;
   enrollmentLink?: string;
+  firstName?: string;
+  lastName?: string;
+  parentEmail?: string;
+  classId?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -26,20 +30,29 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { email, inviteType, role, schoolName, subjectId, enrollmentLink }: InvitationRequest = await req.json();
+    const { email, inviteType, role, schoolName, subjectId, enrollmentLink, firstName, lastName, parentEmail, classId }: InvitationRequest = await req.json();
     
     console.log('Sending invitation:', { email, inviteType, role, schoolName, subjectId });
 
-    // Create Supabase client
+    // Create Supabase clients
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+    const supabaseUser = createClient(supabaseUrl, anonKey, {
+      global: {
+        headers: {
+          Authorization: req.headers.get('Authorization') ?? '',
+        },
+      },
+    });
 
     let emailResponse;
 
     if (inviteType === 'subject_enrollment') {
       // Get subject details
-      const { data: subject } = await supabase
+      const { data: subject } = await supabaseAdmin
         .from('subjects')
         .select(`
           name,
@@ -84,41 +97,51 @@ const handler = async (req: Request): Promise<Response> => {
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
       // Get inviter profile
-      const authHeader = req.headers.get('authorization');
-      if (!authHeader) throw new Error('No authorization header');
-
-      const token_user = authHeader.replace('Bearer ', '');
-      
-      // Use service role to verify the token instead of getUser
-      const { data: { user }, error: userError } = await supabase.auth.getUser(token_user);
-      
-      if (userError) {
-        console.error('User token verification error:', userError);
-        throw new Error(`Invalid user token: ${userError.message}`);
-      }
-      
-      if (!user) {
-        throw new Error('No user found for provided token');
+      const authHeader = req.headers.get('Authorization') || req.headers.get('authorization');
+      if (!authHeader) {
+        return new Response(JSON.stringify({ error: 'Unauthorized: missing Authorization header' }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
       }
 
-      const { data: inviterProfile } = await supabase
+      // Validate user using the forwarded JWT
+      const { data: userRes, error: userErr } = await supabaseUser.auth.getUser();
+      if (userErr || !userRes?.user) {
+        console.error('User token verification error:', userErr);
+        return new Response(JSON.stringify({ error: 'Invalid user token' }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+
+      const authUser = userRes.user;
+
+      // Fetch inviter profile
+      const { data: inviterProfile, error: inviterErr } = await supabaseAdmin
         .from('profiles')
-        .select('id, first_name, last_name')
-        .eq('user_id', user.id)
+        .select('id, first_name, last_name, role')
+        .eq('user_id', authUser.id)
         .single();
 
-      if (!inviterProfile) throw new Error('Inviter profile not found');
+      if (inviterErr || !inviterProfile) throw new Error('Inviter profile not found');
 
-      // Store invitation in database
-      const { error: inviteError } = await supabase
+      // Store invitation in database (service role to bypass RLS safely after validation)
+      const { error: inviteError } = await supabaseAdmin
         .from('email_invitations')
         .insert({
           email,
           token,
-          role: role || 'student',
+          role: (role || 'student'),
           expires_at: expiresAt.toISOString(),
           invited_by: inviterProfile.id,
-          additional_data: { school_name: schoolName }
+          additional_data: {
+            school_name: schoolName,
+            firstName,
+            lastName,
+            parentEmail,
+            classId,
+          },
         });
 
       if (inviteError) throw inviteError;

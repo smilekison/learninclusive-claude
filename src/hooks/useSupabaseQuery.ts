@@ -150,20 +150,30 @@ export const useAssignments = (subjectId?: string) => {
 
 export const useNotifications = () => {
   return useSupabaseQuery(['notifications'], async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) return { data: [], error: null };
+    
     const { data: profile } = await supabase
       .from('profiles')
       .select('id')
-      .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+      .eq('user_id', user.id)
       .maybeSingle();
     
     if (!profile) return { data: [], error: null };
     
-    return await supabase
+    console.log('Fetching notifications for profile:', profile.id);
+    
+    const { data, error } = await supabase
       .from('notifications')
       .select('*')
       .eq('user_id', profile.id)
       .order('created_at', { ascending: false })
       .limit(50);
+    
+    console.log('Notifications fetch result:', { profileId: profile.id, data, error });
+    
+    return { data, error };
   });
 };
 

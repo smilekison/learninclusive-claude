@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useClasses, useProfiles } from '@/hooks/useSupabaseQuery';
 import { 
   GraduationCap, 
@@ -25,6 +26,7 @@ import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { useLocation } from 'react-router-dom';
 import { RoutePresenceBadge } from './RoutePresenceBadge';
+import { ProfileSettings } from '@/components/profile/ProfileSettings';
 
 export const TopNavbar: React.FC = () => {
   const { user } = useAuth();
@@ -44,8 +46,7 @@ export const TopNavbar: React.FC = () => {
   const isCollapsed = state === "collapsed";
   const currentPage = location.pathname;
   
-  // Show enhanced navbar only when sidebar is collapsed
-  if (!isCollapsed) return null;
+  // Always show navbar for consistency
 
   // Calculate quick stats for display
   const totalClasses = classes.length;
@@ -174,10 +175,17 @@ export const TopNavbar: React.FC = () => {
           
           <NotificationBell />
           
-          {/* Settings icon */}
-          <Button variant="ghost" size="icon" className="h-9 w-9">
-            <Settings className="h-4 w-4" />
-          </Button>
+          {/* Profile Settings */}
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9" title="Profile Settings">
+                <Settings className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl">
+              <ProfileSettings />
+            </DialogContent>
+          </Dialog>
         </div>
         </div>
     </header>

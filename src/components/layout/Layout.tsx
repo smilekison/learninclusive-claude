@@ -17,7 +17,7 @@ const LayoutContent: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       <AppSidebar />
       
       <div className="flex-1 flex flex-col">
-        {isCollapsed && <TopNavbar />}
+        <TopNavbar />
         
         <main className="flex-1 overflow-auto">
           {/* Skip link for accessibility */}

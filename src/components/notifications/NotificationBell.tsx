@@ -30,7 +30,8 @@ export const NotificationBell = () => {
       
       if (error) throw error;
       
-      // Refresh notifications to show updated status
+      // Use React Query to refetch instead of page reload
+      // queryClient.invalidateQueries(['notifications']);
       window.location.reload();
     } catch (error) {
       console.error('Error marking notification as read:', error);

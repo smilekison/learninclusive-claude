@@ -171,26 +171,34 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('📁 HANDLE FILE CHANGE: Event triggered');
+    console.log('🚀🚀🚀 HANDLE FILE CHANGE: Event triggered');
+    console.log('🚀🚀🚀 HANDLE FILE CHANGE: Assignment ID:', assignment?.id);
+    console.log('🚀🚀🚀 HANDLE FILE CHANGE: User context:', user);
+    
     const files = Array.from(event.target.files || []);
-    console.log('📁 HANDLE FILE CHANGE: Files selected:', files.length);
+    console.log('🚀🚀🚀 HANDLE FILE CHANGE: Files selected:', files.length);
+    console.log('🚀🚀🚀 HANDLE FILE CHANGE: File details:', files.map(f => ({ name: f.name, size: f.size, type: f.type })));
     
     // Reset the input immediately to allow re-selecting the same file
     event.target.value = '';
     
     // Use the same validation logic as drag & drop
+    console.log('🚀🚀🚀 HANDLE FILE CHANGE: Calling handleFileUpload...');
     handleFileUpload(files as any);
   };
 
   const handleFileUpload = (files: FileList) => {
-    console.log('📁 HANDLE FILE UPLOAD: Called with FileList:', files.length);
+    console.log('🚀🚀🚀 HANDLE FILE UPLOAD: Called with FileList:', files.length);
+    console.log('🚀🚀🚀 HANDLE FILE UPLOAD: Assignment:', assignment);
+    console.log('🚀🚀🚀 HANDLE FILE UPLOAD: User:', user);
+    
     if (!assignment) {
       console.log('❌ HANDLE FILE UPLOAD: No assignment found');
       return;
     }
     
     Array.from(files).forEach((file, index) => {
-      console.log(`📁 HANDLE FILE UPLOAD: Processing file ${index + 1}:`, file.name);
+      console.log(`🚀🚀🚀 HANDLE FILE UPLOAD: Processing file ${index + 1}:`, file.name);
       
       // Validate file type - if no allowed types specified, allow common types
       const allowedTypes = assignment.allowed_file_types && assignment.allowed_file_types.length > 0 

@@ -1125,7 +1125,7 @@ export type Database = {
         Returns: boolean
       }
       is_teacher_of_student: {
-        Args: { p_student_id: string }
+        Args: { student_profile_id: string }
         Returns: boolean
       }
       is_user_in_school: {

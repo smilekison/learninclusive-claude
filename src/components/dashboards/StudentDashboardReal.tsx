@@ -34,6 +34,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { TTSButton } from '@/components/accessibility/TTSButton';
 import { StudentLessons } from '@/components/students/StudentLessons';
+import { Truncate } from '@/components/ui/truncate';
 
 export const StudentDashboardReal: React.FC = () => {
   const { user } = useAuth();
@@ -305,16 +306,16 @@ export const StudentDashboardReal: React.FC = () => {
   };
 
   const getGradeColor = (percentage: number) => {
-    if (percentage >= 90) return 'text-green-600';
-    if (percentage >= 80) return 'text-blue-600';
-    if (percentage >= 70) return 'text-yellow-600';
-    return 'text-red-600';
+    if (percentage >= 90) return 'text-success';
+    if (percentage >= 80) return 'text-primary';
+    if (percentage >= 70) return 'text-warning';
+    return 'text-destructive';
   };
 
   const getUrgencyIcon = (daysLeft: number) => {
-    if (daysLeft <= 1) return <AlertCircle className="h-4 w-4 text-red-500" />;
-    if (daysLeft <= 3) return <Clock className="h-4 w-4 text-yellow-500" />;
-    return <Calendar className="h-4 w-4 text-blue-500" />;
+    if (daysLeft <= 1) return <AlertCircle className="h-4 w-4 text-destructive" />;
+    if (daysLeft <= 3) return <Clock className="h-4 w-4 text-warning" />;
+    return <Calendar className="h-4 w-4 text-primary" />;
   };
 
   const getDaysLeft = (dueDate: string) => {
@@ -340,50 +341,12 @@ export const StudentDashboardReal: React.FC = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Personalized Welcome Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
-              Welcome back, {user?.firstName}!
-              {hasDisabilities && (
-                <Heart className="h-6 w-6 text-primary/70" />
-              )}
-              <TTSButton 
-                text={`Welcome back ${user?.firstName}! Your personalized accessible dashboard is ready.`}
-                variant="ghost"
-                size="sm"
-              />
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              {hasDisabilities 
-                ? "Your personalized accessible learning dashboard is ready."
-                : "Here's your learning progress and upcoming tasks."
-              }
-            </p>
-          </div>
-          {enhancedProfile && (
-            <div className="text-right">
-              <Badge variant="outline" className="mb-2">
-                {enhancedProfile.grade_level ? `Grade ${enhancedProfile.grade_level}` : 'Student'}
-              </Badge>
-              {enhancedProfile.iep_status && (
-                <Badge variant="secondary" className="ml-2">
-                  IEP Active
-                </Badge>
-              )}
-            </div>
-          )}
-        </div>
-        
-      </div>
-
+    <div className="space-y-6">
       {/* Progress Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => window.location.href = '/student/subjects'}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Enrolled Classes</CardTitle>
+            <CardTitle className="text-sm font-medium">Classes</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -479,117 +442,46 @@ export const StudentDashboardReal: React.FC = () => {
                     >
                       <option value="">Choose an assignment...</option>
                       {studentAssignments
-                        .filter((assignment: any) => 
-                          !isAssignmentGraded(assignment.id) && 
-                          !hasReachedMaxAttempts(assignment.id, assignment.max_attempts || 3) &&
-                          !isAssignmentOverdue(assignment.due_date)
-                        )
-                        .map((assignment: any) => (
-                        <option key={assignment.id} value={assignment.id}>
-                          {assignment.title}
-                        </option>
-                      ))}
+                        .filter(a => !isAssignmentGraded(a.id) && !hasReachedMaxAttempts(a.id, a.max_attempts))
+                        .map(assignment => (
+                          <option key={assignment.id} value={assignment.id}>
+                            {assignment.title} - {assignment.subject?.name}
+                          </option>
+                        ))
+                      }
                     </select>
                   </div>
                   
-                  <div>
-                    <Label htmlFor="submission">Submission Text</Label>
-                    <Textarea
-                      id="submission"
-                      placeholder="Enter your submission text here..."
-                      value={submissionText}
-                      onChange={(e) => setSubmissionText(e.target.value)}
-                      rows={4}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="file">Attach File (Optional)</Label>
-                    <Input
-                      id="file"
-                      type="file"
-                      onChange={(e) => setSubmissionFile(e.target.files?.[0] || null)}
-                    />
-                  </div>
-
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setSubmitDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button 
-                      onClick={handleSubmitAssignment} 
-                      disabled={!selectedAssignment || !submissionText.trim()}
-                    >
-                      {submissionAttempts[selectedAssignment?.id] > 0 ? 'Resubmit' : 'Submit'}
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-
-            <Dialog open={contactTeacherDialogOpen} onOpenChange={setContactTeacherDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Bell className="h-4 w-4" />
-                  Contact Teacher
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Contact Teacher About Overdue Assignment</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="overdueAssignment">Select Overdue Assignment</Label>
-                    <select
-                      id="overdueAssignment"
-                      className="w-full p-2 border rounded-md"
-                      value={selectedOverdueAssignment?.id || ''}
-                      onChange={(e) => {
-                        const assignment = studentAssignments.find(a => a.id === e.target.value);
-                        setSelectedOverdueAssignment(assignment);
-                      }}
-                    >
-                      <option value="">Choose an overdue assignment...</option>
-                      {studentAssignments
-                        .filter((assignment: any) => 
-                          isAssignmentOverdue(assignment.due_date) && 
-                          !isAssignmentGraded(assignment.id)
-                        )
-                        .map((assignment: any) => (
-                        <option key={assignment.id} value={assignment.id}>
-                          {assignment.title} - Due: {new Date(assignment.due_date).toLocaleDateString()}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="contactMessage">Message to Teacher</Label>
-                    <Textarea
-                      id="contactMessage"
-                      placeholder="Explain why you need an extension or have questions about this assignment..."
-                      value={contactMessage}
-                      onChange={(e) => setContactMessage(e.target.value)}
-                      rows={4}
-                    />
-                  </div>
-
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => {
-                      setContactMessage('');
-                      setSelectedOverdueAssignment(null);
-                      setContactTeacherDialogOpen(false);
-                    }}>
-                      Cancel
-                    </Button>
-                    <Button 
-                      onClick={handleContactTeacher} 
-                      disabled={!selectedOverdueAssignment || !contactMessage.trim()}
-                    >
-                      Send Message
-                    </Button>
-                  </div>
+                  {selectedAssignment && (
+                    <>
+                      <div>
+                        <Label htmlFor="submission">Your Work</Label>
+                        <Textarea
+                          id="submission"
+                          placeholder="Type your submission here..."
+                          value={submissionText}
+                          onChange={(e) => setSubmissionText(e.target.value)}
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="file">Attach File (Optional)</Label>
+                        <Input
+                          id="file"
+                          type="file"
+                          onChange={(e) => setSubmissionFile(e.target.files?.[0] || null)}
+                        />
+                      </div>
+                      
+                      <Button 
+                        onClick={handleSubmitAssignment}
+                        disabled={!submissionText.trim()}
+                        className="w-full"
+                      >
+                        Submit Assignment
+                      </Button>
+                    </>
+                  )}
                 </div>
               </DialogContent>
             </Dialog>
@@ -598,462 +490,379 @@ export const StudentDashboardReal: React.FC = () => {
       </Card>
 
       {/* Main Content Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Enrolled Classes */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Upcoming Assignments */}
         <Card>
           <CardHeader>
-            <CardTitle>My Classes</CardTitle>
-            <CardDescription>Classes you are enrolled in</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Upcoming Assignments
+            </CardTitle>
+            <CardDescription>Due in the next 7 days</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {enrolledClasses.length > 0 ? (
-                enrolledClasses.slice(0, 4).map((enrollment: any) => (
-                  <div key={enrollment.id} className="flex items-center justify-between p-3 rounded-lg border">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                        <BookOpen className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{enrollment.class?.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {enrollment.class?.description}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Teacher: {enrollment.class?.teacher?.first_name} {enrollment.class?.teacher?.last_name}
-                        </p>
-                      </div>
-                    </div>
-                    <Badge variant="secondary">Active</Badge>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">No classes found</p>
-                  <p className="text-sm text-muted-foreground">You're not enrolled in any classes yet</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Subjects */}
-        <Card>
-          <CardHeader>
-            <CardTitle>My Subjects</CardTitle>
-            <CardDescription>Your enrolled subjects and progress</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {subjects && subjects.length > 0 ? (
-                subjects.slice(0, 4).map((subject: any) => {
-                  // Get assignments for this subject to calculate progress
-                  const subjectAssignments = assignments?.filter((a: any) => a.subject_id === subject.id) || [];
-                  const completedAssignments = studentGrades.filter((g: any) => 
-                    g.assignment && g.assignment.subject && g.assignment.subject.id === subject.id
-                  ).length;
-                  const progress = subjectAssignments.length > 0 
-                    ? Math.round((completedAssignments / subjectAssignments.length) * 100)
-                    : 0;
-
-                  return (
-                    <div 
-                      key={subject.id} 
-                      className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
-                      onClick={() => navigate(`/student/subjects/${subject.id}`)}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                          <BookOpen className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{subject.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {subject.description || 'No description available'}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Class: {subject.class?.name}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Progress value={progress} className="w-16 h-2" />
-                          <span className="text-xs font-medium">{progress}%</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {completedAssignments}/{subjectAssignments.length} assignments
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="text-center py-8">
-                  <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">No subjects found</p>
-                  <p className="text-sm text-muted-foreground">
-                    {enrolledClasses.length > 0 
-                      ? "Your classes don't have any subjects yet" 
-                      : "Join a class to see subjects"
-                    }
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="mt-4"
-                    onClick={() => navigate('/join-subject')}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Join Subject
-                  </Button>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Second row for tasks and grades */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Upcoming Tasks */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Upcoming Tasks</CardTitle>
-            <CardDescription>Assignments and quizzes due soon</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {upcomingAssignments.length > 0 ? (
-                upcomingAssignments.map((assignment: any) => {
+            {upcomingAssignments.length === 0 ? (
+              <div className="text-center py-4">
+                <CheckCircle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No assignments due!</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {upcomingAssignments.map((assignment: any) => {
                   const daysLeft = getDaysLeft(assignment.due_date);
+                  const urgencyIcon = getUrgencyIcon(daysLeft);
                   const isOverdue = isAssignmentOverdue(assignment.due_date);
                   const isGraded = isAssignmentGraded(assignment.id);
-                  const maxAttemptsReached = hasReachedMaxAttempts(assignment.id, assignment.max_attempts || 3);
+                  const reachedMaxAttempts = hasReachedMaxAttempts(assignment.id, assignment.max_attempts);
                   const currentAttempts = submissionAttempts[assignment.id] || 0;
                   
                   return (
-                    <div key={assignment.id} className="flex items-center justify-between p-3 rounded-lg border">
-                      <div className="flex items-center space-x-3">
-                        {getUrgencyIcon(daysLeft)}
-                        <div className="flex-1">
-                          <p className="font-medium">{assignment.title}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Due: {new Date(assignment.due_date).toLocaleDateString()}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Attempts: {currentAttempts}/{assignment.max_attempts || 3}
-                          </p>
+                    <div 
+                      key={assignment.id} 
+                      className={`p-3 rounded-lg border ${
+                        isOverdue ? 'border-destructive/20 bg-destructive/5' : 'border-border'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            {urgencyIcon}
+                            <Truncate lines={1} className="font-medium text-sm">
+                              {assignment.title}
+                            </Truncate>
+                            {hasDisabilities && (
+                              <TTSButton 
+                                text={`Assignment: ${assignment.title}. Due in ${daysLeft} days.`}
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-1"
+                              />
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            <span>{assignment.subject?.name}</span>
+                            <span className={isOverdue ? 'text-destructive' : ''}>
+                              {new Date(assignment.due_date).toLocaleDateString()}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-1">
-                        <Badge variant={
-                          isGraded ? 'default' : 
-                          isOverdue ? 'destructive' : 
-                          daysLeft <= 1 ? 'destructive' : 
-                          daysLeft <= 3 ? 'default' : 'secondary'
-                        }>
-                          {isGraded ? 'Graded' : 
-                           isOverdue ? 'Overdue' :
-                           daysLeft === 0 ? 'Due Today' : 
-                           daysLeft === 1 ? 'Due Tomorrow' : `${daysLeft} days`}
-                        </Badge>
-                        
-                        {isGraded ? null : 
-                         isOverdue ? (
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => {
-                              setSelectedOverdueAssignment(assignment);
-                              setContactTeacherDialogOpen(true);
-                            }}
-                          >
-                            Contact Teacher
-                          </Button>
-                        ) : maxAttemptsReached ? (
-                          <Badge variant="secondary" className="text-xs">
-                            Max attempts reached
+                        <div className="flex items-center gap-2">
+                          <Badge variant={isOverdue ? 'destructive' : 'secondary'} className="text-xs">
+                            {isOverdue ? 'Overdue' : `${daysLeft}d`}
                           </Badge>
-                        ) : (
-                          <Button 
-                            size="sm" 
-                            onClick={() => {
-                              setSelectedAssignment(assignment);
-                              setSubmitDialogOpen(true);
-                            }}
-                            disabled={maxAttemptsReached}
-                          >
-                            {currentAttempts > 0 ? 'Resubmit' : 'Submit'}
-                          </Button>
-                        )}
+                          {isGraded ? (
+                            <Badge variant="outline" className="text-xs">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Done
+                            </Badge>
+                          ) : reachedMaxAttempts ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs"
+                              onClick={() => {
+                                setSelectedOverdueAssignment(assignment);
+                                setContactTeacherDialogOpen(true);
+                              }}
+                            >
+                              Contact
+                            </Button>
+                          ) : (
+                            <Button 
+                              size="sm"
+                              variant={isOverdue ? "destructive" : "default"}
+                              className="h-7 text-xs"
+                              onClick={() => {
+                                setSelectedAssignment(assignment);
+                                setSubmitDialogOpen(true);
+                              }}
+                            >
+                              {currentAttempts > 0 ? 'Retry' : 'Submit'}
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
-                })
-              ) : (
-                <div className="text-center py-8">
-                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                  <p className="text-muted-foreground">No upcoming assignments!</p>
-                  <p className="text-sm text-muted-foreground">You're all caught up.</p>
-                </div>
-              )}
-            </div>
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
 
         {/* Recent Grades */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Grades</CardTitle>
-            <CardDescription>Your latest assignment scores</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5" />
+              Recent Grades
+            </CardTitle>
+            <CardDescription>Latest graded assignments</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {studentGrades.length > 0 ? (
-                studentGrades.map((grade: any, index: number) => {
-                  const percentage = grade.score && grade.assignment?.max_score 
+            {studentGrades.length === 0 ? (
+              <div className="text-center py-4">
+                <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No grades yet</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {studentGrades.map((grade: any) => {
+                  const percentage = grade.assignment?.max_score 
                     ? Math.round((grade.score / grade.assignment.max_score) * 100)
                     : 0;
+                  
                   return (
-                    <div key={index} className="p-3 rounded-lg border bg-gradient-to-r from-primary/5 to-accent/5">
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <p className="font-medium">{grade.assignment?.title || 'Assignment'}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {grade.assignment?.subject?.name || 'Subject'}
-                          </p>
+                    <div key={grade.id} className="p-3 rounded-lg border">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Truncate lines={1} className="font-medium text-sm">
+                              {grade.assignment?.title}
+                            </Truncate>
+                            {hasDisabilities && (
+                              <TTSButton 
+                                text={`Grade: ${grade.score} out of ${grade.assignment?.max_score}, ${percentage}%`}
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-1"
+                              />
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {grade.assignment?.subject?.name} • {new Date(grade.graded_at).toLocaleDateString()}
+                          </div>
+                          {grade.feedback && (
+                            <Truncate lines={2} className="text-xs text-muted-foreground mt-1 italic">
+                              "{grade.feedback}"
+                            </Truncate>
+                          )}
                         </div>
                         <div className="text-right">
-                          <p className={`text-lg font-bold ${getGradeColor(percentage)}`}>
-                            {grade.score}/{grade.assignment.max_score}
-                          </p>
-                          <p className="text-sm font-medium text-primary">
+                          <div className="text-lg font-bold">
+                            <span className={getGradeColor(percentage)}>
+                              {grade.score}/{grade.assignment?.max_score}
+                            </span>
+                          </div>
+                          <Badge 
+                            variant={percentage >= 70 ? 'default' : 'destructive'}
+                            className="text-xs"
+                          >
                             {percentage}%
-                          </p>
+                          </Badge>
                         </div>
-                      </div>
-                      
-                      {/* Show feedback if available */}
-                      {grade.feedback && (
-                        <div className="mt-2 p-2 bg-background/50 rounded border">
-                          <p className="text-xs text-muted-foreground mb-1">Teacher feedback:</p>
-                          <p className="text-sm text-foreground">{grade.feedback}</p>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                        <span>Submitted: {new Date(grade.submitted_at).toLocaleDateString()}</span>
-                        {grade.graded_at && (
-                          <span>Graded: {new Date(grade.graded_at).toLocaleDateString()}</span>
-                        )}
                       </div>
                     </div>
                   );
-                })
-              ) : (
-                <div className="text-center py-8">
-                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">No graded assignments yet</p>
-                  <p className="text-sm text-muted-foreground">Submit assignments to see your grades here.</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="mt-2"
-                    onClick={() => navigate('/student/assignments')}
-                  >
-                    View All Assignments
-                  </Button>
-                </div>
-              )}
-              {studentGrades.length > 0 && (
-                <div className="mt-4 pt-4 border-t">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full"
-                    onClick={() => navigate('/student/assignments')}
-                  >
-                    View All Assignments
-                  </Button>
-                </div>
-              )}
-            </div>
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Third section for accessibility and lessons */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Recent Lessons */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Lessons</CardTitle>
-            <CardDescription>Continue your learning journey</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <StudentLessons />
-          </CardContent>
-        </Card>
-
-        {/* Personalized Support & Accommodations */}
+      {/* Bottom Row */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* My Classes */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <UserCheck className="h-5 w-5" />
-              Personalized Support
-              <TTSButton 
-                text="Your personalized support services and accommodations"
-                variant="ghost"
-                size="sm"
-              />
+              <Users className="h-5 w-5" />
+              My Classes
             </CardTitle>
-            <CardDescription>
-              {hasDisabilities 
-                ? "Your active accommodations and support services"
-                : "Accessibility tools and resources for all learners"
-              }
-            </CardDescription>
+            <CardDescription>Enrolled this semester</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {/* Active Accommodations */}
-              {enhancedProfile?.student_accommodations && enhancedProfile.student_accommodations.length > 0 && (
-                <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
-                  <h4 className="font-medium mb-3 flex items-center gap-2">
-                    <Heart className="h-4 w-4 text-primary" />
-                    Your Active Accommodations
-                  </h4>
-                  <div className="space-y-2">
-                    {enhancedProfile.student_accommodations
-                      .filter((acc: any) => acc.is_active)
-                      .slice(0, 3)
-                      .map((accommodation: any, index: number) => (
-                      <div key={index} className="flex items-center justify-between p-2 rounded border">
-                        <div>
-                          <p className="text-sm font-medium">{accommodation.accommodation_type}</p>
-                          <p className="text-xs text-muted-foreground">{accommodation.description}</p>
-                        </div>
-                        <Badge variant="default" className="text-xs">Active</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Support Services */}
-              {enhancedProfile?.student_support_services && enhancedProfile.student_support_services.length > 0 && (
-                <div className="p-4 rounded-lg border border-blue-200 bg-blue-50/50">
-                  <h4 className="font-medium mb-3 flex items-center gap-2">
-                    <Headphones className="h-4 w-4 text-blue-600" />
-                    Support Services
-                  </h4>
-                  <div className="space-y-2">
-                    {enhancedProfile.student_support_services
-                      .filter((service: any) => service.is_active)
-                      .slice(0, 2)
-                      .map((service: any, index: number) => (
-                      <div key={index} className="text-sm">
-                        <p className="font-medium">{service.service_type}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {service.frequency} • {service.provider_name}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Universal Accessibility Features */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-lg border">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Eye className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Enhanced Visual Support</p>
-                      <p className="text-sm text-muted-foreground">
-                        {disabilities.includes('visual_impairment') 
-                          ? "Optimized for your visual needs" 
-                          : "High contrast and large text available"
-                        }
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant={disabilities.includes('visual_impairment') ? 'default' : 'secondary'}>
-                    {disabilities.includes('visual_impairment') ? 'Personalized' : 'Available'}
-                  </Badge>
-                </div>
-
-                <div className="flex items-center justify-between p-3 rounded-lg border">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <Volume2 className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Audio & TTS Support</p>
-                      <p className="text-sm text-muted-foreground">
-                        {disabilities.includes('hearing_impairment') 
-                          ? "Visual alerts and text-to-speech active" 
-                          : "Read-aloud functionality for all content"
-                        }
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant={disabilities.includes('hearing_impairment') ? 'default' : 'secondary'}>
-                    {disabilities.includes('hearing_impairment') ? 'Personalized' : 'Available'}
-                  </Badge>
-                </div>
-
-                <div className="flex items-center justify-between p-3 rounded-lg border">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <MessageCircle className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Communication Support</p>
-                      <p className="text-sm text-muted-foreground">
-                        {disabilities.some(d => ['cognitive_disability', 'emotional_behavioral_disorder'].includes(d))
-                          ? "Simplified interface and clear navigation" 
-                          : "Multiple ways to communicate with teachers"
-                        }
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant={disabilities.some(d => ['cognitive_disability', 'emotional_behavioral_disorder'].includes(d)) ? 'default' : 'secondary'}>
-                    {disabilities.some(d => ['cognitive_disability', 'emotional_behavioral_disorder'].includes(d)) ? 'Personalized' : 'Available'}
-                  </Badge>
-                </div>
+            {enrolledClasses.length === 0 ? (
+              <div className="text-center py-4">
+                <BookOpen className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No classes enrolled</p>
               </div>
-
-              {/* Progress Tracking */}
-              {enhancedProfile?.student_progress_tracking && enhancedProfile.student_progress_tracking.length > 0 && (
-                <div className="mt-4 p-4 rounded-lg border border-amber-200 bg-amber-50/50">
-                  <h4 className="font-medium mb-3 flex items-center gap-2">
-                    <Target className="h-4 w-4 text-amber-600" />
-                    Learning Goals Progress
-                  </h4>
-                  <div className="space-y-2">
-                    {enhancedProfile.student_progress_tracking
-                      .slice(0, 2)
-                      .map((goal: any, index: number) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">{goal.goal_description}</p>
-                          <Progress value={goal.progress_percentage || 0} className="w-full h-2 mt-1" />
+            ) : (
+              <div className="space-y-3">
+                {enrolledClasses.map((enrollment: any) => (
+                  <div key={enrollment.id} className="p-3 rounded-lg border">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Truncate lines={1} className="font-medium text-sm">
+                            {enrollment.class?.name}
+                          </Truncate>
+                          {hasDisabilities && (
+                            <TTSButton 
+                              text={`Class: ${enrollment.class?.name}. Teacher: ${enrollment.class?.teacher?.first_name} ${enrollment.class?.teacher?.last_name}`}
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-1"
+                            />
+                          )}
                         </div>
-                        <span className="text-sm font-medium ml-3">{goal.progress_percentage || 0}%</span>
+                        <div className="text-xs text-muted-foreground">
+                          {enrollment.class?.teacher?.first_name} {enrollment.class?.teacher?.last_name}
+                        </div>
+                        {enrollment.class?.description && (
+                          <Truncate lines={1} className="text-xs text-muted-foreground mt-1">
+                            {enrollment.class?.description}
+                          </Truncate>
+                        )}
                       </div>
-                    ))}
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="text-xs">
+                          Active
+                        </Badge>
+                        <Button 
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs"
+                          onClick={() => navigate('/student/subjects')}
+                        >
+                          View
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
+
+        {/* Support & Accommodations */}
+        {hasDisabilities && enhancedProfile && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Heart className="h-5 w-5 text-primary" />
+                Support & Accommodations
+              </CardTitle>
+              <CardDescription>Your active support services</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {enhancedProfile.iep_status && (
+                  <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-primary" />
+                      <span className="font-medium text-sm">IEP Active</span>
+                      {hasDisabilities && (
+                        <TTSButton 
+                          text="IEP is active for this student"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-1"
+                        />
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Individualized Education Plan is in place
+                    </p>
+                  </div>
+                )}
+                
+                {enhancedProfile.student_accommodations && enhancedProfile.student_accommodations.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium">Active Accommodations</h4>
+                    {enhancedProfile.student_accommodations.slice(0, 3).map((accommodation: any, index: number) => (
+                      <div key={index} className="p-2 rounded-lg bg-muted text-xs">
+                        <span className="font-medium">{accommodation.accommodation_type}</span>
+                        {accommodation.description && (
+                          <Truncate lines={1} className="text-muted-foreground mt-1">
+                            {accommodation.description}
+                          </Truncate>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {enhancedProfile.student_support_services && enhancedProfile.student_support_services.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium">Support Services</h4>
+                    {enhancedProfile.student_support_services.slice(0, 2).map((service: any, index: number) => (
+                      <div key={index} className="p-2 rounded-lg bg-muted text-xs">
+                        <span className="font-medium">{service.service_type}</span>
+                        {service.frequency && (
+                          <span className="text-muted-foreground ml-2">• {service.frequency}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Learning Progress for students with disabilities */}
+        {hasDisabilities && enhancedProfile?.student_progress_tracking && enhancedProfile.student_progress_tracking.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-primary" />
+                Learning Goals Progress
+              </CardTitle>
+              <CardDescription>Your personalized learning targets</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {enhancedProfile.student_progress_tracking.slice(0, 3).map((progress: any, index: number) => (
+                  <div key={index} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Truncate lines={1} className="font-medium text-sm">
+                        {progress.goal_description}
+                      </Truncate>
+                      <Badge variant={progress.is_achieved ? "default" : "secondary"} className="text-xs">
+                        {progress.progress_percentage}%
+                      </Badge>
+                    </div>
+                    <Progress value={progress.progress_percentage} className="h-2" />
+                    {progress.current_status && (
+                      <p className="text-xs text-muted-foreground">{progress.current_status}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
+
+      {/* Contact Teacher Dialog */}
+      <Dialog open={contactTeacherDialogOpen} onOpenChange={setContactTeacherDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Contact Teacher</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedOverdueAssignment && (
+              <div className="p-3 rounded-lg bg-muted">
+                <p className="font-medium text-sm">Assignment: {selectedOverdueAssignment.title}</p>
+                <p className="text-xs text-muted-foreground">
+                  Teacher: {selectedOverdueAssignment.subject?.class?.teacher?.first_name} {selectedOverdueAssignment.subject?.class?.teacher?.last_name}
+                </p>
+              </div>
+            )}
+            
+            <div>
+              <Label htmlFor="message">Your Message</Label>
+              <Textarea
+                id="message"
+                placeholder="Explain your situation or ask for help..."
+                value={contactMessage}
+                onChange={(e) => setContactMessage(e.target.value)}
+              />
+            </div>
+            
+            <Button 
+              onClick={handleContactTeacher}
+              disabled={!contactMessage.trim()}
+              className="w-full"
+            >
+              Send Message
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

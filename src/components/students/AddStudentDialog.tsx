@@ -218,58 +218,12 @@ export const AddStudentDialog: React.FC = () => {
 
   const createStudentMutation = useSupabaseMutation(
     async (studentData: StudentFormData) => {
-      // Create auth user first
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: studentData.email,
-        password: 'TempPassword123!', // Temporary password - should be changed on first login
-        email_confirm: true,
-        user_metadata: {
-          first_name: studentData.firstName,
-          last_name: studentData.lastName,
-          role: 'student'
-        }
+      // Invoke secure edge function to create auth user and profile
+      const { data, error } = await supabase.functions.invoke('create-student', {
+        body: studentData,
       });
-
-      if (authError) throw authError;
-
-      // Create student profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          user_id: authData.user.id,
-          first_name: studentData.firstName,
-          last_name: studentData.lastName,
-          role: 'student',
-          email: studentData.email,
-          date_of_birth: studentData.dateOfBirth,
-          gender: studentData.gender,
-          phone_number: studentData.phoneNumber,
-          grade_level: studentData.gradeLevel,
-          enrollment_date: studentData.enrollmentDate,
-          guardian_name: studentData.guardianName,
-          guardian_email: studentData.guardianEmail,
-          guardian_phone: studentData.guardianPhone,
-          address: studentData.address,
-          emergency_contacts: studentData.emergencyContacts,
-          disabilities: studentData.disabilities,
-          disability_details: studentData.disabilityDetails,
-          medical_information: studentData.medicalInformation,
-          accommodations_needed: studentData.accommodationsNeeded,
-          assistive_technology: studentData.assistiveTechnology,
-          support_services: studentData.supportServices,
-          learning_preferences: studentData.learningPreferences,
-          accessibility_preferences: studentData.accessibilityPreferences,
-          communication_preferences: studentData.communicationPreferences,
-          iep_status: studentData.iepStatus,
-          iep_document_path: studentData.iepDocumentPath,
-          notes: studentData.notes
-        })
-        .select()
-        .single();
-
-      if (profileError) throw profileError;
-
-      return { data: profile, error: null };
+      if (error) throw error;
+      return { data, error: null } as any;
     },
     {
       successMessage: "Student created successfully",

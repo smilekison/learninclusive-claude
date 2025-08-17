@@ -53,6 +53,12 @@ interface SubmissionFile {
   progress: number;
   status: 'pending' | 'uploading' | 'uploaded' | 'error';
   url?: string;
+  uploadedFile?: {
+    name: string;
+    path: string;
+    size: number;
+    type: string;
+  };
 }
 
 export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> = ({
@@ -201,7 +207,44 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
     });
   };
 
+  const uploadFileToStorage = async (file: File, fileId: string, studentId: string, assignmentId: string) => {
+    try {
+      // Create file path: studentId/assignmentId/filename
+      const fileExtension = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const filePath = `${studentId}/${assignmentId}/${fileName}`;
+
+      console.log(`Uploading file to: ${filePath}`);
+
+      const { data, error } = await supabase.storage
+        .from('assignment-submissions')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        console.error('Storage upload error:', error);
+        throw error;
+      }
+
+      console.log('File uploaded successfully:', data);
+      return {
+        name: file.name,
+        path: data.path,
+        size: file.size,
+        type: file.type
+      };
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      throw error;
+    }
+  };
+
   const simulateUpload = async (fileId: string) => {
+    const file = submissionData.files.find(f => f.id === fileId);
+    if (!file || !assignment?.id) return;
+
     setSubmissionData(prev => ({
       ...prev,
       files: prev.files.map(f => 
@@ -209,28 +252,68 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
       )
     }));
 
-    // Simulate progress
-    for (let progress = 0; progress <= 100; progress += 10) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+    try {
+      // Get current user's student profile ID
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (!profile) {
+        throw new Error('User profile not found');
+      }
+
+      // Update progress during upload
+      const progressInterval = setInterval(() => {
+        setSubmissionData(prev => ({
+          ...prev,
+          files: prev.files.map(f => 
+            f.id === fileId && f.progress < 90 
+              ? { ...f, progress: f.progress + 10 } 
+              : f
+          )
+        }));
+      }, 200);
+
+      // Upload file to Supabase storage
+      const uploadedFile = await uploadFileToStorage(file.file, fileId, profile.id, assignment.id);
+
+      clearInterval(progressInterval);
+
       setSubmissionData(prev => ({
         ...prev,
         files: prev.files.map(f => 
-          f.id === fileId ? { ...f, progress } : f
+          f.id === fileId ? { 
+            ...f, 
+            status: 'uploaded', 
+            progress: 100,
+            uploadedFile
+          } : f
         )
       }));
+
+      toast({
+        title: "File uploaded successfully",
+        description: `${file.file.name} has been uploaded to the server`
+      });
+
+    } catch (error) {
+      console.error('Upload failed:', error);
+      
+      setSubmissionData(prev => ({
+        ...prev,
+        files: prev.files.map(f => 
+          f.id === fileId ? { ...f, status: 'error', progress: 0 } : f
+        )
+      }));
+
+      toast({
+        title: "Upload failed",
+        description: `Failed to upload ${file.file.name}. Please try again.`,
+        variant: "destructive"
+      });
     }
-
-    setSubmissionData(prev => ({
-      ...prev,
-      files: prev.files.map(f => 
-        f.id === fileId ? { ...f, status: 'uploaded', url: URL.createObjectURL(f.file) } : f
-      )
-    }));
-
-    toast({
-      title: "File uploaded",
-      description: "File has been successfully uploaded"
-    });
   };
 
   const removeFile = (fileId: string) => {
@@ -286,7 +369,7 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
 
   const handleSubmit = () => {
     // Validate submission
-    if (!submissionData.text.trim() && submissionData.files.length === 0 && submissionData.links.length === 0) {
+    if (!submissionData.text.trim() && submissionData.files.length === 0 && submissionData.links.length === 0 && !submissionData.codeContent.trim()) {
       toast({
         title: "Empty submission",
         description: "Please add some content to your submission",
@@ -295,10 +378,26 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
       return;
     }
 
+    // Check if any files are still uploading
+    const uploadingFiles = submissionData.files.filter(f => f.status === 'uploading');
+    if (uploadingFiles.length > 0) {
+      toast({
+        title: "Files still uploading",
+        description: "Please wait for all files to finish uploading before submitting",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Prepare uploaded files data for the backend
+    const uploadedFiles = submissionData.files
+      .filter(f => f.status === 'uploaded' && f.uploadedFile)
+      .map(f => f.uploadedFile!);
+
     // Prepare submission data
     const finalSubmission = {
       submissionText: submissionData.text,
-      files: submissionData.files.filter(f => f.status === 'uploaded'),
+      files: uploadedFiles,
       links: submissionData.links,
       codeContent: submissionData.codeContent,
       codeLanguage: submissionData.codeLanguage,
@@ -309,6 +408,7 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
       groupMembers: submissionData.groupMembers
     };
 
+    console.log('Submitting assignment with data:', finalSubmission);
     onSubmit(finalSubmission);
     
     // Clear draft after successful submission

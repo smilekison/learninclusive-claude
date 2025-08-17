@@ -11,6 +11,18 @@ interface SubmitAssignmentRequest {
   studentId: string;
   submissionText?: string;
   filePath?: string;
+  files?: Array<{
+    name: string;
+    path: string;
+    size: number;
+    type: string;
+  }>;
+  links?: string[];
+  codeContent?: string;
+  codeLanguage?: string;
+  notes?: string;
+  timeSpent?: number;
+  wordCount?: number;
 }
 
 serve(async (req) => {
@@ -65,15 +77,32 @@ serve(async (req) => {
 
     let submissionResult;
 
+    // Prepare file paths JSON for storage
+    const filePathsJson = submissionData.files && submissionData.files.length > 0 
+      ? JSON.stringify(submissionData.files) 
+      : null;
+
+    // Prepare additional submission data
+    const submissionMetadata = {
+      links: submissionData.links || [],
+      codeContent: submissionData.codeContent || '',
+      codeLanguage: submissionData.codeLanguage || '',
+      notes: submissionData.notes || '',
+      timeSpent: submissionData.timeSpent || 0,
+      wordCount: submissionData.wordCount || 0
+    };
+
     if (existingUngraded) {
       // Update existing ungraded submission
       const { data, error } = await supabase
         .from('assignment_submissions')
         .update({
           submission_text: submissionData.submissionText,
-          file_path: submissionData.filePath,
+          file_path: filePathsJson,
           submitted_at: new Date().toISOString(),
-          late_submission: assignment.due_date ? new Date() > new Date(assignment.due_date) : false
+          late_submission: assignment.due_date ? new Date() > new Date(assignment.due_date) : false,
+          time_spent_minutes: Math.round((submissionData.timeSpent || 0) / 60),
+          grading_notes: JSON.stringify(submissionMetadata)
         })
         .eq('id', existingUngraded.id)
         .select()
@@ -96,10 +125,12 @@ serve(async (req) => {
           assignment_id: submissionData.assignmentId,
           student_id: submissionData.studentId,
           submission_text: submissionData.submissionText,
-          file_path: submissionData.filePath,
+          file_path: filePathsJson,
           submitted_at: new Date().toISOString(),
           attempt_number: nextAttemptNumber,
-          late_submission: assignment.due_date ? new Date() > new Date(assignment.due_date) : false
+          late_submission: assignment.due_date ? new Date() > new Date(assignment.due_date) : false,
+          time_spent_minutes: Math.round((submissionData.timeSpent || 0) / 60),
+          grading_notes: JSON.stringify(submissionMetadata)
         })
         .select()
         .single();

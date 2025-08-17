@@ -337,7 +337,13 @@ export const StudentAssignmentsPage: React.FC = () => {
           assignmentId: data.assignmentId,
           studentId: profile.id,
           submissionText: data.submissionText,
-          filePath: data.files?.[0]?.file?.name || null
+          files: data.files || [],
+          links: data.links || [],
+          codeContent: data.codeContent || '',
+          codeLanguage: data.codeLanguage || 'javascript',
+          notes: data.notes || '',
+          timeSpent: data.timeSpent || 0,
+          wordCount: data.wordCount || 0
         }
       });
 

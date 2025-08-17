@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { SubmissionFilesView } from '@/components/assignments/SubmissionFilesView';
 import { 
   Star, 
   Clock, 
@@ -18,7 +19,9 @@ import {
   MessageSquare,
   Award,
   TrendingUp,
-  Calendar
+  Calendar,
+  Code,
+  Link as LinkIcon
 } from 'lucide-react';
 
 interface EnhancedGradingDialogProps {
@@ -114,6 +117,32 @@ export const EnhancedGradingDialog: React.FC<EnhancedGradingDialogProps> = ({
   const totalRubricScore = Object.values(rubricScores).reduce((sum, score) => sum + score, 0);
   const maxRubricScore = rubricCriteria.reduce((sum, criteria) => sum + criteria.maxPoints, 0);
 
+  // Parse submission data that might be stored in grading_notes or file_path
+  const parseSubmissionFiles = () => {
+    try {
+      if (submission.file_path) {
+        return JSON.parse(submission.file_path);
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  };
+
+  const parseSubmissionMetadata = () => {
+    try {
+      if (submission.grading_notes) {
+        return JSON.parse(submission.grading_notes);
+      }
+      return {};
+    } catch {
+      return {};
+    }
+  };
+
+  const uploadedFiles = parseSubmissionFiles();
+  const submissionMetadata = parseSubmissionMetadata();
+
   if (!submission) return null;
 
   return (
@@ -169,20 +198,83 @@ export const EnhancedGradingDialog: React.FC<EnhancedGradingDialogProps> = ({
 
                 <Separator />
 
-                <div>
-                  <h4 className="text-sm font-medium mb-2">Submission Content:</h4>
-                  <div className="bg-muted p-3 rounded-lg text-sm">
-                    {submission.submission_text || 'No text submission provided'}
-                  </div>
-                </div>
-
-                {submission.file_path && (
+                {/* Text Submission */}
+                {submission.submission_text && (
                   <div>
-                    <h4 className="text-sm font-medium mb-2">Attached Files:</h4>
-                    <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
-                      <FileText className="w-4 h-4" />
-                      <span className="text-sm">{submission.file_path}</span>
+                    <h4 className="text-sm font-medium mb-2">Text Submission:</h4>
+                    <div className="bg-muted p-3 rounded-lg text-sm max-h-40 overflow-y-auto">
+                      {submission.submission_text}
                     </div>
+                  </div>
+                )}
+
+                {/* File Attachments */}
+                {uploadedFiles.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">File Attachments:</h4>
+                    <SubmissionFilesView files={uploadedFiles} />
+                  </div>
+                )}
+
+                {/* Code Submission */}
+                {submissionMetadata.codeContent && (
+                  <div>
+                    <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                      <Code className="w-4 h-4" />
+                      Code Submission ({submissionMetadata.codeLanguage || 'Unknown'})
+                    </h4>
+                    <div className="bg-muted p-3 rounded-lg text-sm font-mono max-h-40 overflow-y-auto">
+                      <pre className="whitespace-pre-wrap">{submissionMetadata.codeContent}</pre>
+                    </div>
+                  </div>
+                )}
+
+                {/* External Links */}
+                {submissionMetadata.links && submissionMetadata.links.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                      <LinkIcon className="w-4 h-4" />
+                      External Links
+                    </h4>
+                    <div className="space-y-1">
+                      {submissionMetadata.links.map((link: string, index: number) => (
+                        <a
+                          key={index}
+                          href={link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-primary hover:underline block truncate"
+                        >
+                          {link}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Additional Notes */}
+                {submissionMetadata.notes && (
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Student Notes:</h4>
+                    <div className="bg-muted p-3 rounded-lg text-sm">
+                      {submissionMetadata.notes}
+                    </div>
+                  </div>
+                )}
+
+                {/* Time Tracking */}
+                {submissionMetadata.timeSpent && submissionMetadata.timeSpent > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Time Spent:</span>
+                    <span className="text-sm">{Math.round(submissionMetadata.timeSpent / 60)} minutes</span>
+                  </div>
+                )}
+
+                {/* Word Count */}
+                {submissionMetadata.wordCount && submissionMetadata.wordCount > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Word Count:</span>
+                    <span className="text-sm">{submissionMetadata.wordCount} words</span>
                   </div>
                 )}
               </CardContent>

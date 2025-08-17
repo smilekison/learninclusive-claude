@@ -1,0 +1,45 @@
+-- Drop the problematic policy
+DROP POLICY IF EXISTS "Teachers can view all students for demo" ON profiles;
+
+-- Create security definer functions to avoid RLS recursion
+CREATE OR REPLACE FUNCTION get_user_role()
+RETURNS text
+LANGUAGE sql
+STABLE SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT role FROM public.profiles WHERE user_id = auth.uid();
+$$;
+
+CREATE OR REPLACE FUNCTION is_principal()
+RETURNS boolean
+LANGUAGE sql
+STABLE SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles 
+    WHERE user_id = auth.uid() AND role = 'principal'
+  );
+$$;
+
+-- Create simplified RLS policies that don't cause recursion
+CREATE POLICY "Users can view their own profile" ON profiles
+  FOR SELECT
+  USING (user_id = auth.uid());
+
+CREATE POLICY "Teachers can view student profiles" ON profiles
+  FOR SELECT
+  USING (
+    role = 'student' AND 
+    is_active = true AND 
+    get_user_role() = 'teacher'
+  );
+
+CREATE POLICY "Principals can view all profiles" ON profiles
+  FOR SELECT
+  USING (is_principal());
+
+CREATE POLICY "Parents can view their children's profiles" ON profiles
+  FOR SELECT
+  USING (id = ANY (get_parent_student_ids_for_user()));

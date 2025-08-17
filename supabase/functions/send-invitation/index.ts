@@ -96,14 +96,32 @@ const handler = async (req: Request): Promise<Response> => {
         });
       }
 
+      // Get Authorization header and validate format
+      console.log('Authorization header:', authHeader ? 'Present' : 'Missing');
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        console.error('Invalid authorization header format');
+        return new Response(JSON.stringify({ error: 'Invalid authorization header format' }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+
       // Extract JWT token from Authorization header
       const jwtToken = authHeader.replace('Bearer ', '');
+      console.log('JWT token length:', jwtToken.length);
+      console.log('JWT token preview:', jwtToken.substring(0, 50) + '...');
       
       // Validate JWT using service role client
       const { data: userRes, error: userErr } = await supabase.auth.getUser(jwtToken);
+      console.log('Auth validation result:', { user: userRes?.user?.id, error: userErr });
+      
       if (userErr || !userRes?.user) {
-        console.error('User token verification error:', userErr);
-        return new Response(JSON.stringify({ error: `Invalid user token: ${userErr?.message || 'Unknown error'}` }), {
+        console.error('User token verification failed:', userErr);
+        return new Response(JSON.stringify({ 
+          error: `Authentication failed: ${userErr?.message || 'Invalid token'}`,
+          details: userErr 
+        }), {
           status: 401,
           headers: { "Content-Type": "application/json", ...corsHeaders },
         });

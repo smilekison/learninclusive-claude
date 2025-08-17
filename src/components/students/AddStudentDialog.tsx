@@ -682,7 +682,7 @@ export const AddStudentDialog: React.FC = () => {
                                 ? 'border-primary bg-primary/5'
                                 : 'border-border hover:bg-muted/50'
                             }`}
-                            onClick={() => toggleDisability(disability.value, !formData.disabilities.includes(disability.value))}
+                            
                           >
                             <div className="flex items-center space-x-3">
                               <Checkbox

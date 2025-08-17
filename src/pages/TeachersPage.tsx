@@ -27,6 +27,7 @@ import { useProfiles, useClasses, useSupabaseMutation, useSoftDelete, useToggleS
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { AddTeacherDialog } from '@/components/teachers/AddTeacherDialog';
 
 export const TeachersPage: React.FC = () => {
   const navigate = useNavigate();
@@ -237,80 +238,7 @@ export const TeachersPage: React.FC = () => {
           </Button>
           
           {user?.role === 'principal' && !showDeletedTeachers && (
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Teacher
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add New Teacher</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input
-                        id="firstName"
-                        value={newTeacher.firstName}
-                        onChange={(e) => setNewTeacher({ ...newTeacher, firstName: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input
-                        id="lastName"
-                        value={newTeacher.lastName}
-                        onChange={(e) => setNewTeacher({ ...newTeacher, lastName: e.target.value })}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={newTeacher.email}
-                      onChange={(e) => setNewTeacher({ ...newTeacher, email: e.target.value })}
-                      placeholder="teacher@school.edu"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={newTeacher.password}
-                      onChange={(e) => setNewTeacher({ ...newTeacher, password: e.target.value })}
-                      placeholder="Minimum 6 characters"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="phone">Phone (Optional)</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={newTeacher.phone}
-                      onChange={(e) => setNewTeacher({ ...newTeacher, phone: e.target.value })}
-                      placeholder="+1 (555) 123-4567"
-                    />
-                  </div>
-                  <Button 
-                    onClick={handleAddTeacher}
-                    disabled={addTeacherMutation.isPending || !newTeacher.email || !newTeacher.password || !newTeacher.firstName || !newTeacher.lastName}
-                    className="w-full"
-                  >
-                    {addTeacherMutation.isPending ? 'Adding...' : 'Add Teacher'}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <AddTeacherDialog />
           )}
         </div>
       </div>

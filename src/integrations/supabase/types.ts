@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
@@ -1045,9 +1045,9 @@ export type Database = {
       create_demo_user: {
         Args: {
           user_email: string
-          user_password: string
           user_first_name: string
           user_last_name: string
+          user_password: string
           user_role: string
           user_school_name?: string
         }
@@ -1058,7 +1058,7 @@ export type Database = {
         Returns: string
       }
       generate_unique_code: {
-        Args: { target_table: string; target_column: string; code_len?: number }
+        Args: { code_len?: number; target_column: string; target_table: string }
         Returns: string
       }
       generate_unique_invitation_code: {
@@ -1080,17 +1080,17 @@ export type Database = {
       get_student_assignments: {
         Args: { student_profile_id: string }
         Returns: {
-          id: string
-          title: string
+          created_at: string
           description: string
           due_date: string
-          max_score: number
-          created_at: string
-          updated_at: string
-          subject_id: string
+          id: string
           is_active: boolean
+          max_score: number
           subject: Json
+          subject_id: string
           submissions: Json
+          title: string
+          updated_at: string
         }[]
       }
       get_user_profile_id: {
@@ -1102,14 +1102,14 @@ export type Database = {
         Returns: string
       }
       global_search: {
-        Args: { q: string; limit_count?: number }
+        Args: { limit_count?: number; q: string }
         Returns: {
           entity_type: string
           id: string
-          title: string
-          subtitle: string
-          route: string
           rank: number
+          route: string
+          subtitle: string
+          title: string
         }[]
       }
       is_class_taught_by_current_teacher: {
@@ -1145,7 +1145,7 @@ export type Database = {
         Returns: boolean
       }
       soft_delete_item: {
-        Args: { table_name: string; item_id: string; deleter_id: string }
+        Args: { deleter_id: string; item_id: string; table_name: string }
         Returns: boolean
       }
     }

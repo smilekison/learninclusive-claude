@@ -327,25 +327,31 @@ export const AddStudentDialog: React.FC = () => {
     setFormData({ ...formData, emergencyContacts: newContacts });
   };
 
-  const toggleDisability = (disability: string) => {
-    const newDisabilities = formData.disabilities.includes(disability)
-      ? formData.disabilities.filter(d => d !== disability)
-      : [...formData.disabilities, disability];
-    setFormData({ ...formData, disabilities: newDisabilities });
+  const toggleDisability = (disability: string, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      disabilities: checked 
+        ? [...prev.disabilities, disability]
+        : prev.disabilities.filter(d => d !== disability)
+    }));
   };
 
-  const toggleAccommodation = (accommodation: string) => {
-    const newAccommodations = formData.accommodationsNeeded.includes(accommodation)
-      ? formData.accommodationsNeeded.filter(a => a !== accommodation)
-      : [...formData.accommodationsNeeded, accommodation];
-    setFormData({ ...formData, accommodationsNeeded: newAccommodations });
+  const toggleAccommodation = (accommodation: string, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      accommodationsNeeded: checked
+        ? [...prev.accommodationsNeeded, accommodation]
+        : prev.accommodationsNeeded.filter(a => a !== accommodation)
+    }));
   };
 
-  const toggleSupportService = (service: string) => {
-    const newServices = formData.supportServices.includes(service)
-      ? formData.supportServices.filter(s => s !== service)
-      : [...formData.supportServices, service];
-    setFormData({ ...formData, supportServices: newServices });
+  const toggleSupportService = (service: string, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      supportServices: checked
+        ? [...prev.supportServices, service]
+        : prev.supportServices.filter(s => s !== service)
+    }));
   };
 
   return (
@@ -676,12 +682,12 @@ export const AddStudentDialog: React.FC = () => {
                                 ? 'border-primary bg-primary/5'
                                 : 'border-border hover:bg-muted/50'
                             }`}
-                            onClick={() => toggleDisability(disability.value)}
+                            onClick={() => toggleDisability(disability.value, !formData.disabilities.includes(disability.value))}
                           >
                             <div className="flex items-center space-x-3">
                               <Checkbox
                                 checked={formData.disabilities.includes(disability.value)}
-                                onChange={() => {}}
+                                onCheckedChange={(checked) => toggleDisability(disability.value, !!checked)}
                               />
                               <IconComponent className="h-5 w-5" />
                               <span className="font-medium">{disability.label}</span>
@@ -856,7 +862,7 @@ export const AddStudentDialog: React.FC = () => {
                             <div key={accommodation} className="flex items-center space-x-2">
                               <Checkbox
                                 checked={formData.accommodationsNeeded.includes(accommodation)}
-                                onCheckedChange={() => toggleAccommodation(accommodation)}
+                                onCheckedChange={(checked) => toggleAccommodation(accommodation, !!checked)}
                               />
                               <Label className="text-sm capitalize">
                                 {accommodation.replace(/_/g, ' ')}
@@ -925,7 +931,7 @@ export const AddStudentDialog: React.FC = () => {
                         <div key={service} className="flex items-center space-x-2">
                           <Checkbox
                             checked={formData.supportServices.includes(service)}
-                            onCheckedChange={() => toggleSupportService(service)}
+                            onCheckedChange={(checked) => toggleSupportService(service, !!checked)}
                           />
                           <Label className="text-sm capitalize">
                             {service.replace(/_/g, ' ')}

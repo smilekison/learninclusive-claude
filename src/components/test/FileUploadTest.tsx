@@ -42,9 +42,13 @@ export const FileUploadTest = () => {
       // Test assignment ID (using one from the network requests)
       const testAssignmentId = "0e5f38e6-1109-46c3-9452-9ec328beceab";
       
-      // Create file path
+      // Use auth user ID for folder structure (matches RLS policies)
+      const folderUserId = user.authUserId || user.id;
+      console.log('🧪 TEST UPLOAD: Using folder user ID:', folderUserId);
+
+      // Create file path: authUserId/assignmentId/timestamp-filename
       const timestamp = Date.now();
-      const filePath = `${user.id}/${testAssignmentId}/${timestamp}-What.txt`;
+      const filePath = `${folderUserId}/${testAssignmentId}/${timestamp}-What.txt`;
       
       console.log('🧪 TEST UPLOAD: File path:', filePath);
 
@@ -98,10 +102,13 @@ export const FileUploadTest = () => {
       console.log('📁 REAL FILE UPLOAD: Starting...');
       console.log('📁 REAL FILE UPLOAD: File:', file.name, file.size, file.type);
 
+      const folderUserId = user.authUserId || user.id;
+      console.log('📁 REAL FILE UPLOAD: Using folder user ID:', folderUserId);
+
       const testAssignmentId = "0e5f38e6-1109-46c3-9452-9ec328beceab";
       const timestamp = Date.now();
       const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const filePath = `${user.id}/${testAssignmentId}/${timestamp}-${sanitizedFileName}`;
+      const filePath = `${folderUserId}/${testAssignmentId}/${timestamp}-${sanitizedFileName}`;
       
       console.log('📁 REAL FILE UPLOAD: File path:', filePath);
 

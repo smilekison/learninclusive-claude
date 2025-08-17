@@ -54,6 +54,7 @@ interface SubmissionFile {
   progress: number;
   status: 'pending' | 'uploading' | 'uploaded' | 'error';
   url?: string;
+  path?: string;
   uploadedFile?: {
     name: string;
     path: string;
@@ -387,6 +388,7 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
             ...f, 
             status: 'uploaded', 
             progress: 100,
+            path: uploadedFile.path,
             uploadedFile
           } : f
         )

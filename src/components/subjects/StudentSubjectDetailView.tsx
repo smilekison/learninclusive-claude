@@ -37,6 +37,27 @@ interface SubmissionWithStudent {
   };
 }
 
+interface SubjectWithClass {
+  id: string;
+  name: string;
+  description: string;
+  class_id: string;
+  invitation_code: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  class: {
+    id: string;
+    name: string;
+    description: string;
+    teacher_id: string;
+    teacher?: {
+      first_name: string;
+      last_name: string;
+    };
+  };
+}
+
 export const StudentSubjectDetailView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -60,9 +81,9 @@ export const StudentSubjectDetailView: React.FC = () => {
   });
 
   // Fetch subject details
-  const { data: subject, isLoading: subjectLoading } = useQuery({
+  const { data: subject, isLoading: subjectLoading } = useQuery<SubjectWithClass>({
     queryKey: ['student-subject-detail', id],
-    queryFn: async () => {
+    queryFn: async (): Promise<SubjectWithClass> => {
       if (!id) throw new Error('Subject ID is required');
       
       const { data, error } = await supabase
@@ -73,7 +94,7 @@ export const StudentSubjectDetailView: React.FC = () => {
             id,
             name,
             description,
-            teacher:profiles!classes_teacher_id_fkey(first_name, last_name)
+            teacher_id
           )
         `)
         .eq('id', id)
@@ -81,7 +102,30 @@ export const StudentSubjectDetailView: React.FC = () => {
         .single();
 
       if (error) throw error;
-      return data;
+      
+      // Initialize result as SubjectWithClass
+      const result: SubjectWithClass = {
+        ...data,
+        class: {
+          ...data.class,
+          teacher: undefined
+        }
+      };
+      
+      // Fetch teacher information separately if we have a teacher_id
+      if (data?.class?.teacher_id) {
+        const { data: teacher } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('id', data.class.teacher_id)
+          .single();
+          
+        if (teacher) {
+          result.class.teacher = teacher;
+        }
+      }
+
+      return result;
     },
     enabled: !!id
   });

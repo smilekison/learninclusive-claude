@@ -69,10 +69,13 @@ export const StudentAssignmentsPage: React.FC = () => {
       }
       
       try {
-        // We already have the profile ID from the auth context
-        const profile = { id: user.id };
-        console.log('✅ StudentAssignmentsPage: Using profile from auth context:', profile);
-        console.log('🔍 StudentAssignmentsPage: Fetching enrollments for student_id:', profile.id);
+        console.log('🔍 StudentAssignmentsPage: User object:', user);
+        console.log('🔍 StudentAssignmentsPage: User.id:', user.id);
+        console.log('🔍 StudentAssignmentsPage: User.authUserId:', user.authUserId);
+        
+        // Use the profile ID directly from the user context
+        const studentProfileId = user.id; // This is the profile ID
+        console.log('✅ StudentAssignmentsPage: Using student profile ID:', studentProfileId);
 
         // First, get the student's class enrollments
         const { data: enrollments, error: enrollmentError } = await supabase
@@ -91,7 +94,7 @@ export const StudentAssignmentsPage: React.FC = () => {
               )
             )
           `)
-          .eq('student_id', profile.id)
+          .eq('student_id', studentProfileId)
           .eq('status', 'active');
 
         console.log('🔍 StudentAssignmentsPage: Enrollments query result:', { enrollments, error: enrollmentError });
@@ -158,7 +161,7 @@ export const StudentAssignmentsPage: React.FC = () => {
             .from('assignment_submissions')
             .select('*')
             .in('assignment_id', assignmentIds)
-            .eq('student_id', profile.id);
+            .eq('student_id', studentProfileId);
 
           console.log('🔍 StudentAssignmentsPage: Submissions query result:', { submissionData, error: submissionError });
 
@@ -328,24 +331,13 @@ export const StudentAssignmentsPage: React.FC = () => {
         throw new Error('User not found');
       }
 
-      console.log('👤 Getting student profile for user ID:', user.id);
-      // Get the student's profile ID
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      console.log('📋 Profile query result:', profile);
-
-      if (!profile) {
-        console.log('❌ No profile found');
-        throw new Error('Profile not found');
-      }
+      console.log('👤 User already has profile ID directly from auth context. Using:', user.id);
+      // The user.id is already the profile ID from AuthContext
+      const studentProfileId = user.id;
 
       const requestBody = {
         assignmentId: data.assignmentId,
-        studentId: profile.id,
+        studentId: studentProfileId,
         submissionText: data.submissionText,
         files: data.files || [],
         links: data.links || [],
@@ -607,8 +599,14 @@ export const StudentAssignmentsPage: React.FC = () => {
           </TabsList>
 
           <TabsContent value={activeTab} className="mt-6">
+            <div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Debug: Total assignments: {studentAssignments.length}, Filtered: {filteredAssignments.length}, Active tab: {activeTab}
+              </p>
+            </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredAssignments.map((assignment: any) => {
+                console.log('🎨 Rendering assignment:', assignment.id, assignment.title);
                 const hasSubmission = assignment.submissions && assignment.submissions.length > 0;
                 const submission = hasSubmission ? assignment.submissions[0] : null;
                 const priorityLevel = getPriorityLevel(assignment);

@@ -175,42 +175,11 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
     const files = Array.from(event.target.files || []);
     console.log('📁 HANDLE FILE CHANGE: Files selected:', files.length);
     
-    files.forEach((file, index) => {
-      console.log(`📁 HANDLE FILE CHANGE: File ${index + 1}:`, {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        lastModified: file.lastModified
-      });
-      
-      const fileId = Date.now() + Math.random().toString(36).substr(2, 9);
-      console.log(`📁 HANDLE FILE CHANGE: Generated file ID: ${fileId}`);
-      
-      const newFile: SubmissionFile = {
-        id: fileId,
-        file,
-        progress: 0,
-        status: 'pending'
-      };
-
-      console.log('📁 HANDLE FILE CHANGE: Adding file to submission data...');
-      setSubmissionData(prev => {
-        const updated = {
-          ...prev,
-          files: [...prev.files, newFile]
-        };
-        console.log('📁 HANDLE FILE CHANGE: Updated submission data files:', updated.files.length);
-        return updated;
-      });
-
-      console.log('📁 HANDLE FILE CHANGE: Starting actual upload...');
-      // Start upload immediately
-      handleSingleFileUpload(fileId);
-    });
-    
-    // Reset the input
+    // Reset the input immediately to allow re-selecting the same file
     event.target.value = '';
-    console.log('📁 HANDLE FILE CHANGE: Input reset, process complete');
+    
+    // Use the same validation logic as drag & drop
+    handleFileUpload(files as any);
   };
 
   const handleFileUpload = (files: FileList) => {

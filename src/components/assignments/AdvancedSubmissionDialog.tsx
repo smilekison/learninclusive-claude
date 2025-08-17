@@ -368,8 +368,15 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
   };
 
   const handleSubmit = () => {
+    console.log('🚀 Submit button clicked!');
+    console.log('📋 Assignment:', assignment);
+    console.log('📝 Current submission data:', submissionData);
+    console.log('⏳ Is loading:', isLoading);
+    console.log('🔗 onSubmit function:', onSubmit);
+
     // Validate submission
     if (!submissionData.text.trim() && submissionData.files.length === 0 && submissionData.links.length === 0 && !submissionData.codeContent.trim()) {
+      console.log('❌ Validation failed: Empty submission');
       toast({
         title: "Empty submission",
         description: "Please add some content to your submission",
@@ -380,7 +387,14 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
 
     // Check if any files are still uploading
     const uploadingFiles = submissionData.files.filter(f => f.status === 'uploading');
+    console.log('📁 Files status check:', { 
+      totalFiles: submissionData.files.length, 
+      uploadingFiles: uploadingFiles.length,
+      fileStatuses: submissionData.files.map(f => ({ id: f.id, status: f.status, name: f.file.name }))
+    });
+    
     if (uploadingFiles.length > 0) {
+      console.log('❌ Validation failed: Files still uploading');
       toast({
         title: "Files still uploading",
         description: "Please wait for all files to finish uploading before submitting",
@@ -393,6 +407,8 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
     const uploadedFiles = submissionData.files
       .filter(f => f.status === 'uploaded' && f.uploadedFile)
       .map(f => f.uploadedFile!);
+
+    console.log('📎 Uploaded files prepared:', uploadedFiles);
 
     // Prepare submission data
     const finalSubmission = {
@@ -408,12 +424,37 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
       groupMembers: submissionData.groupMembers
     };
 
-    console.log('Submitting assignment with data:', finalSubmission);
-    onSubmit(finalSubmission);
+    console.log('✅ Final submission data prepared:', finalSubmission);
+    console.log('🎯 Calling onSubmit with data...');
     
-    // Clear draft after successful submission
-    if (assignment?.id) {
-      localStorage.removeItem(`assignment_draft_${assignment.id}`);
+    try {
+      onSubmit(finalSubmission);
+      console.log('✅ onSubmit called successfully');
+      
+      // Clear draft after successful submission
+      if (assignment?.id) {
+        localStorage.removeItem(`assignment_draft_${assignment.id}`);
+        console.log('🗑️ Draft cleared from localStorage');
+      }
+    } catch (error) {
+      console.error('❌ Error calling onSubmit:', error);
+      toast({
+        title: "Submission error",
+        description: "Failed to submit assignment. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleCancel = () => {
+    console.log('❌ Cancel button clicked!');
+    console.log('🔗 onOpenChange function:', onOpenChange);
+    
+    try {
+      onOpenChange(false);
+      console.log('✅ Dialog closed successfully');
+    } catch (error) {
+      console.error('❌ Error closing dialog:', error);
     }
   };
 
@@ -837,7 +878,7 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
           </div>
           
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
             <Button 

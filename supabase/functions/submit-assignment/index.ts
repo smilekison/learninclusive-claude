@@ -26,19 +26,30 @@ interface SubmitAssignmentRequest {
 }
 
 serve(async (req) => {
+  console.log('🔄 Edge function called - submit-assignment');
+  console.log('📥 Request method:', req.method);
+  console.log('🌐 Request headers:', Object.fromEntries(req.headers.entries()));
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('✅ Handling CORS preflight request');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log('🚀 Processing assignment submission...');
+    
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    console.log('🔗 Supabase URL:', supabaseUrl);
+    console.log('🔑 Service key available:', !!supabaseKey);
+    
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    console.log('📖 Reading request body...');
     const submissionData: SubmitAssignmentRequest = await req.json();
-    console.log('Submitting assignment with data:', submissionData);
+    console.log('📝 Submission data received:', JSON.stringify(submissionData, null, 2));
 
     // Get assignment details to check max attempts
     const { data: assignment, error: assignmentError } = await supabase

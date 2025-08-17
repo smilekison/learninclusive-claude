@@ -320,8 +320,15 @@ export const StudentAssignmentsPage: React.FC = () => {
 
   const submitAssignmentMutation = useSupabaseMutation(
     async (data: any) => {
-      if (!user?.id) throw new Error('User not found');
+      console.log('🎯 submitAssignmentMutation called with data:', data);
+      console.log('👤 Current user:', user);
+      
+      if (!user?.id) {
+        console.log('❌ No user found');
+        throw new Error('User not found');
+      }
 
+      console.log('👤 Getting student profile for user ID:', user.id);
       // Get the student's profile ID
       const { data: profile } = await supabase
         .from('profiles')
@@ -329,25 +336,41 @@ export const StudentAssignmentsPage: React.FC = () => {
         .eq('user_id', user.id)
         .single();
 
-      if (!profile) throw new Error('Profile not found');
+      console.log('📋 Profile query result:', profile);
 
+      if (!profile) {
+        console.log('❌ No profile found');
+        throw new Error('Profile not found');
+      }
+
+      const requestBody = {
+        assignmentId: data.assignmentId,
+        studentId: profile.id,
+        submissionText: data.submissionText,
+        files: data.files || [],
+        links: data.links || [],
+        codeContent: data.codeContent || '',
+        codeLanguage: data.codeLanguage || 'javascript',
+        notes: data.notes || '',
+        timeSpent: data.timeSpent || 0,
+        wordCount: data.wordCount || 0
+      };
+
+      console.log('📤 Calling edge function with body:', requestBody);
+      
       // Use the edge function for submission
       const { data: result, error } = await supabase.functions.invoke('submit-assignment', {
-        body: {
-          assignmentId: data.assignmentId,
-          studentId: profile.id,
-          submissionText: data.submissionText,
-          files: data.files || [],
-          links: data.links || [],
-          codeContent: data.codeContent || '',
-          codeLanguage: data.codeLanguage || 'javascript',
-          notes: data.notes || '',
-          timeSpent: data.timeSpent || 0,
-          wordCount: data.wordCount || 0
-        }
+        body: requestBody
       });
 
-      if (error) throw error;
+      console.log('📨 Edge function response:', { result, error });
+
+      if (error) {
+        console.log('❌ Edge function error:', error);
+        throw error;
+      }
+      
+      console.log('✅ Assignment submitted successfully');
       return result;
     },
     {
@@ -363,7 +386,13 @@ export const StudentAssignmentsPage: React.FC = () => {
   );
 
   const handleAdvancedSubmission = (submissionData: any) => {
-    if (!selectedAssignment) return;
+    console.log('📤 handleAdvancedSubmission called with data:', submissionData);
+    console.log('📋 Selected assignment:', selectedAssignment);
+    
+    if (!selectedAssignment) {
+      console.log('❌ No selected assignment found');
+      return;
+    }
     
     const mutationData = {
       assignmentId: selectedAssignment.id,
@@ -377,7 +406,15 @@ export const StudentAssignmentsPage: React.FC = () => {
       wordCount: submissionData.wordCount
     };
 
-    submitAssignmentMutation.mutate(mutationData);
+    console.log('🚀 Mutation data prepared:', mutationData);
+    console.log('⚡ Calling submitAssignmentMutation.mutate...');
+    
+    try {
+      submitAssignmentMutation.mutate(mutationData);
+      console.log('✅ submitAssignmentMutation.mutate called successfully');
+    } catch (error) {
+      console.error('❌ Error calling submitAssignmentMutation.mutate:', error);
+    }
   };
 
   const getStatusBadge = (assignment: any) => {

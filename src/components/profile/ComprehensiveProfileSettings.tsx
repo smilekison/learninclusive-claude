@@ -208,45 +208,100 @@ export const ComprehensiveProfileSettings = () => {
           .from('profiles')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
-        if (error) throw error;
-
-        if (profile) {
-          form.reset({
-            firstName: profile.first_name || '',
-            lastName: profile.last_name || '',
-            dateOfBirth: profile.date_of_birth || '',
-            gender: profile.gender || '',
-            phoneNumber: profile.phone_number || '',
-            gradeLevel: profile.grade_level || '',
-            address: (profile.address as any) || {},
-            guardianName: profile.guardian_name || '',
-            guardianEmail: profile.guardian_email || '',
-            guardianPhone: profile.guardian_phone || '',
-            emergencyContacts: (profile.emergency_contacts as any) || [{ name: '', relationship: '', phone: '', email: '' }],
-            disabilities: (profile.disabilities as string[]) || [],
-            disabilityDetails: (profile.disability_details as any) || {},
-            medicalInformation: (profile.medical_information as any) || {},
-            accommodationsNeeded: (profile.accommodations_needed as string[]) || [],
-            assistiveTechnology: (profile.assistive_technology as string[]) || [],
-            supportServices: (profile.support_services as string[]) || [],
-            learningPreferences: (profile.learning_preferences as any) || {},
-            accessibilityPreferences: (profile.accessibility_preferences as any) || {},
-            communicationPreferences: (profile.communication_preferences as any) || {},
-            iepStatus: profile.iep_status || false,
-            iepDocumentPath: profile.iep_document_path || '',
-            notes: profile.notes || '',
-            schoolName: profile.school_name || '',
-            parentEmail: profile.parent_email || '',
+        // Don't throw error if profile doesn't exist, just use empty form
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error loading profile:', error);
+          toast({
+            title: 'Warning',
+            description: 'Could not load some profile data. You can still update your profile.',
+            variant: 'default',
           });
         }
+
+        // Always reset form with available data (or defaults if no profile exists)
+        const addressData = profile?.address as any || {};
+        const disabilityDetailsData = profile?.disability_details as any || {};
+        const medicalInfoData = profile?.medical_information as any || {};
+        const learningPrefsData = profile?.learning_preferences as any || {};
+        const accessibilityPrefsData = profile?.accessibility_preferences as any || {};
+        const communicationPrefsData = profile?.communication_preferences as any || {};
+        
+        const formData = {
+          firstName: profile?.first_name || user?.firstName || '',
+          lastName: profile?.last_name || user?.lastName || '',
+          dateOfBirth: profile?.date_of_birth || '',
+          gender: profile?.gender || '',
+          phoneNumber: profile?.phone_number || '',
+          gradeLevel: profile?.grade_level || '',
+          address: {
+            street: addressData.street || '',
+            city: addressData.city || '',
+            state: addressData.state || '',
+            zipCode: addressData.zipCode || '',
+            country: addressData.country || ''
+          },
+          guardianName: profile?.guardian_name || '',
+          guardianEmail: profile?.guardian_email || '',
+          guardianPhone: profile?.guardian_phone || '',
+          emergencyContacts: Array.isArray(profile?.emergency_contacts) && profile.emergency_contacts.length > 0 
+            ? (profile.emergency_contacts as any[]).filter(contact => contact && typeof contact === 'object').map(contact => ({
+                name: contact.name || '',
+                relationship: contact.relationship || '',
+                phone: contact.phone || '',
+                email: contact.email || ''
+              }))
+            : [{ name: '', relationship: '', phone: '', email: '' }],
+          disabilities: Array.isArray(profile?.disabilities) ? profile.disabilities as string[] : [],
+          disabilityDetails: {
+            primaryDisability: disabilityDetailsData.primaryDisability || '',
+            diagnosisDate: disabilityDetailsData.diagnosisDate || '',
+            severity: disabilityDetailsData.severity || '',
+            description: disabilityDetailsData.description || ''
+          },
+          medicalInformation: {
+            allergies: medicalInfoData.allergies || '',
+            medications: medicalInfoData.medications || '',
+            medicalConditions: medicalInfoData.medicalConditions || '',
+            emergencyMedicalInfo: medicalInfoData.emergencyMedicalInfo || ''
+          },
+          accommodationsNeeded: Array.isArray(profile?.accommodations_needed) ? profile.accommodations_needed as string[] : [],
+          assistiveTechnology: Array.isArray(profile?.assistive_technology) ? profile.assistive_technology as string[] : [],
+          supportServices: Array.isArray(profile?.support_services) ? profile.support_services as string[] : [],
+          learningPreferences: {
+            learningStyle: learningPrefsData.learningStyle || '',
+            communicationMethod: learningPrefsData.communicationMethod || '',
+            attentionSpan: learningPrefsData.attentionSpan || '',
+            processingSpeed: learningPrefsData.processingSpeed || ''
+          },
+          accessibilityPreferences: {
+            fontSize: accessibilityPrefsData.fontSize || 'medium',
+            highContrast: Boolean(accessibilityPrefsData.highContrast),
+            screenReader: Boolean(accessibilityPrefsData.screenReader),
+            voiceCommands: Boolean(accessibilityPrefsData.voiceCommands),
+            subtitles: Boolean(accessibilityPrefsData.subtitles)
+          },
+          communicationPreferences: {
+            preferredLanguage: communicationPrefsData.preferredLanguage || 'english',
+            communicationMethod: communicationPrefsData.communicationMethod || 'verbal',
+            parentalCommunication: communicationPrefsData.parentalCommunication || 'email'
+          },
+          iepStatus: profile?.iep_status || false,
+          iepDocumentPath: profile?.iep_document_path || '',
+          notes: profile?.notes || '',
+          schoolName: profile?.school_name || '',
+          parentEmail: profile?.parent_email || '',
+        };
+
+        form.reset(formData);
       } catch (error) {
-        console.error('Error loading profile:', error);
+        console.error('Unexpected error loading profile:', error);
+        // Still allow the form to load with default values
         toast({
-          title: 'Error',
-          description: 'Failed to load profile data',
-          variant: 'destructive',
+          title: 'Notice',
+          description: 'Profile loaded with default values. You can update and save your information.',
+          variant: 'default',
         });
       } finally {
         setIsLoading(false);

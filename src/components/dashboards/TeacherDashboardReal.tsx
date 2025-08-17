@@ -116,23 +116,37 @@ export const TeacherDashboardReal: React.FC = () => {
 
   const addStudentMutation = useSupabaseMutation(
     async (studentData: typeof newStudent) => {
-      // Create invitation
-      const { data, error } = await supabase.functions.invoke('send-invitation', {
-        body: {
-          email: studentData.email,
-          role: 'student',
-          firstName: studentData.firstName,
-          lastName: studentData.lastName,
-          parentEmail: studentData.parentEmail,
-          classId: studentData.classId
-        }
+      // Create student user account directly with demo123 password
+      const { data, error } = await supabase.rpc('create_demo_user', {
+        user_email: studentData.email,
+        user_password: 'demo123', // Default password for all students
+        user_first_name: studentData.firstName,
+        user_last_name: studentData.lastName,
+        user_role: 'student'
       });
       
       if (error) throw error;
-      return data;
+      
+      // If parent email provided, also create parent account
+      if (studentData.parentEmail) {
+        try {
+          await supabase.rpc('create_demo_user', {
+            user_email: studentData.parentEmail,
+            user_password: 'demo123', // Default password for parents too
+            user_first_name: 'Parent of',
+            user_last_name: studentData.firstName,
+            user_role: 'parent'
+          });
+        } catch (parentError) {
+          console.log('Parent account creation failed (may already exist):', parentError);
+          // Don't fail the whole operation if parent creation fails
+        }
+      }
+      
+      return { data, error: null };
     },
     {
-      successMessage: "Student invitation sent successfully",
+      successMessage: "Student account created successfully. Login: email / demo123",
       invalidateKeys: [['teacher-students'], ['teacher-stats']],
       onSuccess: () => {
         setNewStudent({ firstName: '', lastName: '', email: '', parentEmail: '', classId: '' });
@@ -474,6 +488,9 @@ export const TeacherDashboardReal: React.FC = () => {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Add New Student</DialogTitle>
+                  <div className="text-sm text-muted-foreground">
+                    Creates a student account with default password: <code className="bg-muted px-2 py-1 rounded">demo123</code>
+                  </div>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
@@ -532,12 +549,12 @@ export const TeacherDashboardReal: React.FC = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button 
-                    onClick={handleAddStudent} 
-                    disabled={addStudentMutation.isPending || !newStudent.email || !newStudent.firstName || !newStudent.lastName || !newStudent.classId}
-                  >
-                    {addStudentMutation.isPending ? 'Sending Invitation...' : 'Send Invitation'}
-                  </Button>
+                   <Button 
+                     onClick={handleAddStudent} 
+                     disabled={addStudentMutation.isPending || !newStudent.email || !newStudent.firstName || !newStudent.lastName || !newStudent.classId}
+                   >
+                     {addStudentMutation.isPending ? 'Creating Account...' : 'Create Student Account'}
+                   </Button>
                 </div>
               </DialogContent>
             </Dialog>

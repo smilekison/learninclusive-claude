@@ -38,6 +38,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
 import { AdvancedSubmissionDialog } from '@/components/assignments/AdvancedSubmissionDialog';
+import { FileUploadTest } from '@/components/test/FileUploadTest';
 
 export const StudentAssignmentsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -490,6 +491,9 @@ export const StudentAssignmentsPage: React.FC = () => {
             View and submit your assignments
           </p>
         </div>
+
+        {/* File Upload Test Component */}
+        <FileUploadTest />
 
         {/* Progress Overview */}
         <Card className="mb-6 card-elevated border-l-4 border-l-primary">

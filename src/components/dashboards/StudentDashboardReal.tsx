@@ -15,10 +15,17 @@ import {
   Target,
   Plus,
   Bell,
-  Users
+  Users,
+  Heart,
+  Volume2,
+  Eye,
+  MessageCircle,
+  Headphones,
+  UserCheck
 } from 'lucide-react';
 import { useStudentStats, useAssignments, useSubjects, useNotifications, useCreateNotification, useStudentSubjects, useSupabaseMutation } from '@/hooks/useSupabaseQuery';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEnhancedStudentProfile } from '@/hooks/useEnhancedStudentProfile';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -26,6 +33,9 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { StudentLessons } from '@/components/students/StudentLessons';
+import { DisabilityAdaptiveInterface } from '@/components/accessibility/DisabilityAdaptiveInterface';
+import { AccessibilityToolbar } from '@/components/accessibility/AccessibilityToolbar';
+import { TTSButton } from '@/components/accessibility/TTSButton';
 
 export const StudentDashboardReal: React.FC = () => {
   const { user } = useAuth();
@@ -37,6 +47,9 @@ export const StudentDashboardReal: React.FC = () => {
   const subjects = Array.isArray(studentSubjects) ? studentSubjects : [];
   const { data: notifications } = useNotifications();
   const createNotificationMutation = useCreateNotification();
+  
+  // Enhanced student profile with disability information
+  const { data: enhancedProfile, isLoading: profileLoading } = useEnhancedStudentProfile();
 
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
   const [contactTeacherDialogOpen, setContactTeacherDialogOpen] = useState(false);
@@ -313,16 +326,63 @@ export const StudentDashboardReal: React.FC = () => {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
+  // Get disabilities for adaptive interface
+  const disabilities = enhancedProfile?.disabilities || [];
+  const hasDisabilities = disabilities.length > 0;
+
+  if (profileLoading) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your personalized dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6 space-y-6">
-      {/* Welcome Section */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-primary">
-          Welcome back, {user?.firstName}!
-        </h1>
-        <p className="text-muted-foreground">
-          Here's your learning progress and upcoming tasks.
-        </p>
+    <DisabilityAdaptiveInterface disabilities={disabilities} className="p-6 space-y-6">
+      {/* Personalized Welcome Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
+              Welcome back, {user?.firstName}!
+              {hasDisabilities && (
+                <Heart className="h-6 w-6 text-primary/70" />
+              )}
+              <TTSButton 
+                text={`Welcome back ${user?.firstName}! Your personalized accessible dashboard is ready.`}
+                variant="ghost"
+                size="sm"
+              />
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              {hasDisabilities 
+                ? "Your personalized accessible learning dashboard is ready."
+                : "Here's your learning progress and upcoming tasks."
+              }
+            </p>
+          </div>
+          {enhancedProfile && (
+            <div className="text-right">
+              <Badge variant="outline" className="mb-2">
+                {enhancedProfile.grade_level ? `Grade ${enhancedProfile.grade_level}` : 'Student'}
+              </Badge>
+              {enhancedProfile.iep_status && (
+                <Badge variant="secondary" className="ml-2">
+                  IEP Active
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
+        
+        {/* Accessibility Toolbar */}
+        {hasDisabilities && (
+          <AccessibilityToolbar disabilities={disabilities} />
+        )}
       </div>
 
       {/* Progress Overview */}
@@ -843,43 +903,163 @@ export const StudentDashboardReal: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Accessibility Support */}
+        {/* Personalized Support & Accommodations */}
         <Card>
           <CardHeader>
-            <CardTitle>Accessibility Support</CardTitle>
-            <CardDescription>Tools and resources for all learners</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <UserCheck className="h-5 w-5" />
+              Personalized Support
+              <TTSButton 
+                text="Your personalized support services and accommodations"
+                variant="ghost"
+                size="sm"
+              />
+            </CardTitle>
+            <CardDescription>
+              {hasDisabilities 
+                ? "Your active accommodations and support services"
+                : "Accessibility tools and resources for all learners"
+              }
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 rounded-lg border">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Users className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Screen Reader Compatible</p>
-                    <p className="text-sm text-muted-foreground">All content optimized for accessibility</p>
+              {/* Active Accommodations */}
+              {enhancedProfile?.student_accommodations && enhancedProfile.student_accommodations.length > 0 && (
+                <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
+                  <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <Heart className="h-4 w-4 text-primary" />
+                    Your Active Accommodations
+                  </h4>
+                  <div className="space-y-2">
+                    {enhancedProfile.student_accommodations
+                      .filter((acc: any) => acc.is_active)
+                      .slice(0, 3)
+                      .map((accommodation: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-2 rounded border">
+                        <div>
+                          <p className="text-sm font-medium">{accommodation.accommodation_type}</p>
+                          <p className="text-xs text-muted-foreground">{accommodation.description}</p>
+                        </div>
+                        <Badge variant="default" className="text-xs">Active</Badge>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <Badge variant="secondary">Active</Badge>
-              </div>
-              
-              <div className="flex items-center justify-between p-3 rounded-lg border">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <BookOpen className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Text-to-Speech</p>
-                    <p className="text-sm text-muted-foreground">Audio support for all text content</p>
+              )}
+
+              {/* Support Services */}
+              {enhancedProfile?.student_support_services && enhancedProfile.student_support_services.length > 0 && (
+                <div className="p-4 rounded-lg border border-blue-200 bg-blue-50/50">
+                  <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <Headphones className="h-4 w-4 text-blue-600" />
+                    Support Services
+                  </h4>
+                  <div className="space-y-2">
+                    {enhancedProfile.student_support_services
+                      .filter((service: any) => service.is_active)
+                      .slice(0, 2)
+                      .map((service: any, index: number) => (
+                      <div key={index} className="text-sm">
+                        <p className="font-medium">{service.service_type}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {service.frequency} • {service.provider_name}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <Badge variant="secondary">Available</Badge>
+              )}
+
+              {/* Universal Accessibility Features */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-lg border">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <Eye className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Enhanced Visual Support</p>
+                      <p className="text-sm text-muted-foreground">
+                        {disabilities.includes('visual_impairment') 
+                          ? "Optimized for your visual needs" 
+                          : "High contrast and large text available"
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={disabilities.includes('visual_impairment') ? 'default' : 'secondary'}>
+                    {disabilities.includes('visual_impairment') ? 'Personalized' : 'Available'}
+                  </Badge>
+                </div>
+
+                <div className="flex items-center justify-between p-3 rounded-lg border">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <Volume2 className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Audio & TTS Support</p>
+                      <p className="text-sm text-muted-foreground">
+                        {disabilities.includes('hearing_impairment') 
+                          ? "Visual alerts and text-to-speech active" 
+                          : "Read-aloud functionality for all content"
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={disabilities.includes('hearing_impairment') ? 'default' : 'secondary'}>
+                    {disabilities.includes('hearing_impairment') ? 'Personalized' : 'Available'}
+                  </Badge>
+                </div>
+
+                <div className="flex items-center justify-between p-3 rounded-lg border">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <MessageCircle className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Communication Support</p>
+                      <p className="text-sm text-muted-foreground">
+                        {disabilities.some(d => ['cognitive_disability', 'emotional_behavioral_disorder'].includes(d))
+                          ? "Simplified interface and clear navigation" 
+                          : "Multiple ways to communicate with teachers"
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={disabilities.some(d => ['cognitive_disability', 'emotional_behavioral_disorder'].includes(d)) ? 'default' : 'secondary'}>
+                    {disabilities.some(d => ['cognitive_disability', 'emotional_behavioral_disorder'].includes(d)) ? 'Personalized' : 'Available'}
+                  </Badge>
+                </div>
               </div>
+
+              {/* Progress Tracking */}
+              {enhancedProfile?.student_progress_tracking && enhancedProfile.student_progress_tracking.length > 0 && (
+                <div className="mt-4 p-4 rounded-lg border border-amber-200 bg-amber-50/50">
+                  <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <Target className="h-4 w-4 text-amber-600" />
+                    Learning Goals Progress
+                  </h4>
+                  <div className="space-y-2">
+                    {enhancedProfile.student_progress_tracking
+                      .slice(0, 2)
+                      .map((goal: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{goal.goal_description}</p>
+                          <Progress value={goal.progress_percentage || 0} className="w-full h-2 mt-1" />
+                        </div>
+                        <span className="text-sm font-medium ml-3">{goal.progress_percentage || 0}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
-    </div>
+    </DisabilityAdaptiveInterface>
   );
 };

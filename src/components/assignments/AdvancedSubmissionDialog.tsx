@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AdvancedSubmissionDialogProps {
   open: boolean;
@@ -70,6 +71,7 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
   isLoading = false
 }) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('text');
   const [submissionData, setSubmissionData] = useState({
     text: existingSubmission?.submission_text || '',
@@ -273,27 +275,13 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
 
     try {
       console.log('🔍 simulateUpload: Getting user from auth context...');
-      // Get current user from auth context - we need the user from props/context
-      // For now, let's get it from Supabase auth and find the profile
-      const { data: authUser } = await supabase.auth.getUser();
-      console.log('🔍 simulateUpload: Auth user:', authUser.user?.id);
+      console.log('🔍 simulateUpload: User object:', user);
       
-      if (!authUser.user) {
-        throw new Error('User not authenticated');
+      if (!user?.id) {
+        throw new Error('User not authenticated or no profile ID');
       }
 
-      // Get the user's student profile ID using auth user ID
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', authUser.user.id)
-        .single();
-
-      console.log('🔍 simulateUpload: Profile lookup result:', profile);
-
-      if (!profile) {
-        throw new Error('User profile not found - student needs to have a profile');
-      }
+      console.log('✅ simulateUpload: Using profile ID from auth context:', user.id);
 
       // Update progress during upload
       const progressInterval = setInterval(() => {
@@ -308,7 +296,7 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
       }, 200);
 
       // Upload file to Supabase storage
-      const uploadedFile = await uploadFileToStorage(file.file, fileId, profile.id, assignment.id);
+      const uploadedFile = await uploadFileToStorage(file.file, fileId, user.id, assignment.id);
 
       clearInterval(progressInterval);
 
@@ -476,6 +464,14 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
       });
     }
   };
+
+  // Clear draft immediately when dialog closes
+  React.useEffect(() => {
+    if (!open && assignment?.id) {
+      localStorage.removeItem(`assignment_draft_${assignment.id}`);
+      console.log('🗑️ Draft cleared on dialog close');
+    }
+  }, [open, assignment?.id]);
 
   const handleCancel = () => {
     console.log('❌ Cancel button clicked!');

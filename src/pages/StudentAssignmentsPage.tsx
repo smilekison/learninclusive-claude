@@ -363,17 +363,20 @@ export const StudentAssignmentsPage: React.FC = () => {
       }
       
       console.log('✅ Assignment submitted successfully');
+      console.log('🔄 Refreshing assignments...');
       return { data: result, error: null };
     },
     {
       successMessage: "Assignment submitted successfully!",
       onSuccess: () => {
+        console.log('🎉 Assignment submission successful, closing dialog and refreshing...');
         setSubmissionDialog(false);
         setSubmissionText('');
         setSubmissionFile(null);
         setSelectedAssignment(null);
+        // Force refresh of assignments data
         window.location.reload();
-      }
+      },
     }
   );
 

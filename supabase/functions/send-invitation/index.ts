@@ -34,25 +34,16 @@ const handler = async (req: Request): Promise<Response> => {
     
     console.log('Sending invitation:', { email, inviteType, role, schoolName, subjectId, firstName, lastName, parentEmail, classId });
 
-    // Create Supabase clients
+    // Create Supabase client with service role for admin operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
-    const supabaseUser = createClient(supabaseUrl, anonKey, {
-      global: {
-        headers: {
-          Authorization: req.headers.get('Authorization') ?? '',
-        },
-      },
-    });
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     let emailResponse;
 
     if (inviteType === 'subject_enrollment') {
       // Get subject details
-      const { data: subject } = await supabaseAdmin
+      const { data: subject } = await supabase
         .from('subjects')
         .select(`
           name,
@@ -105,11 +96,14 @@ const handler = async (req: Request): Promise<Response> => {
         });
       }
 
-      // Validate user using the forwarded JWT
-      const { data: userRes, error: userErr } = await supabaseUser.auth.getUser();
+      // Extract JWT token from Authorization header
+      const jwtToken = authHeader.replace('Bearer ', '');
+      
+      // Validate JWT using service role client
+      const { data: userRes, error: userErr } = await supabase.auth.getUser(jwtToken);
       if (userErr || !userRes?.user) {
         console.error('User token verification error:', userErr);
-        return new Response(JSON.stringify({ error: 'Invalid user token' }), {
+        return new Response(JSON.stringify({ error: `Invalid user token: ${userErr?.message || 'Unknown error'}` }), {
           status: 401,
           headers: { "Content-Type": "application/json", ...corsHeaders },
         });
@@ -117,17 +111,20 @@ const handler = async (req: Request): Promise<Response> => {
 
       const authUser = userRes.user;
 
-      // Fetch inviter profile
-      const { data: inviterProfile, error: inviterErr } = await supabaseAdmin
+      // Fetch inviter profile using service role
+      const { data: inviterProfile, error: inviterErr } = await supabase
         .from('profiles')
         .select('id, first_name, last_name, role')
         .eq('user_id', authUser.id)
         .single();
 
-      if (inviterErr || !inviterProfile) throw new Error('Inviter profile not found');
+      if (inviterErr || !inviterProfile) {
+        console.error('Inviter profile error:', inviterErr);
+        throw new Error('Inviter profile not found');
+      }
 
-      // Store invitation in database (service role to bypass RLS safely after validation)
-      const { error: inviteError } = await supabaseAdmin
+      // Store invitation in database using service role
+      const { error: inviteError } = await supabase
         .from('email_invitations')
         .insert({
           email,

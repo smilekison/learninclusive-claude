@@ -70,6 +70,14 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
   onSubmit,
   isLoading = false
 }) => {
+  console.log('🎬 ADVANCED SUBMISSION DIALOG: Component rendered with props:', {
+    open,
+    assignment: assignment?.id,
+    assignmentTitle: assignment?.title,
+    hasExistingSubmission: !!existingSubmission,
+    isLoading
+  });
+  
   const { toast } = useToast();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('text');
@@ -161,18 +169,69 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
     }
   };
 
-  const handleFileUpload = (files: FileList) => {
-    if (!assignment) return;
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('📁 HANDLE FILE CHANGE: Event triggered');
+    const files = Array.from(event.target.files || []);
+    console.log('📁 HANDLE FILE CHANGE: Files selected:', files.length);
     
-    Array.from(files).forEach(file => {
+    files.forEach((file, index) => {
+      console.log(`📁 HANDLE FILE CHANGE: File ${index + 1}:`, {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified
+      });
+      
+      const fileId = Date.now() + Math.random().toString(36).substr(2, 9);
+      console.log(`📁 HANDLE FILE CHANGE: Generated file ID: ${fileId}`);
+      
+      const newFile: SubmissionFile = {
+        id: fileId,
+        file,
+        progress: 0,
+        status: 'pending'
+      };
+
+      console.log('📁 HANDLE FILE CHANGE: Adding file to submission data...');
+      setSubmissionData(prev => {
+        const updated = {
+          ...prev,
+          files: [...prev.files, newFile]
+        };
+        console.log('📁 HANDLE FILE CHANGE: Updated submission data files:', updated.files.length);
+        return updated;
+      });
+
+      console.log('📁 HANDLE FILE CHANGE: Starting upload simulation...');
+      // Start upload immediately
+      simulateUpload(fileId);
+    });
+    
+    // Reset the input
+    event.target.value = '';
+    console.log('📁 HANDLE FILE CHANGE: Input reset, process complete');
+  };
+
+  const handleFileUpload = (files: FileList) => {
+    console.log('📁 HANDLE FILE UPLOAD: Called with FileList:', files.length);
+    if (!assignment) {
+      console.log('❌ HANDLE FILE UPLOAD: No assignment found');
+      return;
+    }
+    
+    Array.from(files).forEach((file, index) => {
+      console.log(`📁 HANDLE FILE UPLOAD: Processing file ${index + 1}:`, file.name);
+      
       // Validate file type - if no allowed types specified, allow common types
       const allowedTypes = assignment.allowed_file_types && assignment.allowed_file_types.length > 0 
         ? assignment.allowed_file_types 
         : ['pdf', 'doc', 'docx', 'txt', 'jpg', 'jpeg', 'png', 'gif', 'xlsx', 'xls', 'ppt', 'pptx', 'zip', 'rar'];
       
       const fileExtension = file.name.split('.').pop()?.toLowerCase();
+      console.log(`📁 HANDLE FILE UPLOAD: File extension: ${fileExtension}, Allowed: ${allowedTypes.join(', ')}`);
       
       if (fileExtension && !allowedTypes.includes(fileExtension)) {
+        console.log(`❌ HANDLE FILE UPLOAD: Invalid file type: ${fileExtension}`);
         toast({
           title: "Invalid file type",
           description: `${file.name} is not an allowed file type. Allowed: ${allowedTypes.join(', ')}`,
@@ -183,6 +242,7 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
 
       // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
+        console.log(`❌ HANDLE FILE UPLOAD: File too large: ${file.size} bytes`);
         toast({
           title: "File too large",
           description: `${file.name} exceeds 10MB limit`,
@@ -191,6 +251,7 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
         return;
       }
 
+      console.log(`✅ HANDLE FILE UPLOAD: File validation passed for ${file.name}`);
       const fileId = Math.random().toString(36).substr(2, 9);
       const newFile: SubmissionFile = {
         id: fileId,
@@ -199,11 +260,13 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
         status: 'pending'
       };
 
+      console.log(`📁 HANDLE FILE UPLOAD: Adding file to state with ID: ${fileId}`);
       setSubmissionData(prev => ({
         ...prev,
         files: [...prev.files, newFile]
       }));
 
+      console.log(`📁 HANDLE FILE UPLOAD: Starting upload for file ID: ${fileId}`);
       // Simulate upload progress
       simulateUpload(fileId);
     });
@@ -211,7 +274,8 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
 
   const uploadFileToStorage = async (file: File, fileId: string, studentId: string, assignmentId: string) => {
     try {
-      console.log('📤 uploadFileToStorage called with:', { 
+      console.log('📤 UPLOAD FILE TO STORAGE: Starting upload...');
+      console.log('📤 UPLOAD FILE TO STORAGE: Parameters:', { 
         fileName: file.name, 
         fileSize: file.size, 
         fileId, 
@@ -224,15 +288,14 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
       const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
       const filePath = `${studentId}/${assignmentId}/${fileName}`;
 
-      console.log(`📁 Uploading file to path: ${filePath}`);
-      console.log(`🗂️ Bucket: assignment-submissions`);
-      console.log(`📊 File details:`, {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        lastModified: file.lastModified
+      console.log('📤 UPLOAD FILE TO STORAGE: File path details:', {
+        fileExtension,
+        fileName,
+        filePath,
+        bucket: 'assignment-submissions'
       });
 
+      console.log('📤 UPLOAD FILE TO STORAGE: Calling supabase.storage.from...');
       const { data, error } = await supabase.storage
         .from('assignment-submissions')
         .upload(filePath, file, {
@@ -240,32 +303,43 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
           upsert: false
         });
 
+      console.log('📤 UPLOAD FILE TO STORAGE: Supabase response:', { data, error });
+
       if (error) {
-        console.error('💥 Storage upload error:', error);
-        console.error('💥 Error details:', {
+        console.error('💥 UPLOAD FILE TO STORAGE: Error occurred:', {
           message: error.message,
-          stack: error.stack
+          error: error
         });
         throw error;
       }
 
-      console.log('✅ File uploaded successfully:', data);
-      return {
+      console.log('✅ UPLOAD FILE TO STORAGE: Upload successful!');
+      const result = {
         name: file.name,
         path: data.path,
         size: file.size,
         type: file.type
       };
+      console.log('✅ UPLOAD FILE TO STORAGE: Returning result:', result);
+      return result;
     } catch (error) {
-      console.error('💥 Error in uploadFileToStorage:', error);
+      console.error('💥 UPLOAD FILE TO STORAGE: Exception caught:', error);
       throw error;
     }
   };
 
   const simulateUpload = async (fileId: string) => {
+    console.log('🚀 SIMULATE UPLOAD: Starting for fileId:', fileId);
+    
     const file = submissionData.files.find(f => f.id === fileId);
-    if (!file || !assignment?.id) return;
+    console.log('🚀 SIMULATE UPLOAD: Found file:', file ? file.file.name : 'NOT FOUND');
+    
+    if (!file || !assignment?.id) {
+      console.log('❌ SIMULATE UPLOAD: Missing file or assignment ID');
+      return;
+    }
 
+    console.log('🚀 SIMULATE UPLOAD: Setting status to uploading...');
     setSubmissionData(prev => ({
       ...prev,
       files: prev.files.map(f => 
@@ -274,16 +348,18 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
     }));
 
     try {
-      console.log('🔍 simulateUpload: Getting user from auth context...');
-      console.log('🔍 simulateUpload: User object:', user);
+      console.log('🔍 SIMULATE UPLOAD: Getting user from auth context...');
+      console.log('🔍 SIMULATE UPLOAD: User object:', user);
       
       if (!user?.id) {
+        console.log('❌ SIMULATE UPLOAD: No user or user ID found');
         throw new Error('User not authenticated or no profile ID');
       }
 
-      console.log('✅ simulateUpload: Using profile ID from auth context:', user.id);
+      console.log('✅ SIMULATE UPLOAD: Using profile ID from auth context:', user.id);
 
-      // Update progress during upload
+      // Update progress during upload with interval
+      console.log('📊 SIMULATE UPLOAD: Starting progress tracking...');
       const progressInterval = setInterval(() => {
         setSubmissionData(prev => ({
           ...prev,
@@ -295,11 +371,15 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
         }));
       }, 200);
 
+      console.log('📤 SIMULATE UPLOAD: Calling uploadFileToStorage...');
       // Upload file to Supabase storage
       const uploadedFile = await uploadFileToStorage(file.file, fileId, user.id, assignment.id);
+      console.log('✅ SIMULATE UPLOAD: Upload completed:', uploadedFile);
 
       clearInterval(progressInterval);
+      console.log('📊 SIMULATE UPLOAD: Progress interval cleared');
 
+      console.log('✅ SIMULATE UPLOAD: Setting final status...');
       setSubmissionData(prev => ({
         ...prev,
         files: prev.files.map(f => 
@@ -312,13 +392,15 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
         )
       }));
 
+      console.log('🎉 SIMULATE UPLOAD: Showing success toast...');
       toast({
         title: "File uploaded successfully",
         description: `${file.file.name} has been uploaded to the server`
       });
 
+      console.log('✅ SIMULATE UPLOAD: Process complete');
     } catch (error) {
-      console.error('Upload failed:', error);
+      console.error('💥 SIMULATE UPLOAD: Error occurred:', error);
       
       setSubmissionData(prev => ({
         ...prev,
@@ -327,6 +409,7 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
         )
       }));
 
+      console.log('❌ SIMULATE UPLOAD: Showing error toast...');
       toast({
         title: "Upload failed",
         description: `Failed to upload ${file.file.name}. Please try again.`,
@@ -387,15 +470,28 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
   };
 
   const handleSubmit = () => {
-    console.log('🚀 Submit button clicked!');
-    console.log('📋 Assignment:', assignment);
-    console.log('📝 Current submission data:', submissionData);
-    console.log('⏳ Is loading:', isLoading);
-    console.log('🔗 onSubmit function:', onSubmit);
+    console.log('🚀 HANDLE SUBMIT: Function called');
+    console.log('📋 HANDLE SUBMIT: Assignment:', assignment);
+    console.log('📝 HANDLE SUBMIT: Current submission data:', submissionData);
+    console.log('⏳ HANDLE SUBMIT: Is loading:', isLoading);
+    console.log('🔗 HANDLE SUBMIT: onSubmit function exists:', typeof onSubmit);
 
     // Validate submission
-    if (!submissionData.text.trim() && submissionData.files.length === 0 && submissionData.links.length === 0 && !submissionData.codeContent.trim()) {
-      console.log('❌ Validation failed: Empty submission');
+    const hasText = submissionData.text.trim().length > 0;
+    const hasFiles = submissionData.files.length > 0;
+    const hasLinks = submissionData.links.length > 0;
+    const hasCode = submissionData.codeContent.trim().length > 0;
+    
+    console.log('🔍 HANDLE SUBMIT: Validation check:', {
+      hasText,
+      hasFiles,
+      hasLinks,
+      hasCode,
+      total: hasText || hasFiles || hasLinks || hasCode
+    });
+    
+    if (!hasText && !hasFiles && !hasLinks && !hasCode) {
+      console.log('❌ HANDLE SUBMIT: Validation failed - empty submission');
       toast({
         title: "Empty submission",
         description: "Please add some content to your submission",
@@ -406,14 +502,25 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
 
     // Check if any files are still uploading
     const uploadingFiles = submissionData.files.filter(f => f.status === 'uploading');
-    console.log('📁 Files status check:', { 
+    const uploadedFiles = submissionData.files.filter(f => f.status === 'uploaded');
+    const errorFiles = submissionData.files.filter(f => f.status === 'error');
+    
+    console.log('📁 HANDLE SUBMIT: Files status check:', { 
       totalFiles: submissionData.files.length, 
       uploadingFiles: uploadingFiles.length,
-      fileStatuses: submissionData.files.map(f => ({ id: f.id, status: f.status, name: f.file.name }))
+      uploadedFiles: uploadedFiles.length,
+      errorFiles: errorFiles.length,
+      fileStatuses: submissionData.files.map(f => ({ 
+        id: f.id, 
+        status: f.status, 
+        name: f.file.name,
+        progress: f.progress,
+        hasUploadedFile: !!f.uploadedFile
+      }))
     });
     
     if (uploadingFiles.length > 0) {
-      console.log('❌ Validation failed: Files still uploading');
+      console.log('❌ HANDLE SUBMIT: Files still uploading');
       toast({
         title: "Files still uploading",
         description: "Please wait for all files to finish uploading before submitting",
@@ -422,17 +529,27 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
       return;
     }
 
+    if (errorFiles.length > 0) {
+      console.log('❌ HANDLE SUBMIT: Some files failed to upload');
+      toast({
+        title: "Upload errors",
+        description: "Some files failed to upload. Please retry or remove them.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Prepare uploaded files data for the backend
-    const uploadedFiles = submissionData.files
+    const finalUploadedFiles = submissionData.files
       .filter(f => f.status === 'uploaded' && f.uploadedFile)
       .map(f => f.uploadedFile!);
 
-    console.log('📎 Uploaded files prepared:', uploadedFiles);
+    console.log('📎 HANDLE SUBMIT: Final uploaded files prepared:', finalUploadedFiles);
 
     // Prepare submission data
     const finalSubmission = {
       submissionText: submissionData.text,
-      files: uploadedFiles,
+      files: finalUploadedFiles,
       links: submissionData.links,
       codeContent: submissionData.codeContent,
       codeLanguage: submissionData.codeLanguage,
@@ -443,25 +560,37 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
       groupMembers: submissionData.groupMembers
     };
 
-    console.log('✅ Final submission data prepared:', finalSubmission);
-    console.log('🎯 Calling onSubmit with data...');
+    console.log('✅ HANDLE SUBMIT: Final submission data prepared:', finalSubmission);
+    console.log('🎯 HANDLE SUBMIT: Calling onSubmit function...');
     
     try {
       onSubmit(finalSubmission);
-      console.log('✅ onSubmit called successfully');
+      console.log('✅ HANDLE SUBMIT: onSubmit called successfully');
       
       // Clear draft after successful submission
       if (assignment?.id) {
         localStorage.removeItem(`assignment_draft_${assignment.id}`);
-        console.log('🗑️ Draft cleared from localStorage');
+        console.log('🗑️ HANDLE SUBMIT: Draft cleared from localStorage');
       }
     } catch (error) {
-      console.error('❌ Error calling onSubmit:', error);
+      console.error('❌ HANDLE SUBMIT: Error calling onSubmit:', error);
       toast({
         title: "Submission error",
         description: "Failed to submit assignment. Please try again.",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleCancel = () => {
+    console.log('❌ HANDLE CANCEL: Function called');
+    console.log('🔗 HANDLE CANCEL: onOpenChange function exists:', typeof onOpenChange);
+    
+    try {
+      onOpenChange(false);
+      console.log('✅ HANDLE CANCEL: Dialog closed successfully');
+    } catch (error) {
+      console.error('❌ HANDLE CANCEL: Error closing dialog:', error);
     }
   };
 
@@ -473,17 +602,6 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
     }
   }, [open, assignment?.id]);
 
-  const handleCancel = () => {
-    console.log('❌ Cancel button clicked!');
-    console.log('🔗 onOpenChange function:', onOpenChange);
-    
-    try {
-      onOpenChange(false);
-      console.log('✅ Dialog closed successfully');
-    } catch (error) {
-      console.error('❌ Error closing dialog:', error);
-    }
-  };
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -742,9 +860,9 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
                       ref={fileInputRef}
                       type="file"
                       multiple
-                      className="hidden"
-                      onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
-                    />
+                       className="hidden"
+                       onChange={handleFileChange}
+                     />
 
                     {submissionData.files.length > 0 && (
                       <div className="space-y-2">
@@ -908,14 +1026,17 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
           </div>
           
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleCancel}>
+            <Button variant="outline" onClick={() => {
+              console.log('🔥 CANCEL BUTTON CLICKED');
+              handleCancel();
+            }}>
               Cancel
             </Button>
             <Button 
               onClick={() => {
                 console.log('🔥 SUBMIT BUTTON CLICKED - Starting submission process');
                 console.log('🔥 Assignment:', assignment);
-                console.log('🔥 Submission data:', submissionData);
+                console.log('🔥 Submission data files:', submissionData.files);
                 console.log('🔥 Is loading:', isLoading);
                 handleSubmit();
               }} 

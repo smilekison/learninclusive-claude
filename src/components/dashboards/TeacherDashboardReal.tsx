@@ -81,7 +81,8 @@ export const TeacherDashboardReal: React.FC = () => {
     lastName: '',
     email: '',
     parentEmail: '',
-    classId: ''
+    classId: '',
+    password: 'demo123'
   });
 
   const [isSubjectDialogOpen, setIsSubjectDialogOpen] = useState(false);
@@ -149,7 +150,7 @@ export const TeacherDashboardReal: React.FC = () => {
       successMessage: "Student account created successfully. Login: email / demo123",
       invalidateKeys: [['teacher-students'], ['teacher-stats']],
       onSuccess: () => {
-        setNewStudent({ firstName: '', lastName: '', email: '', parentEmail: '', classId: '' });
+        setNewStudent({ firstName: '', lastName: '', email: '', parentEmail: '', classId: '', password: 'demo123' });
         setIsStudentDialogOpen(false);
       }
     }
@@ -529,6 +530,17 @@ export const TeacherDashboardReal: React.FC = () => {
                       value={newStudent.parentEmail}
                       onChange={(e) => setNewStudent({ ...newStudent, parentEmail: e.target.value })}
                       placeholder="parent@gmail.com"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={newStudent.password}
+                      onChange={(e) => setNewStudent({ ...newStudent, password: e.target.value })}
+                      placeholder="Default: demo123"
+                      required
                     />
                   </div>
                   <div>

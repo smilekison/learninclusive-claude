@@ -25,21 +25,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Listen for auth changes FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        fetchUserProfile(session.user.id);
+        // Defer any Supabase calls to avoid potential deadlocks
+        setTimeout(() => {
+          fetchUserProfile(session.user.id);
+        }, 0);
       } else {
+        setUser(null);
         setLoading(false);
       }
     });
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // THEN get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        fetchUserProfile(session.user.id);
+        setTimeout(() => {
+          fetchUserProfile(session.user.id);
+        }, 0);
       } else {
-        setUser(null);
         setLoading(false);
       }
     });

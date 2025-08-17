@@ -42,9 +42,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode, onForgotPass
       console.log('LOGIN FORM: Calling login function');
       await login(email, password);
       console.log('LOGIN FORM: Login function completed successfully');
-    } catch (err) {
+    } catch (err: any) {
       console.error('LOGIN FORM: Login failed with error:', err);
-      setError('Invalid email or password');
+      const msg = err?.value?.message || err?.message || 'Invalid email or password';
+      setError(msg);
     }
   };
 

@@ -273,30 +273,34 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
     });
   };
 
-  const uploadFileToStorage = async (file: File, fileId: string, studentId: string, assignmentId: string) => {
+  const uploadFileToStorage = async (file: File, fileId: string) => {
     try {
       console.log('📤 UPLOAD FILE TO STORAGE: Starting upload...');
-      console.log('📤 UPLOAD FILE TO STORAGE: Parameters:', { 
-        fileName: file.name, 
-        fileSize: file.size, 
-        fileId, 
-        studentId, 
-        assignmentId 
-      });
+      console.log('📤 UPLOAD FILE TO STORAGE: File:', file.name, 'Size:', file.size);
+      console.log('📤 UPLOAD FILE TO STORAGE: Assignment ID:', assignment?.id);
+      console.log('📤 UPLOAD FILE TO STORAGE: User from context:', user);
 
-      // Create file path: studentId/assignmentId/filename
-      const fileExtension = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-      const filePath = `${studentId}/${assignmentId}/${fileName}`;
+      if (!user?.id) {
+        throw new Error('User not authenticated or profile not found');
+      }
 
-      console.log('📤 UPLOAD FILE TO STORAGE: File path details:', {
-        fileExtension,
-        fileName,
-        filePath,
-        bucket: 'assignment-submissions'
-      });
+      if (!assignment?.id) {
+        throw new Error('Assignment ID not found');
+      }
 
-      console.log('📤 UPLOAD FILE TO STORAGE: Calling supabase.storage.from...');
+      // Use the student profile ID directly from auth context
+      const studentProfileId = user.id;
+      console.log('📤 UPLOAD FILE TO STORAGE: Using student profile ID:', studentProfileId);
+
+      // Create file path: studentProfileId/assignmentId/timestamp-filename  
+      const timestamp = Date.now();
+      const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `${timestamp}-${sanitizedFileName}`;
+      const filePath = `${studentProfileId}/${assignment.id}/${fileName}`;
+
+      console.log('📤 UPLOAD FILE TO STORAGE: File path:', filePath);
+
+      // Upload to Supabase storage
       const { data, error } = await supabase.storage
         .from('assignment-submissions')
         .upload(filePath, file, {
@@ -307,10 +311,7 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
       console.log('📤 UPLOAD FILE TO STORAGE: Supabase response:', { data, error });
 
       if (error) {
-        console.error('💥 UPLOAD FILE TO STORAGE: Error occurred:', {
-          message: error.message,
-          error: error
-        });
+        console.error('💥 UPLOAD FILE TO STORAGE: Error occurred:', error);
         throw error;
       }
 
@@ -374,7 +375,7 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
 
       console.log('📤 HANDLE SINGLE FILE UPLOAD: Calling uploadFileToStorage...');
       // Upload file to Supabase storage
-      const uploadedFile = await uploadFileToStorage(file.file, fileId, user.id, assignment.id);
+      const uploadedFile = await uploadFileToStorage(file.file, fileId);
       console.log('✅ HANDLE SINGLE FILE UPLOAD: Upload completed:', uploadedFile);
 
       clearInterval(progressInterval);
@@ -894,9 +895,19 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
                                   {file.status === 'uploaded' && (
                                     <CheckCircle className="w-4 h-4 text-success" />
                                   )}
-                                  {file.status === 'error' && (
-                                    <AlertCircle className="w-4 h-4 text-destructive" />
-                                  )}
+                                   {file.status === 'error' && (
+                                     <>
+                                       <AlertCircle className="w-4 h-4 text-destructive" />
+                                       <Button
+                                         variant="ghost"
+                                         size="sm"
+                                         onClick={() => handleSingleFileUpload(file.id)}
+                                         className="text-xs px-2"
+                                       >
+                                         Retry
+                                       </Button>
+                                     </>
+                                   )}
                                   <Button
                                     variant="ghost"
                                     size="sm"

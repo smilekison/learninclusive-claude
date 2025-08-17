@@ -3,6 +3,8 @@ import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { TopNavbar } from './TopNavbar';
 import { usePrincipalStudentCountDebug } from '@/hooks/usePrincipalStudentCountDebug';
+import { useAuth } from '@/contexts/AuthContext';
+import StudentAccessibilityWrapper from '@/components/accessibility/StudentAccessibilityWrapper';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,6 +13,7 @@ interface LayoutProps {
 const LayoutContent: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen flex w-full bg-background">
@@ -29,8 +32,12 @@ const LayoutContent: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             Skip to main content
           </a>
           
-          <div id="main-content" className="p-6">
-            {children}
+<div id="main-content" className="p-6">
+            {user?.role === 'student' ? (
+              <StudentAccessibilityWrapper>{children}</StudentAccessibilityWrapper>
+            ) : (
+              children
+            )}
           </div>
         </main>
       </div>

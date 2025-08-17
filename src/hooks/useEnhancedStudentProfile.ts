@@ -1,10 +1,31 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEffect } from 'react';
 
 // Enhanced hook for getting complete student profile with disabilities and accessibility data
 export const useEnhancedStudentProfile = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!user?.id || user?.role !== 'student') return;
+    const channel = supabase
+      .channel(`profile-updates-${user.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'profiles',
+        filter: `user_id=eq.${user.id}`,
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: ['enhanced-student-profile', user.id] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, user?.role, queryClient]);
   
   return useQuery({
     queryKey: ['enhanced-student-profile', user?.id],
@@ -38,7 +59,8 @@ export const useEnhancedStudentProfile = () => {
       return profile;
     },
     enabled: !!user?.id && user?.role === 'student',
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: true,
     retry: 3,
   });
 };

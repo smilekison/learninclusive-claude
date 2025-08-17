@@ -32,10 +32,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { StudentLessons } from '@/components/students/StudentLessons';
-import { DisabilityAdaptiveInterface } from '@/components/accessibility/DisabilityAdaptiveInterface';
-import { AccessibilityToolbar } from '@/components/accessibility/AccessibilityToolbar';
 import { TTSButton } from '@/components/accessibility/TTSButton';
+import { StudentLessons } from '@/components/students/StudentLessons';
 
 export const StudentDashboardReal: React.FC = () => {
   const { user } = useAuth();
@@ -342,7 +340,7 @@ export const StudentDashboardReal: React.FC = () => {
   }
 
   return (
-    <DisabilityAdaptiveInterface disabilities={disabilities} className="p-6 space-y-6">
+    <div className="p-6 space-y-6">
       {/* Personalized Welcome Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -379,10 +377,6 @@ export const StudentDashboardReal: React.FC = () => {
           )}
         </div>
         
-        {/* Accessibility Toolbar */}
-        {hasDisabilities && (
-          <AccessibilityToolbar disabilities={disabilities} />
-        )}
       </div>
 
       {/* Progress Overview */}
@@ -1060,6 +1054,6 @@ export const StudentDashboardReal: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-    </DisabilityAdaptiveInterface>
+    </div>
   );
 };

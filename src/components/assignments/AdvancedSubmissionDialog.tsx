@@ -1026,14 +1026,23 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
           </div>
           
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => {
-              console.log('🔥 CANCEL BUTTON CLICKED');
-              handleCancel();
-            }}>
+            <Button 
+              variant="outline" 
+              onClick={(e) => {
+                console.log('🔥 CANCEL BUTTON CLICKED - Event:', e);
+                console.log('🔥 CANCEL BUTTON CLICKED - Type:', e.type);
+                console.log('🔥 CANCEL BUTTON CLICKED - Target:', e.target);
+                handleCancel();
+              }}
+              style={{ zIndex: 1000 }}
+            >
               Cancel
             </Button>
             <Button 
-              onClick={() => {
+              onClick={(e) => {
+                console.log('🔥 SUBMIT BUTTON CLICKED - Event:', e);
+                console.log('🔥 SUBMIT BUTTON CLICKED - Type:', e.type);
+                console.log('🔥 SUBMIT BUTTON CLICKED - Target:', e.target);
                 console.log('🔥 SUBMIT BUTTON CLICKED - Starting submission process');
                 console.log('🔥 Assignment:', assignment);
                 console.log('🔥 Submission data files:', submissionData.files);
@@ -1042,6 +1051,7 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
               }} 
               disabled={isLoading}
               className="hover-scale"
+              style={{ zIndex: 1000 }}
             >
               {isLoading ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />

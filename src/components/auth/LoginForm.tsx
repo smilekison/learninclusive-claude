@@ -6,6 +6,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 
 interface LoginFormProps {
@@ -18,8 +20,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode, onForgotPass
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [resettingPasswords, setResettingPasswords] = useState(false);
   const { login, loading } = useAuth();
   const { t } = useLanguage();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +45,36 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode, onForgotPass
     } catch (err) {
       console.error('LOGIN FORM: Login failed with error:', err);
       setError('Invalid email or password');
+    }
+  };
+
+  const resetDemoPasswords = async () => {
+    setResettingPasswords(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('reset-demo-passwords');
+      if (error) {
+        console.error('Failed to reset demo passwords:', error);
+        toast({
+          title: "Error",
+          description: "Failed to reset demo passwords",
+          variant: "destructive",
+        });
+      } else {
+        console.log('Demo passwords reset successfully:', data);
+        toast({
+          title: "Success",
+          description: "All passwords have been reset to 'demo123'",
+        });
+      }
+    } catch (error) {
+      console.error('Error calling reset function:', error);
+      toast({
+        title: "Error", 
+        description: "Error resetting demo passwords",
+        variant: "destructive",
+      });
+    } finally {
+      setResettingPasswords(false);
     }
   };
 
@@ -197,6 +231,25 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode, onForgotPass
               <strong>{t('auth.parent')}:</strong> parent@riverside.edu
             </button>
             <p className="pt-1"><strong>{t('auth.passwordLabel')}:</strong> demo123</p>
+            <div className="pt-2 border-t border-border mt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={resetDemoPasswords}
+                disabled={resettingPasswords}
+                className="w-full text-xs"
+              >
+                {resettingPasswords ? (
+                  <>
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    Resetting...
+                  </>
+                ) : (
+                  'Reset All Passwords to demo123'
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </CardContent>

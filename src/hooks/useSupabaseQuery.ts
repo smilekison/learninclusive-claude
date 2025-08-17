@@ -964,7 +964,7 @@ export const useStudentSubjects = () => {
         return [];
       }
       
-      // Get subjects from student's enrolled classes
+      // Get subjects from student's enrolled classes directly with join
       const { data, error } = await supabase
         .from('subjects')
         .select(`
@@ -973,9 +973,13 @@ export const useStudentSubjects = () => {
             id,
             name,
             description,
-            teacher:profiles!classes_teacher_id_fkey(first_name, last_name)
+            teacher_id,
+            teacher:profiles!classes_teacher_id_fkey(first_name, last_name),
+            student_enrollments!inner(student_id, status)
           )
         `)
+        .eq('class.student_enrollments.student_id', profile.id)
+        .eq('class.student_enrollments.status', 'active')
         .eq('is_active', true);
       
       if (error) {
@@ -983,25 +987,9 @@ export const useStudentSubjects = () => {
         throw error;
       }
       
-      console.log('useStudentSubjects - All subjects:', data?.length);
+      console.log('useStudentSubjects - Student subjects:', data?.length);
       
-      // Filter subjects by student's enrolled classes
-      const { data: enrollments } = await supabase
-        .from('student_enrollments')
-        .select('class_id')
-        .eq('student_id', profile.id)
-        .eq('status', 'active');
-      
-      console.log('useStudentSubjects - Enrollments:', enrollments);
-      
-      const enrolledClassIds = enrollments?.map(e => e.class_id) || [];
-      const studentSubjects = data?.filter(subject => 
-        enrolledClassIds.includes(subject.class_id)
-      ) || [];
-      
-      console.log('useStudentSubjects - Filtered subjects:', studentSubjects.length);
-      
-      return studentSubjects;
+      return data || [];
     },
   });
 };

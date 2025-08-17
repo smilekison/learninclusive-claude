@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNotifications } from '@/hooks/useSupabaseQuery';
 import { formatDistanceToNow } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 
 export const NotificationBell = () => {
   const { data: notifications = [], isLoading } = useNotifications();
@@ -21,8 +22,19 @@ export const NotificationBell = () => {
   };
 
   const markAsRead = async (notificationId: string) => {
-    // This would be implemented with a mutation to update the notification
-    console.log('Mark as read:', notificationId);
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', notificationId);
+      
+      if (error) throw error;
+      
+      // Refresh notifications to show updated status
+      window.location.reload();
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
   };
 
   return (
@@ -90,7 +102,26 @@ export const NotificationBell = () => {
         </ScrollArea>
         {notifications.length > 0 && (
           <div className="p-3 border-t">
-            <Button variant="ghost" className="w-full text-sm">
+            <Button 
+              variant="ghost" 
+              className="w-full text-sm"
+              onClick={async () => {
+                try {
+                  const unreadNotifications = notifications.filter(n => !n.read);
+                  await Promise.all(
+                    unreadNotifications.map(n => 
+                      supabase
+                        .from('notifications')
+                        .update({ read: true })
+                        .eq('id', n.id)
+                    )
+                  );
+                  window.location.reload();
+                } catch (error) {
+                  console.error('Error marking all as read:', error);
+                }
+              }}
+            >
               Mark all as read
             </Button>
           </div>

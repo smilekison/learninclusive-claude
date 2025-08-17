@@ -209,12 +209,27 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
 
   const uploadFileToStorage = async (file: File, fileId: string, studentId: string, assignmentId: string) => {
     try {
+      console.log('📤 uploadFileToStorage called with:', { 
+        fileName: file.name, 
+        fileSize: file.size, 
+        fileId, 
+        studentId, 
+        assignmentId 
+      });
+
       // Create file path: studentId/assignmentId/filename
       const fileExtension = file.name.split('.').pop();
       const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
       const filePath = `${studentId}/${assignmentId}/${fileName}`;
 
-      console.log(`Uploading file to: ${filePath}`);
+      console.log(`📁 Uploading file to path: ${filePath}`);
+      console.log(`🗂️ Bucket: assignment-submissions`);
+      console.log(`📊 File details:`, {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified
+      });
 
       const { data, error } = await supabase.storage
         .from('assignment-submissions')
@@ -224,11 +239,15 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
         });
 
       if (error) {
-        console.error('Storage upload error:', error);
+        console.error('💥 Storage upload error:', error);
+        console.error('💥 Error details:', {
+          message: error.message,
+          stack: error.stack
+        });
         throw error;
       }
 
-      console.log('File uploaded successfully:', data);
+      console.log('✅ File uploaded successfully:', data);
       return {
         name: file.name,
         path: data.path,
@@ -236,7 +255,7 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
         type: file.type
       };
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.error('💥 Error in uploadFileToStorage:', error);
       throw error;
     }
   };
@@ -253,15 +272,27 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
     }));
 
     try {
-      // Get current user's student profile ID
+      console.log('🔍 simulateUpload: Getting user from auth context...');
+      // Get current user from auth context - we need the user from props/context
+      // For now, let's get it from Supabase auth and find the profile
+      const { data: authUser } = await supabase.auth.getUser();
+      console.log('🔍 simulateUpload: Auth user:', authUser.user?.id);
+      
+      if (!authUser.user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Get the user's student profile ID using auth user ID
       const { data: profile } = await supabase
         .from('profiles')
         .select('id')
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .eq('user_id', authUser.user.id)
         .single();
 
+      console.log('🔍 simulateUpload: Profile lookup result:', profile);
+
       if (!profile) {
-        throw new Error('User profile not found');
+        throw new Error('User profile not found - student needs to have a profile');
       }
 
       // Update progress during upload
@@ -885,7 +916,13 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
               Cancel
             </Button>
             <Button 
-              onClick={handleSubmit} 
+              onClick={() => {
+                console.log('🔥 SUBMIT BUTTON CLICKED - Starting submission process');
+                console.log('🔥 Assignment:', assignment);
+                console.log('🔥 Submission data:', submissionData);
+                console.log('🔥 Is loading:', isLoading);
+                handleSubmit();
+              }} 
               disabled={isLoading}
               className="hover-scale"
             >

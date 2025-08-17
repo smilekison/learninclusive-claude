@@ -481,41 +481,104 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accessibility_preferences: Json | null
+          accommodations_needed: Json | null
+          address: Json | null
+          assistive_technology: Json | null
+          communication_preferences: Json | null
           created_at: string
+          date_of_birth: string | null
           disabilities: string[] | null
+          disability_details: Json | null
+          emergency_contacts: Json | null
+          enrollment_date: string | null
           first_name: string
+          gender: string | null
+          grade_level: string | null
+          guardian_email: string | null
+          guardian_name: string | null
+          guardian_phone: string | null
           id: string
+          iep_document_path: string | null
+          iep_status: boolean | null
           is_active: boolean | null
           last_name: string
+          learning_preferences: Json | null
+          medical_information: Json | null
+          notes: string | null
           parent_email: string | null
+          phone_number: string | null
           role: string
           school_name: string | null
+          support_services: Json | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          accessibility_preferences?: Json | null
+          accommodations_needed?: Json | null
+          address?: Json | null
+          assistive_technology?: Json | null
+          communication_preferences?: Json | null
           created_at?: string
+          date_of_birth?: string | null
           disabilities?: string[] | null
+          disability_details?: Json | null
+          emergency_contacts?: Json | null
+          enrollment_date?: string | null
           first_name: string
+          gender?: string | null
+          grade_level?: string | null
+          guardian_email?: string | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
           id?: string
+          iep_document_path?: string | null
+          iep_status?: boolean | null
           is_active?: boolean | null
           last_name: string
+          learning_preferences?: Json | null
+          medical_information?: Json | null
+          notes?: string | null
           parent_email?: string | null
+          phone_number?: string | null
           role: string
           school_name?: string | null
+          support_services?: Json | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          accessibility_preferences?: Json | null
+          accommodations_needed?: Json | null
+          address?: Json | null
+          assistive_technology?: Json | null
+          communication_preferences?: Json | null
           created_at?: string
+          date_of_birth?: string | null
           disabilities?: string[] | null
+          disability_details?: Json | null
+          emergency_contacts?: Json | null
+          enrollment_date?: string | null
           first_name?: string
+          gender?: string | null
+          grade_level?: string | null
+          guardian_email?: string | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
           id?: string
+          iep_document_path?: string | null
+          iep_status?: boolean | null
           is_active?: boolean | null
           last_name?: string
+          learning_preferences?: Json | null
+          medical_information?: Json | null
+          notes?: string | null
           parent_email?: string | null
+          phone_number?: string | null
           role?: string
           school_name?: string | null
+          support_services?: Json | null
           updated_at?: string
           user_id?: string
         }
@@ -648,6 +711,63 @@ export type Database = {
           },
         ]
       }
+      student_accommodations: {
+        Row: {
+          accommodation_type: Database["public"]["Enums"]["accommodation_type"]
+          assigned_by: string | null
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          is_active: boolean | null
+          notes: string | null
+          start_date: string | null
+          student_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          accommodation_type: Database["public"]["Enums"]["accommodation_type"]
+          assigned_by?: string | null
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          start_date?: string | null
+          student_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          accommodation_type?: Database["public"]["Enums"]["accommodation_type"]
+          assigned_by?: string | null
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          start_date?: string | null
+          student_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_accommodations_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_accommodations_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_enrollments: {
         Row: {
           class_id: string
@@ -686,6 +806,122 @@ export type Database = {
           },
           {
             foreignKeyName: "student_enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_progress_tracking: {
+        Row: {
+          created_at: string | null
+          current_status: string | null
+          goal_description: string
+          id: string
+          is_achieved: boolean | null
+          last_updated: string | null
+          notes: string | null
+          progress_percentage: number | null
+          student_id: string | null
+          target_date: string | null
+          tracked_by: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_status?: string | null
+          goal_description: string
+          id?: string
+          is_achieved?: boolean | null
+          last_updated?: string | null
+          notes?: string | null
+          progress_percentage?: number | null
+          student_id?: string | null
+          target_date?: string | null
+          tracked_by?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_status?: string | null
+          goal_description?: string
+          id?: string
+          is_achieved?: boolean | null
+          last_updated?: string | null
+          notes?: string | null
+          progress_percentage?: number | null
+          student_id?: string | null
+          target_date?: string | null
+          tracked_by?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_progress_tracking_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_progress_tracking_tracked_by_fkey"
+            columns: ["tracked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_support_services: {
+        Row: {
+          created_at: string | null
+          duration_minutes: number | null
+          end_date: string | null
+          frequency: string | null
+          id: string
+          is_active: boolean | null
+          location: string | null
+          notes: string | null
+          provider_name: string | null
+          service_type: Database["public"]["Enums"]["support_service_type"]
+          start_date: string | null
+          student_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          duration_minutes?: number | null
+          end_date?: string | null
+          frequency?: string | null
+          id?: string
+          is_active?: boolean | null
+          location?: string | null
+          notes?: string | null
+          provider_name?: string | null
+          service_type: Database["public"]["Enums"]["support_service_type"]
+          start_date?: string | null
+          student_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          duration_minutes?: number | null
+          end_date?: string | null
+          frequency?: string | null
+          id?: string
+          is_active?: boolean | null
+          location?: string | null
+          notes?: string | null
+          provider_name?: string | null
+          service_type?: Database["public"]["Enums"]["support_service_type"]
+          start_date?: string | null
+          student_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_support_services_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -1150,7 +1386,48 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      accommodation_type:
+        | "extended_time"
+        | "reduced_distractions"
+        | "large_print"
+        | "screen_reader"
+        | "sign_language_interpreter"
+        | "note_taker"
+        | "alternative_format"
+        | "assistive_technology"
+        | "frequent_breaks"
+        | "preferential_seating"
+        | "modified_assignments"
+        | "oral_testing"
+        | "calculator_allowed"
+        | "spell_check_allowed"
+        | "other"
+      disability_type:
+        | "visual_impairment"
+        | "hearing_impairment"
+        | "physical_disability"
+        | "cognitive_disability"
+        | "learning_disability"
+        | "autism_spectrum"
+        | "adhd"
+        | "speech_language_disorder"
+        | "emotional_behavioral_disorder"
+        | "multiple_disabilities"
+        | "traumatic_brain_injury"
+        | "other"
+      support_service_type:
+        | "speech_therapy"
+        | "occupational_therapy"
+        | "physical_therapy"
+        | "counseling"
+        | "tutoring"
+        | "behavioral_support"
+        | "mobility_assistance"
+        | "communication_assistance"
+        | "academic_coaching"
+        | "social_skills_training"
+        | "transition_services"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1277,6 +1554,52 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      accommodation_type: [
+        "extended_time",
+        "reduced_distractions",
+        "large_print",
+        "screen_reader",
+        "sign_language_interpreter",
+        "note_taker",
+        "alternative_format",
+        "assistive_technology",
+        "frequent_breaks",
+        "preferential_seating",
+        "modified_assignments",
+        "oral_testing",
+        "calculator_allowed",
+        "spell_check_allowed",
+        "other",
+      ],
+      disability_type: [
+        "visual_impairment",
+        "hearing_impairment",
+        "physical_disability",
+        "cognitive_disability",
+        "learning_disability",
+        "autism_spectrum",
+        "adhd",
+        "speech_language_disorder",
+        "emotional_behavioral_disorder",
+        "multiple_disabilities",
+        "traumatic_brain_injury",
+        "other",
+      ],
+      support_service_type: [
+        "speech_therapy",
+        "occupational_therapy",
+        "physical_therapy",
+        "counseling",
+        "tutoring",
+        "behavioral_support",
+        "mobility_assistance",
+        "communication_assistance",
+        "academic_coaching",
+        "social_skills_training",
+        "transition_services",
+        "other",
+      ],
+    },
   },
 } as const

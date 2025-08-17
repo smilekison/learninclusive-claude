@@ -32,7 +32,7 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { email, inviteType, role, schoolName, subjectId, enrollmentLink, firstName, lastName, parentEmail, classId }: InvitationRequest = await req.json();
     
-    console.log('Sending invitation:', { email, inviteType, role, schoolName, subjectId });
+    console.log('Sending invitation:', { email, inviteType, role, schoolName, subjectId, firstName, lastName, parentEmail, classId });
 
     // Create Supabase clients
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;

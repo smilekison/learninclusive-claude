@@ -244,22 +244,34 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
 
   const uploadFileToStorage = async (file: File, fileId: string) => {
     try {
-      console.log('📤 UPLOAD FILE TO STORAGE: Starting upload...');
-      console.log('📤 UPLOAD FILE TO STORAGE: File:', file.name, 'Size:', file.size);
-      console.log('📤 UPLOAD FILE TO STORAGE: Assignment ID:', assignment?.id);
-      console.log('📤 UPLOAD FILE TO STORAGE: User from context:', user);
+      console.log('🔥 UPLOAD FILE TO STORAGE: Starting upload...');
+      console.log('🔥 UPLOAD FILE TO STORAGE: File:', file.name, 'Size:', file.size);
+      console.log('🔥 UPLOAD FILE TO STORAGE: Assignment ID:', assignment?.id);
+      console.log('🔥 UPLOAD FILE TO STORAGE: User from context:', JSON.stringify(user, null, 2));
 
-      if (!user?.id) {
-        throw new Error('User not authenticated or profile not found');
+      if (!user) {
+        console.error('❌ UPLOAD FILE TO STORAGE: No user in context');
+        throw new Error('User not found in context');
+      }
+
+      if (!user.id) {
+        console.error('❌ UPLOAD FILE TO STORAGE: No user.id found');
+        throw new Error('User profile ID not found');
+      }
+
+      if (!user.authUserId) {
+        console.error('❌ UPLOAD FILE TO STORAGE: No user.authUserId found');
+        throw new Error('User auth ID not found');
       }
 
       if (!assignment?.id) {
+        console.error('❌ UPLOAD FILE TO STORAGE: No assignment ID');
         throw new Error('Assignment ID not found');
       }
 
       // Use the auth user ID for storage foldering (matches RLS policies)
-      const folderUserId = user.authUserId || user.id;
-      console.log('📤 UPLOAD FILE TO STORAGE: Using folder user ID:', folderUserId);
+      const folderUserId = user.authUserId;
+      console.log('🔥 UPLOAD FILE TO STORAGE: Using folder user ID:', folderUserId);
 
       // Create file path: authUserId/assignmentId/timestamp-filename  
       const timestamp = Date.now();
@@ -267,9 +279,10 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
       const fileName = `${timestamp}-${sanitizedFileName}`;
       const filePath = `${folderUserId}/${assignment.id}/${fileName}`;
 
-      console.log('📤 UPLOAD FILE TO STORAGE: File path:', filePath);
+      console.log('🔥 UPLOAD FILE TO STORAGE: File path:', filePath);
 
       // Upload to Supabase storage
+      console.log('🔥 UPLOAD FILE TO STORAGE: About to call supabase.storage.upload...');
       const { data, error } = await supabase.storage
         .from('assignment-submissions')
         .upload(filePath, file, {
@@ -277,7 +290,7 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
           upsert: false
         });
 
-      console.log('📤 UPLOAD FILE TO STORAGE: Supabase response:', { data, error });
+      console.log('🔥 UPLOAD FILE TO STORAGE: Supabase response:', { data, error });
 
       if (error) {
         console.error('💥 UPLOAD FILE TO STORAGE: Error occurred:', error);

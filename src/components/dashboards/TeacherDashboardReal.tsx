@@ -977,91 +977,149 @@ export const TeacherDashboardReal: React.FC = () => {
       />
 
       {/* Enhanced Recent Submissions with Action Buttons */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Recent Submissions
-          </CardTitle>
-          <CardDescription>
-            Latest assignment submissions requiring your attention
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {recentSubmissions.slice(0, 5).map((submission: any) => (
-              <div key={submission.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                <div className="flex-1">
-                  <h4 className="font-medium">{submission.assignment?.title}</h4>
-                  <p className="text-sm text-muted-foreground">
-                    By {submission.student?.first_name} {submission.student?.last_name}
-                  </p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                    <Calendar className="h-3 w-3" />
-                    <span>{new Date(submission.submitted_at).toLocaleDateString()}</span>
-                    {submission.assignment?.due_date && (
-                      <>
-                        <span>•</span>
-                        <span>Due: {new Date(submission.assignment.due_date).toLocaleDateString()}</span>
-                      </>
-                    )}
+        {/* Lessons Management Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              Lessons Management
+            </CardTitle>
+            <CardDescription>
+              Quick access to lesson creation and management across your subjects
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {teacherSubjects.slice(0, 3).map((subject: any) => (
+                <div key={subject.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                  <div className="flex-1">
+                    <h4 className="font-medium">{subject.name}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {subject.class?.name} • {subject.lessons?.length || 0} lessons
+                    </p>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {submission.score ? (
-                    <Badge variant="secondary">
-                      {submission.score}/{submission.assignment?.max_score}
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="text-warning">
-                      Needs Grading
-                    </Badge>
-                  )}
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleViewSubmission(submission.assignment_id)}
-                    className="hover:bg-primary/10"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  {!submission.score && (
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => navigate(`/subjects/${subject.id}?tab=lessons`)}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Lesson
+                    </Button>
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => handleGradeSubmission(submission.id)}
-                      className="hover:bg-success/10 text-success"
+                      onClick={() => navigate(`/subjects/${subject.id}`)}
                     >
-                      <Edit className="h-4 w-4" />
+                      <Eye className="h-4 w-4" />
                     </Button>
-                  )}
+                  </div>
                 </div>
-              </div>
-            ))}
-            {recentSubmissions.length === 0 && (
-              <p className="text-center text-muted-foreground py-8">
-                No recent submissions
-              </p>
-            )}
-            {recentSubmissions.length > 5 && (
-              <div className="flex justify-center gap-2 mt-4">
+              ))}
+              {teacherSubjects.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">
+                  No subjects created yet. Create a subject first to add lessons.
+                </p>
+              )}
+              {teacherSubjects.length > 3 && (
                 <Button 
                   variant="outline" 
-                  onClick={() => navigate('/submissions')}
+                  onClick={() => navigate('/subjects')}
+                  className="w-full"
                 >
-                  View All Submissions
+                  View All Subjects ({teacherSubjects.length})
                 </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => navigate('/submissions?filter=pending')}
-                >
-                  View Pending ({recentSubmissions.filter((s: any) => !s.score).length})
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Recent Submissions
+            </CardTitle>
+            <CardDescription>
+              Latest assignment submissions requiring your attention
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {recentSubmissions.slice(0, 5).map((submission: any) => (
+                <div key={submission.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                  <div className="flex-1">
+                    <h4 className="font-medium truncate max-w-[200px]">{submission.assignment?.title}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      By {submission.student?.first_name} {submission.student?.last_name}
+                    </p>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                      <Calendar className="h-3 w-3" />
+                      <span>{new Date(submission.submitted_at).toLocaleDateString()}</span>
+                      {submission.assignment?.due_date && (
+                        <>
+                          <span>•</span>
+                          <span>Due: {new Date(submission.assignment.due_date).toLocaleDateString()}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {submission.score ? (
+                      <Badge variant="secondary">
+                        {submission.score}/{submission.assignment?.max_score}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-warning">
+                        Needs Grading
+                      </Badge>
+                    )}
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleViewSubmission(submission.assignment_id)}
+                      className="hover:bg-primary/10"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    {!submission.score && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleGradeSubmission(submission.id)}
+                        className="hover:bg-success/10 text-success"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {recentSubmissions.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">
+                  No recent submissions
+                </p>
+              )}
+              {recentSubmissions.length > 5 && (
+                <div className="flex justify-center gap-2 mt-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => navigate('/submissions')}
+                  >
+                    View All Submissions
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => navigate('/submissions?filter=pending')}
+                  >
+                    View Pending ({recentSubmissions.filter((s: any) => !s.score).length})
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
       {/* Teacher Performance Summary */}
       <Card className="border-accent">

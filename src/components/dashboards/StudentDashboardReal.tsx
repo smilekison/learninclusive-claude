@@ -413,7 +413,10 @@ export const StudentDashboardReal: React.FC = () => {
               <Plus className="h-4 w-4" />
               Join Subject
             </Button>
-            <Button className="flex items-center gap-2">
+            <Button 
+              className="flex items-center gap-2"
+              onClick={() => navigate('/student/subjects')}
+            >
               <BookOpen className="h-4 w-4" />
               View Lessons
             </Button>

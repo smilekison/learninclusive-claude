@@ -42,6 +42,7 @@ const NotificationsPage = React.lazy(() => import("./pages/NotificationsPage").t
 
 const VideoManagementPage = React.lazy(() => import("./pages/VideoManagementPage").then(module => ({ default: module.VideoManagementPage })));
 import { EnrollSubjectPage } from '@/pages/EnrollSubjectPage';
+const JoinSubjectPage = React.lazy(() => import("./pages/JoinSubjectPage").then(module => ({ default: module.JoinSubjectPage })));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -288,8 +289,18 @@ const AppContent = () => {
             </ProtectedRoute>
           } 
         />
-            <Route path="/enroll-subject" element={<EnrollSubjectPage />} />
-            <Route path="*" element={<NotFound />} />
+        <Route 
+          path="/join-subject" 
+          element={
+            <ProtectedRoute requiredRole="student">
+              <Suspense fallback={<LoadingScreen />}>
+                <JoinSubjectPage />
+              </Suspense>
+            </ProtectedRoute>
+          } 
+        />
+        <Route path="/enroll-subject" element={<EnrollSubjectPage />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
   );

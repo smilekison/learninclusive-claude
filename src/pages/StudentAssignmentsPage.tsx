@@ -38,7 +38,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
 import { AdvancedSubmissionDialog } from '@/components/assignments/AdvancedSubmissionDialog';
-import { FileUploadTest } from '@/components/test/FileUploadTest';
+// Removed FileUploadTest - debug component
 
 export const StudentAssignmentsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -492,8 +492,7 @@ export const StudentAssignmentsPage: React.FC = () => {
           </p>
         </div>
 
-        {/* File Upload Test Component */}
-        <FileUploadTest />
+        {/* Debug component removed for production */}
 
         {/* Progress Overview */}
         <Card className="mb-6 card-elevated border-l-4 border-l-primary">
@@ -896,10 +895,10 @@ export const StudentAssignmentsPage: React.FC = () => {
                     }
                   </p>
                   {activeTab === 'all' && (
-                    <Button onClick={() => window.location.href = '/join-subject'} className="hover-scale">
-                      <BookOpen className="w-4 h-4 mr-2" />
-                      Join a Subject
-                    </Button>
+                     <Button onClick={() => navigate('/join-subject')} className="hover-scale">
+                       <BookOpen className="w-4 h-4 mr-2" />
+                       Join a Subject
+                     </Button>
                   )}
                 </div>
               )}

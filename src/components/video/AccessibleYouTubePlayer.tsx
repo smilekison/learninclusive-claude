@@ -500,7 +500,7 @@ useEffect(() => {
             role="button"
             tabIndex={-1}
           >
-            <span className="text-xs text-muted-foreground">Sign language</span>
+            <span className="text-xs text-muted-foreground font-medium">Digital Avatar - Sign Language Content</span>
             <Button variant="ghost" size="icon" onClick={() => setOpenSign(false)} aria-label="Close sign language window">
               <Minimize2 className="h-4 w-4" />
             </Button>

@@ -84,7 +84,7 @@ export const VideoDetailsPage: React.FC = () => {
         channelSubscribers: 'N/A',
       };
       setVideo(vd);
-      document.title = `${vd.title} - Inclusive Learning Suite`;
+      document.title = `${vd.title} - learninclusive`;
 
       // Determine player
       const idFromUrl = extractYouTubeId(data.external_url || data.file_path || '');

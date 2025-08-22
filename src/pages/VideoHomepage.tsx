@@ -14,7 +14,7 @@ export const VideoHomepage: React.FC = () => {
 
   // Set SEO meta tags for publishing
   useEffect(() => {
-    document.title = "EduAccess - Accessible Educational Video Platform | Inclusive Learning for All";
+    document.title = "learninclusive - Accessible Educational Video Platform | Inclusive Learning for All";
     
     // Meta description
     let metaDesc = document.querySelector('meta[name="description"]');
@@ -78,7 +78,7 @@ export const VideoHomepage: React.FC = () => {
               <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center">
                 <span className="text-sm font-bold text-white">ILS</span>
               </div>
-              <span className="text-xl font-bold text-foreground">Inclusive Learning Suite</span>
+              <span className="text-xl font-bold text-foreground">learninclusive</span>
             </div>
             
             <div className="flex items-center space-x-4">
@@ -403,7 +403,7 @@ export const VideoHomepage: React.FC = () => {
               <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center">
                 <span className="text-sm font-bold text-white">ILS</span>
               </div>
-              <span className="text-xl font-bold text-foreground">Inclusive Learning Suite</span>
+              <span className="text-xl font-bold text-foreground">learninclusive</span>
             </div>
             <p className="text-muted-foreground">
               Accessible education for everyone • WCAG 2.1 AA Compliant • Privacy Focused

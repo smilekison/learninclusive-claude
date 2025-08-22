@@ -90,7 +90,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode }) => {
           Create Account
         </CardTitle>
         <CardDescription className="text-muted-foreground">
-          Join our inclusive learning platform
+          Join learninclusive platform
         </CardDescription>
       </CardHeader>
       <CardContent>

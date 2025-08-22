@@ -93,7 +93,7 @@ export const YouTubeHomepage: React.FC = () => {
   };
 
   useEffect(() => {
-    document.title = 'Learn Sign Language: BSL & FSL | Inclusive Learning Suite';
+    document.title = 'Learn Sign Language: BSL & FSL | learninclusive';
 
     let metaDesc = document.querySelector('meta[name="description"]');
     if (!metaDesc) {
@@ -121,7 +121,7 @@ export const YouTubeHomepage: React.FC = () => {
     ld.text = JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'WebSite',
-      name: 'Inclusive Learning Suite',
+      name: 'learninclusive',
       url: `${window.location.origin}/`,
       potentialAction: {
         '@type': 'SearchAction',

@@ -72,9 +72,16 @@ export const AccessibleYouTubePlayer: React.FC<AccessibleYouTubePlayerProps> = (
   const tracker = useVideoViewTracker(videoDbId, 'youtube');
   // Draggable sign-language overlay (viewport)
   const overlayRef = useRef<HTMLDivElement>(null);
-  const [overlayPos, setOverlayPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [overlayPos, setOverlayPos] = useState<{ x: number; y: number }>(() => {
+    try {
+      const saved = localStorage.getItem('sign-overlay-pos');
+      return saved ? JSON.parse(saved) : { x: 20, y: 20 };
+    } catch {
+      return { x: 20, y: 20 };
+    }
+  });
   const [dragging, setDragging] = useState(false);
-const grabOffset = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // Resizable overlay size (persisted)
   const [overlayWidth, setOverlayWidth] = useState<number>(() => {
@@ -101,10 +108,15 @@ const grabOffset = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const onDragStart = useCallback((e: React.MouseEvent) => {
     const ov = overlayRef.current;
     if (!ov) return;
-    const oRect = ov.getBoundingClientRect();
-    grabOffset.current = { x: e.clientX - oRect.left, y: e.clientY - oRect.top };
+    const rect = ov.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
     setDragging(true);
     e.preventDefault();
+    e.stopPropagation();
+    document.body.style.userSelect = 'none';
   }, []);
 
 useEffect(() => {
@@ -138,26 +150,43 @@ useEffect(() => {
     });
   }, [openSign, announce]);
 
+  // Handle dragging
   useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      if (!dragging) return;
+    if (!dragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      e.preventDefault();
       const ov = overlayRef.current;
       if (!ov) return;
-      const oRect = ov.getBoundingClientRect();
-      let x = e.clientX - grabOffset.current.x;
-      let y = e.clientY - grabOffset.current.y;
-      x = Math.max(0, Math.min(x, window.innerWidth - oRect.width));
-      y = Math.max(0, Math.min(y, window.innerHeight - oRect.height));
-      setOverlayPos({ x, y });
+
+      const rect = ov.getBoundingClientRect();
+      let newX = e.clientX - dragOffset.x;
+      let newY = e.clientY - dragOffset.y;
+
+      // Constrain to viewport
+      newX = Math.max(0, Math.min(newX, window.innerWidth - rect.width));
+      newY = Math.max(0, Math.min(newY, window.innerHeight - rect.height));
+
+      setOverlayPos({ x: newX, y: newY });
     };
-    const onUp = () => setDragging(false);
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
+
+    const handleMouseUp = (e: MouseEvent) => {
+      e.preventDefault();
+      setDragging(false);
+      document.body.style.userSelect = '';
+    };
+
+    document.addEventListener('mousemove', handleMouseMove, { passive: false });
+    document.addEventListener('mouseup', handleMouseUp, { passive: false });
+    document.addEventListener('selectstart', (e) => e.preventDefault());
+
     return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('selectstart', (e) => e.preventDefault());
+      document.body.style.userSelect = '';
     };
-  }, [dragging]);
+  }, [dragging, dragOffset]);
 
   // Persist position and size
   useEffect(() => {
@@ -169,27 +198,39 @@ useEffect(() => {
 
   // Handle resizing via mouse drag on the corner handle
   useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      if (!resizing) return;
-      const ov = overlayRef.current; if (!ov) return;
+    if (!resizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      e.preventDefault();
+      const ov = overlayRef.current;
+      if (!ov) return;
+      
       const rect = ov.getBoundingClientRect();
-      let newW = e.clientX - rect.left;
-      newW = Math.max(minWidth, Math.min(newW, maxWidth));
-      setOverlayWidth(newW);
+      let newWidth = e.clientX - rect.left;
+      newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
+      
+      setOverlayWidth(newWidth);
     };
-    const onUp = () => {
-      if (resizing) {
-        setResizing(false);
-        announce(`Size ${Math.round(overlayWidth)} by ${Math.round(overlayWidth * aspect)}`);
-      }
+
+    const handleMouseUp = (e: MouseEvent) => {
+      e.preventDefault();
+      setResizing(false);
+      announce(`Resized to ${Math.round(overlayWidth)} by ${Math.round(overlayWidth * aspect)} pixels`);
+      document.body.style.userSelect = '';
     };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
+
+    document.addEventListener('mousemove', handleMouseMove, { passive: false });
+    document.addEventListener('mouseup', handleMouseUp, { passive: false });
+    document.addEventListener('selectstart', (e) => e.preventDefault());
+    document.body.style.userSelect = 'none';
+
     return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('selectstart', (e) => e.preventDefault());
+      document.body.style.userSelect = '';
     };
-  }, [resizing, announce, overlayWidth]);
+  }, [resizing, announce, overlayWidth, aspect, minWidth, maxWidth]);
 
   const handleOverlayKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -493,10 +534,10 @@ useEffect(() => {
           onMouseEnter={() => announce('Sign language window')}
         >
           <div
-            className="flex items-center justify-between px-2 py-1 border-b border-border bg-muted/40 pointer-events-auto"
+            className="flex items-center justify-between px-2 py-1 border-b border-border bg-muted/40 pointer-events-auto cursor-move"
             onMouseDown={onDragStart}
-            onMouseEnter={() => announce('Sign language window header. Drag to move')}
-            aria-label="Drag sign language window"
+            onMouseEnter={() => announce('Sign language window header. Drag to move window')}
+            aria-label="Drag to move sign language window"
             role="button"
             tabIndex={-1}
           >
@@ -516,15 +557,20 @@ useEffect(() => {
             </div>
             {/* Resize handle */}
             <div
-              className="absolute bottom-1 right-1 w-4 h-4 cursor-se-resize rounded-sm bg-muted/70"
-              onMouseDown={(e) => { e.preventDefault(); setResizing(true); announce('Resizing sign language window'); }}
-              onMouseEnter={() => announce('Resize handle')}
+              className="absolute bottom-1 right-1 w-4 h-4 cursor-se-resize rounded-sm bg-muted/70 hover:bg-muted transition-colors"
+              onMouseDown={(e) => { 
+                e.preventDefault(); 
+                e.stopPropagation();
+                setResizing(true); 
+                announce('Started resizing sign language window'); 
+              }}
+              onMouseEnter={() => announce('Resize handle - drag to resize window')}
               role="slider"
               aria-label="Resize sign language window"
               aria-valuemin={minWidth}
               aria-valuemax={maxWidth}
               aria-valuenow={Math.round(overlayWidth)}
-              title="Drag to resize"
+              title="Drag to resize sign language window"
             />
           </div>
         </div>

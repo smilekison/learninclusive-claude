@@ -66,7 +66,7 @@ export const VideoManagementPage: React.FC = () => {
 
   // SEO basics
   useEffect(() => {
-    document.title = 'Manage Videos | Inclusive Learning Suite';
+    document.title = 'Manage Videos | learninclusive';
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) metaDesc.setAttribute('content', 'Manage and upload videos with visibility controls: public, private, unlisted, or school-only.');
     else {

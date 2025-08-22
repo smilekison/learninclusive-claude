@@ -58,7 +58,7 @@ export const Navbar: React.FC = () => {
                 aria-hidden="true" 
               />
               <h1 className={`font-semibold text-primary ${settings.largeClickTargets ? 'text-2xl' : 'text-xl'}`}>
-                Inclusive Learning Suite
+                learninclusive
               </h1>
             </div>
             

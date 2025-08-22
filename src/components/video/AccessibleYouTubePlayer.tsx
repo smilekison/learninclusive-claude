@@ -506,6 +506,11 @@ useEffect(() => {
             </Button>
           </div>
           <div className="relative bg-black overflow-hidden pointer-events-auto">
+            <div className="px-3 py-2 bg-muted/60 border-b border-border">
+              <p className="text-xs text-muted-foreground text-center">
+                This is how your sign language will be shown
+              </p>
+            </div>
             <div className="aspect-video yt-mini-frame" style={{ width: overlayWidth }}>
               <div id={miniContainerId} className="w-full h-full" aria-label="Mini YouTube player (muted)" />
             </div>

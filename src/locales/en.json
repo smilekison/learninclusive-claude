@@ -17,7 +17,7 @@
   "nav.videos": "Videos Section",
   
   "auth.welcomeBack": "Welcome Back",
-  "auth.signInDescription": "Sign in to your learning management account",
+  "auth.signInDescription": "Sign in to your learninclusive account",
   "auth.emailAddress": "Email Address",
   "auth.enterEmail": "Enter your email",
   "auth.password": "Password",
@@ -57,7 +57,7 @@
   "header.assignmentCenter": "Assignment Center",
   "header.studentManagement": "Student Management",
   "header.submissionReview": "Submission Review",
-  "header.learningManagement": "Learning Management",
+  "header.learningManagement": "learninclusive",
   
   "stats.teachers": "Teachers",
   "stats.classes": "Classes",

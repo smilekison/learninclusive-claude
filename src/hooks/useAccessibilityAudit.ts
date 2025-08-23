@@ -1,0 +1,141 @@
+import { useEffect, useState } from 'react';
+import { useAccessibility } from '@/contexts/AccessibilityContext';
+
+interface AccessibilityIssue {
+  id: string;
+  impact: 'minor' | 'moderate' | 'serious' | 'critical';
+  description: string;
+  helpUrl: string;
+  nodes: Array<{
+    html: string;
+    target: any; // Using any to handle axe-core's complex selector types
+  }>;
+}
+
+interface AccessibilityResults {
+  violations: AccessibilityIssue[];
+  passes: number;
+  incomplete: AccessibilityIssue[];
+  url: string;
+  timestamp: Date;
+}
+
+export const useAccessibilityAudit = (enableAudit: boolean = false) => {
+  const [results, setResults] = useState<AccessibilityResults | null>(null);
+  const [isAuditing, setIsAuditing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { settings } = useAccessibility();
+
+  const runAudit = async (): Promise<AccessibilityResults | null> => {
+    if (typeof window === 'undefined') return null;
+    
+    setIsAuditing(true);
+    setError(null);
+
+    try {
+      // Dynamically import axe-core to avoid bundling issues
+      const axe = await import('axe-core');
+      
+      // Configure axe based on accessibility settings
+      const axeConfig = {
+        tags: ['wcag2a', 'wcag2aa', 'wcag21aa'],
+        rules: {
+          // Enable additional rules based on user preferences
+          'color-contrast': { enabled: settings.highContrast },
+          'focus-order-semantics': { enabled: settings.focusAssistance },
+          'keyboard': { enabled: settings.keyboardNavigation },
+        }
+      };
+
+      const axeResults = await axe.default.run(document, axeConfig);
+      
+      const results: AccessibilityResults = {
+        violations: axeResults.violations.map(violation => ({
+          id: violation.id,
+          impact: violation.impact as AccessibilityIssue['impact'],
+          description: violation.description,
+          helpUrl: violation.helpUrl,
+          nodes: violation.nodes.map(node => ({
+            html: node.html,
+            target: Array.isArray(node.target) ? node.target : [String(node.target)]
+          }))
+        })),
+        passes: axeResults.passes.length,
+        incomplete: axeResults.incomplete.map(incomplete => ({
+          id: incomplete.id,
+          impact: incomplete.impact as AccessibilityIssue['impact'],
+          description: incomplete.description,
+          helpUrl: incomplete.helpUrl,
+          nodes: incomplete.nodes.map(node => ({
+            html: node.html,
+            target: Array.isArray(node.target) ? node.target : [String(node.target)]
+          }))
+        })),
+        url: window.location.href,
+        timestamp: new Date()
+      };
+
+      setResults(results);
+      
+      // Log results to console in development
+      if (process.env.NODE_ENV === 'development') {
+        if (results.violations.length > 0) {
+          console.group('🚨 Accessibility Violations Found');
+          results.violations.forEach(violation => {
+            console.error(`${violation.impact.toUpperCase()}: ${violation.description}`);
+            console.log('Help:', violation.helpUrl);
+            console.log('Affected elements:', violation.nodes);
+          });
+          console.groupEnd();
+        } else {
+          console.log('✅ No accessibility violations found!');
+        }
+      }
+
+      return results;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to run accessibility audit';
+      setError(errorMessage);
+      console.error('Accessibility audit failed:', err);
+      return null;
+    } finally {
+      setIsAuditing(false);
+    }
+  };
+
+  // Auto-run audit when enabled or settings change
+  useEffect(() => {
+    if (enableAudit && !isAuditing) {
+      const timeoutId = setTimeout(() => {
+        runAudit();
+      }, 1000); // Delay to allow DOM to settle
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [enableAudit, settings]);
+
+  const getCriticalIssuesCount = () => {
+    return results?.violations.filter(v => v.impact === 'critical').length || 0;
+  };
+
+  const getSeriousIssuesCount = () => {
+    return results?.violations.filter(v => v.impact === 'serious').length || 0;
+  };
+
+  const getComplianceScore = () => {
+    if (!results) return 0;
+    const totalChecks = results.passes + results.violations.length;
+    return totalChecks > 0 ? Math.round((results.passes / totalChecks) * 100) : 0;
+  };
+
+  return {
+    results,
+    isAuditing,
+    error,
+    runAudit,
+    getCriticalIssuesCount,
+    getSeriousIssuesCount,
+    getComplianceScore,
+    hasViolations: (results?.violations.length || 0) > 0
+  };
+};

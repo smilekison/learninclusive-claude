@@ -100,6 +100,17 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
   const applySettings = () => {
     const root = document.documentElement;
     
+    // Import accessibility utilities
+    import('@/utils/accessibilityHelpers').then(({ trackKeyboardUsage, updateDocumentLanguage }) => {
+      trackKeyboardUsage();
+    });
+    
+    // Update document language (this should be connected to language context)
+    const currentLang = localStorage.getItem('language') || 'en';
+    import('@/utils/accessibilityHelpers').then(({ updateDocumentLanguage }) => {
+      updateDocumentLanguage(currentLang);
+    });
+    
     // Apply font size scaling
     root.style.fontSize = `${settings.fontSize}%`;
     

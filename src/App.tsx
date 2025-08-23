@@ -39,6 +39,7 @@ const BinPage = React.lazy(() => import("./pages/BinPage").then(module => ({ def
 const StudentSubjectsPage = React.lazy(() => import("./pages/StudentSubjectsPage").then(module => ({ default: module.StudentSubjectsPage })));
 const SubmissionsPage = React.lazy(() => import("./pages/SubmissionsPage").then(module => ({ default: module.SubmissionsPage })));
 const NotificationsPage = React.lazy(() => import("./pages/NotificationsPage").then(module => ({ default: module.NotificationsPage })));
+const AccessibilityStatement = React.lazy(() => import("./pages/AccessibilityStatement").then(module => ({ default: module.AccessibilityStatement })));
 
 const VideoManagementPage = React.lazy(() => import("./pages/VideoManagementPage").then(module => ({ default: module.VideoManagementPage })));
 import { EnrollSubjectPage } from '@/pages/EnrollSubjectPage';
@@ -298,6 +299,10 @@ const AppContent = () => {
               </Suspense>
             </ProtectedRoute>
           } 
+        />
+        <Route 
+          path="/accessibility-statement" 
+          element={<AccessibilityStatement />} 
         />
         <Route path="/enroll-subject" element={<EnrollSubjectPage />} />
         <Route path="*" element={<NotFound />} />

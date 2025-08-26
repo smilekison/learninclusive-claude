@@ -67,6 +67,47 @@ export const AccessibilityPanel: React.FC = () => {
                 </div>
 
                 <div className="flex items-center justify-between">
+                  <Label htmlFor="dark-mode">Dark Mode</Label>
+                  <Switch
+                    id="dark-mode"
+                    checked={settings.darkMode}
+                    onCheckedChange={(checked) => updateSetting('darkMode', checked)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="font-size">Font Size: {settings.fontSize}%</Label>
+                  <input
+                    id="font-size"
+                    type="range"
+                    min="75"
+                    max="200"
+                    step="25"
+                    value={settings.fontSize}
+                    onChange={(e) => updateSetting('fontSize', parseInt(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="reduced-motion">Reduced Motion</Label>
+                  <Switch
+                    id="reduced-motion"
+                    checked={settings.reducedMotion}
+                    onCheckedChange={(checked) => updateSetting('reducedMotion', checked)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="colorblind-friendly">Color Blind Friendly</Label>
+                  <Switch
+                    id="colorblind-friendly"
+                    checked={settings.colorBlindFriendly}
+                    onCheckedChange={(checked) => updateSetting('colorBlindFriendly', checked)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
                   <Label htmlFor="large-targets">Large Click Targets</Label>
                   <Switch
                     id="large-targets"
@@ -76,11 +117,65 @@ export const AccessibilityPanel: React.FC = () => {
                 </div>
 
                 <div className="flex items-center justify-between">
+                  <Label htmlFor="keyboard-nav">Enhanced Keyboard Navigation</Label>
+                  <Switch
+                    id="keyboard-nav"
+                    checked={settings.keyboardNavigation}
+                    onCheckedChange={(checked) => updateSetting('keyboardNavigation', checked)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
                   <Label htmlFor="focus-assistance">Focus Assistance</Label>
                   <Switch
                     id="focus-assistance"
                     checked={settings.focusAssistance}
                     onCheckedChange={(checked) => updateSetting('focusAssistance', checked)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="visual-alerts">Visual Alerts</Label>
+                  <Switch
+                    id="visual-alerts"
+                    checked={settings.visualAlerts}
+                    onCheckedChange={(checked) => updateSetting('visualAlerts', checked)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="captions">Auto-Enable Captions</Label>
+                  <Switch
+                    id="captions"
+                    checked={settings.captionsEnabled}
+                    onCheckedChange={(checked) => updateSetting('captionsEnabled', checked)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="simplified-interface">Simplified Interface</Label>
+                  <Switch
+                    id="simplified-interface"
+                    checked={settings.simplifiedInterface}
+                    onCheckedChange={(checked) => updateSetting('simplifiedInterface', checked)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="reading-assistance">Reading Assistance</Label>
+                  <Switch
+                    id="reading-assistance"
+                    checked={settings.readingAssistance}
+                    onCheckedChange={(checked) => updateSetting('readingAssistance', checked)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="screen-reader">Screen Reader Optimized</Label>
+                  <Switch
+                    id="screen-reader"
+                    checked={settings.screenReaderOptimized}
+                    onCheckedChange={(checked) => updateSetting('screenReaderOptimized', checked)}
                   />
                 </div>
 

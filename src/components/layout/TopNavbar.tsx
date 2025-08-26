@@ -18,13 +18,14 @@ import {
   TrendingUp, 
   TrendingDown, 
   AlertTriangle,
-  Settings
+  Settings,
+  Home
 } from 'lucide-react';
 import usePresence from '@/hooks/usePresence';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { RoutePresenceBadge } from './RoutePresenceBadge';
 import { ProfileSettings } from '@/components/profile/ProfileSettings';
 
@@ -33,6 +34,7 @@ export const TopNavbar: React.FC = () => {
   const { t } = useLanguage();
   const { state } = useSidebar();
   const location = useLocation();
+  const navigate = useNavigate();
   const { data: classes = [] } = useClasses();
   const { data: teachers = [] } = useProfiles('teacher');
   const presence = usePresence();
@@ -93,6 +95,16 @@ export const TopNavbar: React.FC = () => {
         <div className="flex items-center space-x-6">
           <div className="flex items-center space-x-3">
             <SidebarTrigger className="p-2" />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => navigate('/dashboard')}
+              className="h-8 w-8" 
+              title="Home"
+              aria-label="Go to dashboard"
+            >
+              <Home className="h-4 w-4" />
+            </Button>
             <div className="flex items-center space-x-2">
               <GraduationCap className="h-6 w-6 text-primary" />
               <div>

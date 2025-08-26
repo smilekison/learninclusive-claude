@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Menu, User, LogIn } from 'lucide-react';
+import { Search, Menu, User, LogIn, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,8 +19,19 @@ export const YouTubeNavbar: React.FC<YouTubeNavbarProps> = ({ onSearch, searchTe
   return (
     <nav className="sticky top-0 z-50 bg-background border-b border-border px-4 py-3">
       <div className="max-w-screen-2xl mx-auto flex items-center justify-between gap-4">
-        {/* Left Section: Language EN/FI toggle */}
-        <div className="flex items-center gap-2 min-w-0 flex-shrink-0" role="group" aria-label="Language selector">
+        {/* Left Section: Home button and Language toggle */}
+        <div className="flex items-center gap-2 min-w-0 flex-shrink-0" role="group" aria-label="Navigation and language">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => navigate('/dashboard')}
+            className="h-9 w-9" 
+            title="Home"
+            aria-label="Go to dashboard"
+          >
+            <Home className="h-4 w-4" />
+          </Button>
+          <div className="w-px h-6 bg-border mx-1" />
           <Button size="sm" variant={language === 'en' ? 'default' : 'outline'} className="h-9 px-3" onClick={() => setLanguage('en')} aria-pressed={language === 'en'}>
             EN
           </Button>

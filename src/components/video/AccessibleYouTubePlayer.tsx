@@ -5,7 +5,7 @@ import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { cn } from '@/lib/utils';
-import { Volume2, VolumeX, Play, Pause, Captions, Hand, Minimize2, RotateCcw, RotateCw } from 'lucide-react';
+import { Volume2, VolumeX, Play, Pause, Captions, Hand, X, RotateCcw, RotateCw } from 'lucide-react';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { useTTS } from '@/contexts/TTSContext';
 import { useVideoViewTracker } from '@/hooks/useVideoAnalytics';
@@ -511,9 +511,14 @@ useEffect(() => {
             <span className="ml-2">Captions {captionsOn ? 'On' : 'Off'}</span>
           </Button>
 
-          <Button variant="outline" onClick={() => setOpenSign(true)} aria-label="Open sign language window">
+          <Button 
+            variant="outline" 
+            onClick={() => setOpenSign(!openSign)} 
+            aria-pressed={openSign}
+            aria-label={`Sign language ${openSign ? 'on' : 'off'}`}
+          >
             <Hand className="h-4 w-4" />
-            <span className="ml-2">Sign language</span>
+            <span className="ml-2">Sign language {openSign ? 'On' : 'Off'}</span>
           </Button>
 
           <div className="ml-auto text-sm tabular-nums text-muted-foreground">
@@ -541,15 +546,15 @@ useEffect(() => {
             role="button"
             tabIndex={-1}
           >
-            <span className="text-xs text-muted-foreground font-medium">Digital Avatar - Sign Language Content</span>
-            <Button variant="ghost" size="icon" onClick={() => setOpenSign(false)} aria-label="Close sign language window">
-              <Minimize2 className="h-4 w-4" />
+            <span className="text-sm font-medium text-foreground">Digital Avatar - Sign Language</span>
+            <Button variant="ghost" size="sm" onClick={() => setOpenSign(false)} aria-label="Close sign language window" className="h-6 w-6 p-0">
+              <X className="h-3 w-3" />
             </Button>
           </div>
           <div className="relative bg-black overflow-hidden pointer-events-auto">
-            <div className="px-3 py-2 bg-muted/60 border-b border-border">
-              <p className="text-xs text-muted-foreground text-center">
-                This is how your sign language will be shown
+            <div className="px-3 py-2 bg-background/95 border-b border-border">
+              <p className="text-sm font-medium text-foreground text-center">
+                Sign Language Interpretation Preview
               </p>
             </div>
             <div className="aspect-video yt-mini-frame" style={{ width: overlayWidth }}>

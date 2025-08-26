@@ -23,6 +23,7 @@ import { Layout } from "./components/layout/Layout";
 
 // Lazy load all page components for better performance
 const AuthPage = React.lazy(() => import("./pages/AuthPage"));
+const LandingPage = React.lazy(() => import("./pages/LandingPage"));
 const Dashboard = React.lazy(() => import("./pages/Dashboard").then(module => ({ default: module.Dashboard })));
 const InsightsPage = React.lazy(() => import("./pages/InsightsPage").then(module => ({ default: module.InsightsPage })));
 const VideoHomepage = React.lazy(() => import("./pages/VideoHomepage").then(module => ({ default: module.VideoHomepage })));
@@ -70,6 +71,10 @@ const AppContent = () => {
         <Route 
           path="/" 
           element={<YouTubeHomepage />} 
+        />
+        <Route 
+          path="/home" 
+          element={<LandingPage />} 
         />
         <Route 
           path="/auth" 

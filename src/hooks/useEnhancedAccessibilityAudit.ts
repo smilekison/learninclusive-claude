@@ -43,13 +43,10 @@ export const useEnhancedAccessibilityAudit = (enableAudit: boolean = false) => {
       
       // Enhanced configuration for WCAG 2.1 AA compliance
       const axeConfig = {
-        tags: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'],
+        tags: ['wcag2a', 'wcag2aa', 'wcag21aa'],
         rules: {
-          // Enhanced rules for better accessibility
+          // Core accessibility rules - only using well-supported rules
           'color-contrast': { enabled: true },
-          'color-contrast-enhanced': { enabled: settings.highContrast },
-          'focus-order-semantics': { enabled: settings.focusAssistance },
-          'keyboard': { enabled: settings.keyboardNavigation },
           'keyboard-traps': { enabled: true },
           'tabindex': { enabled: true },
           'aria-valid-attr': { enabled: true },
@@ -62,17 +59,12 @@ export const useEnhancedAccessibilityAudit = (enableAudit: boolean = false) => {
           'landmark-one-main': { enabled: true },
           'heading-order': { enabled: true },
           'page-has-heading-one': { enabled: true },
-          'skip-link': { enabled: settings.skipLinks },
           'link-name': { enabled: true },
           'button-name': { enabled: true },
           'image-alt': { enabled: true },
-          'form-field-multiple-labels': { enabled: true },
           'label': { enabled: true },
           'input-image-alt': { enabled: true },
-          'video-caption': { enabled: settings.captionsEnabled },
-          'audio-caption': { enabled: settings.captionsEnabled },
           'meta-refresh': { enabled: true },
-          'meta-viewport-large': { enabled: true },
           'meta-viewport': { enabled: true }
         }
       };

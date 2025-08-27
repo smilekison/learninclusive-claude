@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAccessibilityAudit } from '@/hooks/useAccessibilityAudit';
+import { useRobustAccessibilityAudit } from '@/hooks/useRobustAccessibilityAudit';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,13 +22,15 @@ export const AccessibilityAuditPanel: React.FC = () => {
   const { 
     results, 
     isAuditing, 
-    error, 
-    runAudit, 
+    error,
+    runAudit,
     getCriticalIssuesCount,
     getSeriousIssuesCount,
     getComplianceScore,
-    hasViolations
-  } = useAccessibilityAudit();
+    isWCAG21AACompliant,
+    hasViolations,
+    isHealthy
+  } = useRobustAccessibilityAudit();
 
   const getImpactColor = (impact: string) => {
     switch (impact) {

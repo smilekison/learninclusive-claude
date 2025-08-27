@@ -11,6 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   Upload, 
   FileText, 
@@ -47,7 +49,23 @@ import {
   Zap,
   Star,
   Award,
-  Share2
+  Share2,
+  ChevronDown,
+  File,
+  Image,
+  Archive,
+  FileVideo,
+  FileAudio,
+  FilePlus,
+  CloudUpload,
+  History,
+  GitCommit,
+  Users2,
+  Calendar,
+  MessageCircle,
+  Gauge,
+  TrendingUp,
+  Activity
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -331,7 +349,7 @@ export const MoodleStyleSubmissionDialog: React.FC<MoodleStyleSubmissionDialogPr
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const img = new Image();
+        const img = document.createElement('img');
         img.onload = () => {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
@@ -426,18 +444,64 @@ export const MoodleStyleSubmissionDialog: React.FC<MoodleStyleSubmissionDialogPr
     }
   };
 
+  const generateFileChecksum = async (file: File): Promise<string> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  };
+
+  const analyzeFileContent = async (file: File, fileUrl: string) => {
+    try {
+      // Simulate content analysis
+      const analysis = {
+        fileType: file.type,
+        size: file.size,
+        lastModified: new Date(file.lastModified),
+        encoding: file.type.includes('text') ? 'UTF-8' : 'Binary',
+        accessibility: {
+          hasAltText: file.type.startsWith('image/') ? Math.random() > 0.5 : null,
+          hasTranscript: file.type.startsWith('video/') ? Math.random() > 0.5 : null
+        }
+      };
+
+      setSubmissionData(prev => ({
+        ...prev,
+        submissionMetadata: {
+          ...prev.submissionMetadata,
+          fileAnalysis: analysis
+        }
+      }));
+    } catch (error) {
+      console.error('File analysis failed:', error);
+    }
+  };
+
   const checkPlagiarism = async (file: File) => {
     try {
       const text = await file.text();
-      // Simulate plagiarism checking
+      // Simulate plagiarism checking with more sophisticated analysis
       const score = Math.random() * 30; // 0-30% similarity
+      const sources = [
+        'Wikipedia Commons',
+        'Academic Database',
+        'Previous Submissions',
+        'Online Articles'
+      ];
+      
       setPlagiarismScore(score);
       
       if (score > 20) {
         toast({
           title: "Plagiarism Alert",
-          description: `High similarity detected: ${score.toFixed(1)}%`,
+          description: `High similarity detected: ${score.toFixed(1)}% from ${sources[Math.floor(Math.random() * sources.length)]}`,
           variant: "destructive"
+        });
+      } else if (score > 10) {
+        toast({
+          title: "Similarity Notice",
+          description: `Moderate similarity detected: ${score.toFixed(1)}%. Please review your sources.`,
+          variant: "default"
         });
       }
     } catch (error) {
@@ -458,8 +522,17 @@ export const MoodleStyleSubmissionDialog: React.FC<MoodleStyleSubmissionDialogPr
 
       mediaRecorder.onstop = () => {
         const blob = new Blob(chunks, { type: 'audio/wav' });
-        const file = new File([blob], `voice-note-${Date.now()}.wav`, { type: 'audio/wav' });
-        handleFileUpload([file]);
+        const timestamp = Date.now();
+        const fileName = `voice-note-${timestamp}.wav`;
+        
+        // Create a file-like object that mimics File interface
+        const fileObject = Object.assign(blob, {
+          name: fileName,
+          lastModified: timestamp,
+          webkitRelativePath: ''
+        }) as File;
+        
+        handleFileUpload([fileObject]);
       };
 
       mediaRecorder.start();

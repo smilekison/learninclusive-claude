@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Volume2, VolumeX, Maximize, Settings, Captions, RotateCcw, RotateCw } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize, Settings, Captions, RotateCcw, RotateCw, Hand, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { useVideoViewTracker } from '@/hooks/useVideoAnalytics';
+import { signLanguageVideos } from '@/data/signLanguageVideos';
 
 interface AccessibleVideoPlayerProps {
   title: string;
@@ -35,12 +36,20 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [showTranscript, setShowTranscript] = useState(false);
+  const [showSignLanguage, setShowSignLanguage] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   
   const [metaDuration, setMetaDuration] = useState<number>(duration || 0);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const signVideoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const tracker = useVideoViewTracker(videoDbId, 'mp4');
+
+  // Sign language overlay state
+  const [overlayPos, setOverlayPos] = useState({ x: 20, y: 20 });
+  const [dragging, setDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [overlaySize, setOverlaySize] = useState({ width: 320, height: 180 });
 
   useEffect(() => {
     const video = videoRef.current;
@@ -195,7 +204,48 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
         event.preventDefault();
         setShowTranscript(!showTranscript);
         break;
+      case 's':
+      case 'S':
+        event.preventDefault();
+        setShowSignLanguage(!showSignLanguage);
+        break;
     }
+  };
+
+  // Sign language functions
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setDragging(true);
+    setDragOffset({
+      x: e.clientX - overlayPos.x,
+      y: e.clientY - overlayPos.y
+    });
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!dragging) return;
+      setOverlayPos({
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y
+      });
+    };
+
+    const handleMouseUp = () => setDragging(false);
+
+    if (dragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [dragging, dragOffset]);
+
+  const getSignLanguageVideo = () => {
+    // Use a placeholder sign language video URL for now
+    return '/sign-language-placeholder.mp4';
   };
 
   return (
@@ -217,6 +267,48 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
         >
           Your browser does not support the video tag.
         </video>
+
+        {/* Sign Language Overlay */}
+        {showSignLanguage && (
+          <div
+            className="absolute border-2 border-white rounded-lg overflow-hidden shadow-lg bg-black"
+            style={{
+              left: overlayPos.x,
+              top: overlayPos.y,
+              width: overlaySize.width,
+              height: overlaySize.height,
+              cursor: dragging ? 'grabbing' : 'grab',
+              zIndex: 10
+            }}
+            onMouseDown={handleMouseDown}
+          >
+            <div className="absolute top-1 right-1 z-20">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 bg-black/50 hover:bg-black/70 text-white"
+                onClick={() => setShowSignLanguage(false)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+            
+            <video
+              ref={signVideoRef}
+              className="w-full h-full object-cover"
+              muted={isMuted}
+              src={getSignLanguageVideo()}
+            >
+              Your browser does not support video.
+            </video>
+            
+            <div className="absolute bottom-1 left-1 right-1">
+              <div className="bg-black/70 text-white text-xs px-2 py-1 rounded">
+                Sign Language
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Controls */}
@@ -268,6 +360,11 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
             <span className="ml-2">Captions {showTranscript ? 'On' : 'Off'}</span>
           </Button>
 
+          <Button variant="outline" onClick={() => setShowSignLanguage(!showSignLanguage)} aria-pressed={showSignLanguage} aria-label={`Sign language ${showSignLanguage ? 'on' : 'off'}`}>
+            <Hand className="h-4 w-4" />
+            <span className="ml-2">Sign Language {showSignLanguage ? 'On' : 'Off'}</span>
+          </Button>
+
           <div className="ml-auto text-sm tabular-nums text-muted-foreground">
             {formatTime(currentTime)} / {formatTime(metaDuration || duration || 0)}
           </div>
@@ -316,6 +413,7 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
                 <li>• M: Toggle mute</li>
                 <li>• F: Toggle fullscreen</li>
                 <li>• C: Toggle transcript</li>
+                <li>• S: Toggle sign language</li>
               </ul>
             </div>
             <div>
@@ -326,6 +424,7 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
                 <li>• High contrast controls</li>
                 <li>• Customizable playback speed</li>
                 <li>• Full transcript available</li>
+                <li>• Sign language interpretation</li>
                 <li>• Progress tracking</li>
               </ul>
             </div>

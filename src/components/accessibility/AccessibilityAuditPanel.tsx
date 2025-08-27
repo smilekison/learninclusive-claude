@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useRobustAccessibilityAudit } from '@/hooks/useRobustAccessibilityAudit';
+import { AccessibilityActCompliancePanel } from './AccessibilityActCompliancePanel';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Shield, 
   AlertTriangle, 
@@ -13,7 +15,8 @@ import {
   ChevronDown,
   ExternalLink,
   Bug,
-  Info
+  Info,
+  Scale
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -47,39 +50,53 @@ export const AccessibilityAuditPanel: React.FC = () => {
   const seriousCount = getSeriousIssuesCount();
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            <CardTitle className="text-lg">Accessibility Audit</CardTitle>
-            {results && (
-              <Badge 
-                variant={hasViolations ? "destructive" : "default"}
-                className={hasViolations ? "" : "bg-success text-success-foreground"}
-              >
-                {hasViolations ? "Issues Found" : "Compliant"}
-              </Badge>
-            )}
-          </div>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={runAudit}
-            disabled={isAuditing}
-          >
-            {isAuditing ? (
-              <RefreshCw className="h-4 w-4 animate-spin" />
-            ) : (
-              <RefreshCw className="h-4 w-4" />
-            )}
-            {isAuditing ? "Scanning..." : "Run Audit"}
-          </Button>
-        </div>
-        <CardDescription>
-          WCAG 2.1 AA compliance check using axe-core
-        </CardDescription>
-      </CardHeader>
+    <div className="w-full space-y-6">
+      <Tabs defaultValue="technical" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="technical" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Technical Audit
+          </TabsTrigger>
+          <TabsTrigger value="compliance" className="flex items-center gap-2">
+            <Scale className="h-4 w-4" />
+            Act Compliance
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="technical" className="mt-6">
+          <Card className="w-full">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  <CardTitle className="text-lg">Technical Accessibility Audit</CardTitle>
+                  {results && (
+                    <Badge 
+                      variant={hasViolations ? "destructive" : "default"}
+                      className={hasViolations ? "" : "bg-success text-success-foreground"}
+                    >
+                      {hasViolations ? "Issues Found" : "Compliant"}
+                    </Badge>
+                  )}
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={runAudit}
+                  disabled={isAuditing}
+                >
+                  {isAuditing ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4" />
+                  )}
+                  {isAuditing ? "Scanning..." : "Run Audit"}
+                </Button>
+              </div>
+              <CardDescription>
+                WCAG 2.1 AA compliance check using axe-core with enhanced rules
+              </CardDescription>
+            </CardHeader>
 
       <CardContent className="space-y-4">
         {error && (
@@ -237,7 +254,14 @@ export const AccessibilityAuditPanel: React.FC = () => {
             <p className="text-sm">Click "Run Audit" to check accessibility compliance</p>
           </div>
         )}
-      </CardContent>
-    </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="compliance" className="mt-6">
+          <AccessibilityActCompliancePanel />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };

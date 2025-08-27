@@ -55,6 +55,84 @@ export type Database = {
           },
         ]
       }
+      assignment_accessibility: {
+        Row: {
+          accessibility_features: Json | null
+          accessibility_notes: string | null
+          assignment_id: string
+          audio_description: boolean | null
+          cognitive_load_reduced: boolean | null
+          dyslexia_friendly: boolean | null
+          high_contrast_support: boolean | null
+          id: string
+          keyboard_navigation: boolean | null
+          last_audit_date: string | null
+          screen_reader_optimized: boolean | null
+          sign_language_support: boolean | null
+          wcag_compliance_level: string | null
+        }
+        Insert: {
+          accessibility_features?: Json | null
+          accessibility_notes?: string | null
+          assignment_id: string
+          audio_description?: boolean | null
+          cognitive_load_reduced?: boolean | null
+          dyslexia_friendly?: boolean | null
+          high_contrast_support?: boolean | null
+          id?: string
+          keyboard_navigation?: boolean | null
+          last_audit_date?: string | null
+          screen_reader_optimized?: boolean | null
+          sign_language_support?: boolean | null
+          wcag_compliance_level?: string | null
+        }
+        Update: {
+          accessibility_features?: Json | null
+          accessibility_notes?: string | null
+          assignment_id?: string
+          audio_description?: boolean | null
+          cognitive_load_reduced?: boolean | null
+          dyslexia_friendly?: boolean | null
+          high_contrast_support?: boolean | null
+          id?: string
+          keyboard_navigation?: boolean | null
+          last_audit_date?: string | null
+          screen_reader_optimized?: boolean | null
+          sign_language_support?: boolean | null
+          wcag_compliance_level?: string | null
+        }
+        Relationships: []
+      }
+      assignment_ai_suggestions: {
+        Row: {
+          applied: boolean | null
+          assignment_id: string
+          confidence_score: number | null
+          created_at: string | null
+          id: string
+          suggestion_text: string
+          suggestion_type: string
+        }
+        Insert: {
+          applied?: boolean | null
+          assignment_id: string
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          suggestion_text: string
+          suggestion_type: string
+        }
+        Update: {
+          applied?: boolean | null
+          assignment_id?: string
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          suggestion_text?: string
+          suggestion_type?: string
+        }
+        Relationships: []
+      }
       assignment_analytics: {
         Row: {
           assignment_id: string
@@ -82,6 +160,117 @@ export type Database = {
           metric_value?: number | null
           recorded_at?: string | null
           student_id?: string | null
+        }
+        Relationships: []
+      }
+      assignment_chunks: {
+        Row: {
+          accessibility_features: Json | null
+          assignment_id: string
+          chunk_order: number
+          chunk_type: string | null
+          content: Json
+          created_at: string | null
+          difficulty_level: string | null
+          estimated_time_minutes: number | null
+          id: string
+          learning_objectives: Json | null
+          prerequisites: Json | null
+          title: string
+        }
+        Insert: {
+          accessibility_features?: Json | null
+          assignment_id: string
+          chunk_order: number
+          chunk_type?: string | null
+          content?: Json
+          created_at?: string | null
+          difficulty_level?: string | null
+          estimated_time_minutes?: number | null
+          id?: string
+          learning_objectives?: Json | null
+          prerequisites?: Json | null
+          title: string
+        }
+        Update: {
+          accessibility_features?: Json | null
+          assignment_id?: string
+          chunk_order?: number
+          chunk_type?: string | null
+          content?: Json
+          created_at?: string | null
+          difficulty_level?: string | null
+          estimated_time_minutes?: number | null
+          id?: string
+          learning_objectives?: Json | null
+          prerequisites?: Json | null
+          title?: string
+        }
+        Relationships: []
+      }
+      assignment_collaborators: {
+        Row: {
+          accepted_at: string | null
+          assignment_id: string
+          collaborator_id: string
+          id: string
+          invited_at: string | null
+          permissions: Json | null
+          role: string
+          status: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          assignment_id: string
+          collaborator_id: string
+          id?: string
+          invited_at?: string | null
+          permissions?: Json | null
+          role?: string
+          status?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          assignment_id?: string
+          collaborator_id?: string
+          id?: string
+          invited_at?: string | null
+          permissions?: Json | null
+          role?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
+      assignment_competencies: {
+        Row: {
+          assessment_criteria: Json | null
+          assignment_id: string
+          competency_level: string
+          competency_name: string
+          created_at: string | null
+          id: string
+          industry_standard: string | null
+          weight: number | null
+        }
+        Insert: {
+          assessment_criteria?: Json | null
+          assignment_id: string
+          competency_level: string
+          competency_name: string
+          created_at?: string | null
+          id?: string
+          industry_standard?: string | null
+          weight?: number | null
+        }
+        Update: {
+          assessment_criteria?: Json | null
+          assignment_id?: string
+          competency_level?: string
+          competency_name?: string
+          created_at?: string | null
+          id?: string
+          industry_standard?: string | null
+          weight?: number | null
         }
         Relationships: []
       }
@@ -142,6 +331,105 @@ export type Database = {
           max_members?: number | null
           name?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      assignment_insights: {
+        Row: {
+          actionable_recommendations: Json | null
+          assignment_id: string
+          confidence_level: number | null
+          generated_at: string | null
+          id: string
+          insight_data: Json
+          insight_type: string
+        }
+        Insert: {
+          actionable_recommendations?: Json | null
+          assignment_id: string
+          confidence_level?: number | null
+          generated_at?: string | null
+          id?: string
+          insight_data?: Json
+          insight_type: string
+        }
+        Update: {
+          actionable_recommendations?: Json | null
+          assignment_id?: string
+          confidence_level?: number | null
+          generated_at?: string | null
+          id?: string
+          insight_data?: Json
+          insight_type?: string
+        }
+        Relationships: []
+      }
+      assignment_media: {
+        Row: {
+          accessibility_alternatives: Json | null
+          assignment_id: string
+          created_at: string | null
+          external_url: string | null
+          file_path: string | null
+          id: string
+          interaction_config: Json | null
+          media_type: string
+          metadata: Json | null
+        }
+        Insert: {
+          accessibility_alternatives?: Json | null
+          assignment_id: string
+          created_at?: string | null
+          external_url?: string | null
+          file_path?: string | null
+          id?: string
+          interaction_config?: Json | null
+          media_type: string
+          metadata?: Json | null
+        }
+        Update: {
+          accessibility_alternatives?: Json | null
+          assignment_id?: string
+          created_at?: string | null
+          external_url?: string | null
+          file_path?: string | null
+          id?: string
+          interaction_config?: Json | null
+          media_type?: string
+          metadata?: Json | null
+        }
+        Relationships: []
+      }
+      assignment_recommendations: {
+        Row: {
+          assignment_id: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          reasoning: string | null
+          recommendation_type: string
+          relevance_score: number | null
+          student_id: string
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          reasoning?: string | null
+          recommendation_type: string
+          relevance_score?: number | null
+          student_id: string
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          reasoning?: string | null
+          recommendation_type?: string
+          relevance_score?: number | null
+          student_id?: string
         }
         Relationships: []
       }
@@ -226,6 +514,45 @@ export type Database = {
           name?: string
           total_points?: number | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      assignment_schedules: {
+        Row: {
+          assignment_id: string
+          created_at: string | null
+          difficulty_adjustment: number | null
+          estimated_duration_hours: number | null
+          id: string
+          personalization_factors: Json | null
+          schedule_type: string | null
+          student_id: string | null
+          suggested_end_date: string | null
+          suggested_start_date: string | null
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string | null
+          difficulty_adjustment?: number | null
+          estimated_duration_hours?: number | null
+          id?: string
+          personalization_factors?: Json | null
+          schedule_type?: string | null
+          student_id?: string | null
+          suggested_end_date?: string | null
+          suggested_start_date?: string | null
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string | null
+          difficulty_adjustment?: number | null
+          estimated_duration_hours?: number | null
+          id?: string
+          personalization_factors?: Json | null
+          schedule_type?: string | null
+          student_id?: string | null
+          suggested_end_date?: string | null
+          suggested_start_date?: string | null
         }
         Relationships: []
       }
@@ -340,6 +667,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      assignment_templates: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          rating: number | null
+          template_data: Json
+          updated_at: string
+          usage_count: number | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name: string
+          rating?: number | null
+          template_data?: Json
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          rating?: number | null
+          template_data?: Json
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Relationships: []
       }
       assignments: {
         Row: {
@@ -827,6 +1196,39 @@ export type Database = {
           },
         ]
       }
+      originality_checks: {
+        Row: {
+          check_type: string
+          checked_at: string | null
+          confidence_score: number | null
+          detailed_report: Json | null
+          id: string
+          provider: string
+          status: string | null
+          submission_id: string
+        }
+        Insert: {
+          check_type?: string
+          checked_at?: string | null
+          confidence_score?: number | null
+          detailed_report?: Json | null
+          id?: string
+          provider: string
+          status?: string | null
+          submission_id: string
+        }
+        Update: {
+          check_type?: string
+          checked_at?: string | null
+          confidence_score?: number | null
+          detailed_report?: Json | null
+          id?: string
+          provider?: string
+          status?: string | null
+          submission_id?: string
+        }
+        Relationships: []
+      }
       parent_student_relationships: {
         Row: {
           created_at: string
@@ -1244,6 +1646,45 @@ export type Database = {
           },
         ]
       }
+      rubric_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          criteria: Json
+          description: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          scale_type: string | null
+          subject_area: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          criteria?: Json
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name: string
+          scale_type?: string | null
+          subject_area?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          criteria?: Json
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          scale_type?: string | null
+          subject_area?: string | null
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
       schools: {
         Row: {
           created_at: string
@@ -1377,6 +1818,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      student_portfolios: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_public: boolean | null
+          portfolio_name: string
+          portfolio_theme: Json | null
+          showcase_submissions: Json | null
+          student_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          portfolio_name: string
+          portfolio_theme?: Json | null
+          showcase_submissions?: Json | null
+          student_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          portfolio_name?: string
+          portfolio_theme?: Json | null
+          showcase_submissions?: Json | null
+          student_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       student_progress_tracking: {
         Row: {
@@ -1692,6 +2169,33 @@ export type Database = {
           },
         ]
       }
+      submission_collaboration: {
+        Row: {
+          action_data: Json | null
+          action_type: string
+          id: string
+          submission_id: string
+          timestamp: string | null
+          user_id: string
+        }
+        Insert: {
+          action_data?: Json | null
+          action_type: string
+          id?: string
+          submission_id: string
+          timestamp?: string | null
+          user_id: string
+        }
+        Update: {
+          action_data?: Json | null
+          action_type?: string
+          id?: string
+          submission_id?: string
+          timestamp?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       submission_feedback: {
         Row: {
           comment_text: string
@@ -1728,6 +2232,63 @@ export type Database = {
           submission_id?: string
           timestamp_seconds?: number | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      submission_versions: {
+        Row: {
+          content_diff: Json | null
+          created_at: string | null
+          created_by: string
+          id: string
+          submission_data: Json
+          submission_id: string
+          version_number: number
+        }
+        Insert: {
+          content_diff?: Json | null
+          created_at?: string | null
+          created_by: string
+          id?: string
+          submission_data?: Json
+          submission_id: string
+          version_number?: number
+        }
+        Update: {
+          content_diff?: Json | null
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          submission_data?: Json
+          submission_id?: string
+          version_number?: number
+        }
+        Relationships: []
+      }
+      submission_workflows: {
+        Row: {
+          assignment_id: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          workflow_config: Json
+          workflow_type: string
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          workflow_config?: Json
+          workflow_type?: string
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          workflow_config?: Json
+          workflow_type?: string
         }
         Relationships: []
       }

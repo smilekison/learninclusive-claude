@@ -44,7 +44,7 @@ export const useAccessibilityAudit = (enableAudit: boolean = false) => {
           'color-contrast': { enabled: true },
           'color-contrast-enhanced': { enabled: settings.highContrast },
           'focus-order-semantics': { enabled: settings.focusAssistance },
-          'keyboard': { enabled: settings.keyboardNavigation },
+          'focusable-content': { enabled: settings.keyboardNavigation },
           'keyboard-traps': { enabled: true },
           'tabindex': { enabled: true },
           'aria-valid-attr': { enabled: true },

@@ -34,6 +34,7 @@ import {
 
 import { LessonManager } from './LessonManager';
 import { StudentEnrollmentPanel } from './StudentEnrollmentPanel';
+import QuizManager from '../quizzes/QuizManager';
 
 interface Assignment {
   id: string;
@@ -256,6 +257,7 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
           <TabsList>
             <TabsTrigger value="assignments">Assignments</TabsTrigger>
             <TabsTrigger value="lessons">Lessons</TabsTrigger>
+            <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
@@ -434,6 +436,10 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
 
           <TabsContent value="lessons" className="space-y-6">
             <LessonManager subjectId={subject.id} />
+          </TabsContent>
+
+          <TabsContent value="quizzes" className="space-y-6">
+            <QuizManager subjectId={subject.id} />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">

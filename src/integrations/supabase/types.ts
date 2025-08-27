@@ -870,36 +870,102 @@ export type Database = {
         }
         Relationships: []
       }
+      quiz_analytics: {
+        Row: {
+          attempt_number: number | null
+          correct_answer: string
+          id: string
+          is_correct: boolean
+          question_id: string
+          quiz_id: string
+          recorded_at: string | null
+          selected_answer: string | null
+          student_id: string | null
+          time_spent_seconds: number | null
+        }
+        Insert: {
+          attempt_number?: number | null
+          correct_answer: string
+          id?: string
+          is_correct?: boolean
+          question_id: string
+          quiz_id: string
+          recorded_at?: string | null
+          selected_answer?: string | null
+          student_id?: string | null
+          time_spent_seconds?: number | null
+        }
+        Update: {
+          attempt_number?: number | null
+          correct_answer?: string
+          id?: string
+          is_correct?: boolean
+          question_id?: string
+          quiz_id?: string
+          recorded_at?: string | null
+          selected_answer?: string | null
+          student_id?: string | null
+          time_spent_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_analytics_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_analytics_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quiz_attempts: {
         Row: {
           answers: Json
           attempt_number: number | null
+          auto_submitted: boolean | null
           completed_at: string | null
           created_at: string
+          feedback_viewed: boolean | null
           id: string
           quiz_id: string
           score: number | null
           student_id: string
+          time_limit_minutes: number | null
+          time_started: string | null
         }
         Insert: {
           answers?: Json
           attempt_number?: number | null
+          auto_submitted?: boolean | null
           completed_at?: string | null
           created_at?: string
+          feedback_viewed?: boolean | null
           id?: string
           quiz_id: string
           score?: number | null
           student_id: string
+          time_limit_minutes?: number | null
+          time_started?: string | null
         }
         Update: {
           answers?: Json
           attempt_number?: number | null
+          auto_submitted?: boolean | null
           completed_at?: string | null
           created_at?: string
+          feedback_viewed?: boolean | null
           id?: string
           quiz_id?: string
           score?: number | null
           student_id?: string
+          time_limit_minutes?: number | null
+          time_started?: string | null
         }
         Relationships: [
           {
@@ -918,44 +984,129 @@ export type Database = {
           },
         ]
       }
+      quiz_feedback: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          improvement_suggestions: Json | null
+          overall_feedback: string | null
+          question_feedback: Json | null
+          quiz_attempt_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          improvement_suggestions?: Json | null
+          overall_feedback?: string | null
+          question_feedback?: Json | null
+          quiz_attempt_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          improvement_suggestions?: Json | null
+          overall_feedback?: string | null
+          question_feedback?: Json | null
+          quiz_attempt_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_feedback_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_feedback_quiz_attempt_id_fkey"
+            columns: ["quiz_attempt_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quizzes: {
         Row: {
+          allow_review: boolean | null
+          availability_end: string | null
+          availability_start: string | null
           created_at: string
           description: string | null
           id: string
+          instructions: string | null
+          is_active: boolean | null
+          lesson_id: string | null
           max_attempts: number | null
           max_score: number | null
+          passing_score: number | null
           questions: Json
+          quiz_type: string | null
+          randomize_answers: boolean | null
+          randomize_questions: boolean | null
+          show_correct_answers: boolean | null
           subject_id: string
           time_limit: number | null
           title: string
           updated_at: string
         }
         Insert: {
+          allow_review?: boolean | null
+          availability_end?: string | null
+          availability_start?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          instructions?: string | null
+          is_active?: boolean | null
+          lesson_id?: string | null
           max_attempts?: number | null
           max_score?: number | null
+          passing_score?: number | null
           questions?: Json
+          quiz_type?: string | null
+          randomize_answers?: boolean | null
+          randomize_questions?: boolean | null
+          show_correct_answers?: boolean | null
           subject_id: string
           time_limit?: number | null
           title: string
           updated_at?: string
         }
         Update: {
+          allow_review?: boolean | null
+          availability_end?: string | null
+          availability_start?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          instructions?: string | null
+          is_active?: boolean | null
+          lesson_id?: string | null
           max_attempts?: number | null
           max_score?: number | null
+          passing_score?: number | null
           questions?: Json
+          quiz_type?: string | null
+          randomize_answers?: boolean | null
+          randomize_questions?: boolean | null
+          show_correct_answers?: boolean | null
           subject_id?: string
           time_limit?: number | null
           title?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "quizzes_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quizzes_subject_id_fkey"
             columns: ["subject_id"]

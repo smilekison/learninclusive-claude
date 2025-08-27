@@ -14,63 +14,267 @@ export type Database = {
   }
   public: {
     Tables: {
+      assignment_analytics: {
+        Row: {
+          assignment_id: string
+          id: string
+          metadata: Json | null
+          metric_name: string
+          metric_value: number | null
+          recorded_at: string | null
+          student_id: string | null
+        }
+        Insert: {
+          assignment_id: string
+          id?: string
+          metadata?: Json | null
+          metric_name: string
+          metric_value?: number | null
+          recorded_at?: string | null
+          student_id?: string | null
+        }
+        Update: {
+          assignment_id?: string
+          id?: string
+          metadata?: Json | null
+          metric_name?: string
+          metric_value?: number | null
+          recorded_at?: string | null
+          student_id?: string | null
+        }
+        Relationships: []
+      }
+      assignment_group_memberships: {
+        Row: {
+          group_id: string
+          id: string
+          is_active: boolean | null
+          joined_at: string | null
+          role: string | null
+          student_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          is_active?: boolean | null
+          joined_at?: string | null
+          role?: string | null
+          student_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          is_active?: boolean | null
+          joined_at?: string | null
+          role?: string | null
+          student_id?: string
+        }
+        Relationships: []
+      }
+      assignment_groups: {
+        Row: {
+          assignment_id: string
+          created_at: string | null
+          created_by: string
+          id: string
+          is_active: boolean | null
+          max_members: number | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string | null
+          created_by: string
+          id?: string
+          is_active?: boolean | null
+          max_members?: number | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          is_active?: boolean | null
+          max_members?: number | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      assignment_resources: {
+        Row: {
+          assignment_id: string
+          created_at: string | null
+          created_by: string
+          description: string | null
+          display_order: number | null
+          file_path: string | null
+          id: string
+          is_required: boolean | null
+          metadata: Json | null
+          resource_type: string
+          resource_url: string | null
+          title: string
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          display_order?: number | null
+          file_path?: string | null
+          id?: string
+          is_required?: boolean | null
+          metadata?: Json | null
+          resource_type: string
+          resource_url?: string | null
+          title: string
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          display_order?: number | null
+          file_path?: string | null
+          id?: string
+          is_required?: boolean | null
+          metadata?: Json | null
+          resource_type?: string
+          resource_url?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      assignment_rubrics: {
+        Row: {
+          assignment_id: string
+          created_at: string | null
+          created_by: string
+          criteria: Json
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          total_points: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string | null
+          created_by: string
+          criteria?: Json
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          total_points?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string | null
+          created_by?: string
+          criteria?: Json
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          total_points?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       assignment_submissions: {
         Row: {
           assignment_id: string
           attempt_number: number | null
+          auto_grade_result: Json | null
           feedback: string | null
           file_path: string | null
           graded_at: string | null
           graded_by: string | null
           grading_notes: string | null
+          group_id: string | null
           id: string
           late_submission: boolean | null
+          learning_objectives_met: Json | null
+          peer_reviews: Json | null
+          plagiarism_score: number | null
           rubric_scores: Json | null
           score: number | null
           student_id: string
+          submission_metadata: Json | null
           submission_quality: string | null
+          submission_status:
+            | Database["public"]["Enums"]["submission_status"]
+            | null
           submission_text: string | null
           submitted_at: string
           time_spent_minutes: number | null
           updated_at: string
+          version_number: number | null
         }
         Insert: {
           assignment_id: string
           attempt_number?: number | null
+          auto_grade_result?: Json | null
           feedback?: string | null
           file_path?: string | null
           graded_at?: string | null
           graded_by?: string | null
           grading_notes?: string | null
+          group_id?: string | null
           id?: string
           late_submission?: boolean | null
+          learning_objectives_met?: Json | null
+          peer_reviews?: Json | null
+          plagiarism_score?: number | null
           rubric_scores?: Json | null
           score?: number | null
           student_id: string
+          submission_metadata?: Json | null
           submission_quality?: string | null
+          submission_status?:
+            | Database["public"]["Enums"]["submission_status"]
+            | null
           submission_text?: string | null
           submitted_at?: string
           time_spent_minutes?: number | null
           updated_at?: string
+          version_number?: number | null
         }
         Update: {
           assignment_id?: string
           attempt_number?: number | null
+          auto_grade_result?: Json | null
           feedback?: string | null
           file_path?: string | null
           graded_at?: string | null
           graded_by?: string | null
           grading_notes?: string | null
+          group_id?: string | null
           id?: string
           late_submission?: boolean | null
+          learning_objectives_met?: Json | null
+          peer_reviews?: Json | null
+          plagiarism_score?: number | null
           rubric_scores?: Json | null
           score?: number | null
           student_id?: string
+          submission_metadata?: Json | null
           submission_quality?: string | null
+          submission_status?:
+            | Database["public"]["Enums"]["submission_status"]
+            | null
           submission_text?: string | null
           submitted_at?: string
           time_spent_minutes?: number | null
           updated_at?: string
+          version_number?: number | null
         }
         Relationships: [
           {
@@ -98,40 +302,77 @@ export type Database = {
       }
       assignments: {
         Row: {
+          allow_late_submissions: boolean | null
           allowed_file_types: string[] | null
+          assignment_type: Database["public"]["Enums"]["assignment_type"] | null
+          auto_grade: boolean | null
           created_at: string
           description: string | null
           due_date: string | null
+          group_assignment: boolean | null
           id: string
+          instructions_rich_text: string | null
           is_active: boolean | null
+          late_penalty_percent: number | null
           max_attempts: number | null
+          max_group_size: number | null
           max_score: number | null
+          peer_review: boolean | null
+          plagiarism_check: boolean | null
+          resources_json: Json | null
+          rubric_id: string | null
           subject_id: string
           title: string
           updated_at: string
         }
         Insert: {
+          allow_late_submissions?: boolean | null
           allowed_file_types?: string[] | null
+          assignment_type?:
+            | Database["public"]["Enums"]["assignment_type"]
+            | null
+          auto_grade?: boolean | null
           created_at?: string
           description?: string | null
           due_date?: string | null
+          group_assignment?: boolean | null
           id?: string
+          instructions_rich_text?: string | null
           is_active?: boolean | null
+          late_penalty_percent?: number | null
           max_attempts?: number | null
+          max_group_size?: number | null
           max_score?: number | null
+          peer_review?: boolean | null
+          plagiarism_check?: boolean | null
+          resources_json?: Json | null
+          rubric_id?: string | null
           subject_id: string
           title: string
           updated_at?: string
         }
         Update: {
+          allow_late_submissions?: boolean | null
           allowed_file_types?: string[] | null
+          assignment_type?:
+            | Database["public"]["Enums"]["assignment_type"]
+            | null
+          auto_grade?: boolean | null
           created_at?: string
           description?: string | null
           due_date?: string | null
+          group_assignment?: boolean | null
           id?: string
+          instructions_rich_text?: string | null
           is_active?: boolean | null
+          late_penalty_percent?: number | null
           max_attempts?: number | null
+          max_group_size?: number | null
           max_score?: number | null
+          peer_review?: boolean | null
+          plagiarism_check?: boolean | null
+          resources_json?: Json | null
+          rubric_id?: string | null
           subject_id?: string
           title?: string
           updated_at?: string
@@ -476,6 +717,36 @@ export type Database = {
           relationship_type?: string
           student_id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      plagiarism_reports: {
+        Row: {
+          analyzed_at: string | null
+          analyzer_version: string | null
+          detailed_results: Json
+          id: string
+          overall_score: number
+          sources_found: Json | null
+          submission_id: string
+        }
+        Insert: {
+          analyzed_at?: string | null
+          analyzer_version?: string | null
+          detailed_results?: Json
+          id?: string
+          overall_score: number
+          sources_found?: Json | null
+          submission_id: string
+        }
+        Update: {
+          analyzed_at?: string | null
+          analyzer_version?: string | null
+          detailed_results?: Json
+          id?: string
+          overall_score?: number
+          sources_found?: Json | null
+          submission_id?: string
         }
         Relationships: []
       }
@@ -1064,6 +1335,45 @@ export type Database = {
           },
         ]
       }
+      submission_feedback: {
+        Row: {
+          comment_text: string
+          commenter_id: string
+          created_at: string | null
+          feedback_type: string | null
+          id: string
+          is_resolved: boolean | null
+          line_number: number | null
+          submission_id: string
+          timestamp_seconds: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          comment_text: string
+          commenter_id: string
+          created_at?: string | null
+          feedback_type?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          line_number?: number | null
+          submission_id: string
+          timestamp_seconds?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          comment_text?: string
+          commenter_id?: string
+          created_at?: string | null
+          feedback_type?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          line_number?: number | null
+          submission_id?: string
+          timestamp_seconds?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       video_likes: {
         Row: {
           created_at: string
@@ -1402,6 +1712,15 @@ export type Database = {
         | "calculator_allowed"
         | "spell_check_allowed"
         | "other"
+      assignment_type:
+        | "essay"
+        | "quiz"
+        | "file_upload"
+        | "code_submission"
+        | "group_project"
+        | "presentation"
+        | "portfolio"
+        | "peer_review"
       disability_type:
         | "visual_impairment"
         | "hearing_impairment"
@@ -1415,6 +1734,19 @@ export type Database = {
         | "multiple_disabilities"
         | "traumatic_brain_injury"
         | "other"
+      rubric_criteria_type:
+        | "excellent"
+        | "good"
+        | "satisfactory"
+        | "needs_improvement"
+        | "unsatisfactory"
+      submission_status:
+        | "draft"
+        | "submitted"
+        | "late"
+        | "graded"
+        | "returned"
+        | "resubmitted"
       support_service_type:
         | "speech_therapy"
         | "occupational_therapy"
@@ -1572,6 +1904,16 @@ export const Constants = {
         "spell_check_allowed",
         "other",
       ],
+      assignment_type: [
+        "essay",
+        "quiz",
+        "file_upload",
+        "code_submission",
+        "group_project",
+        "presentation",
+        "portfolio",
+        "peer_review",
+      ],
       disability_type: [
         "visual_impairment",
         "hearing_impairment",
@@ -1585,6 +1927,21 @@ export const Constants = {
         "multiple_disabilities",
         "traumatic_brain_injury",
         "other",
+      ],
+      rubric_criteria_type: [
+        "excellent",
+        "good",
+        "satisfactory",
+        "needs_improvement",
+        "unsatisfactory",
+      ],
+      submission_status: [
+        "draft",
+        "submitted",
+        "late",
+        "graded",
+        "returned",
+        "resubmitted",
       ],
       support_service_type: [
         "speech_therapy",

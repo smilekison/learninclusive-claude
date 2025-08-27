@@ -73,6 +73,7 @@ export const YouTubeVideoCard: React.FC<YouTubeVideoCardProps> = ({ video, onCli
           <Button 
             size="lg" 
             className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30"
+            aria-label={`Play video: ${video.title}`}
           >
             <Play className="h-6 w-6 text-white" />
           </Button>

@@ -85,13 +85,15 @@ export const AssignmentsPage: React.FC = () => {
   const handleCreateAssignment = async () => {
     if (!newAssignment.title || !newAssignment.subjectId) return;
     
-    await createAssignmentMutation.mutateAsync({
+    const assignmentData = {
       title: newAssignment.title,
       description: newAssignment.description,
       subject_id: newAssignment.subjectId,
       due_date: newAssignment.dueDate || null,
       max_score: newAssignment.maxScore
-    });
+    };
+
+    await createAssignmentMutation.mutateAsync(assignmentData);
   };
 
   const handleAssignmentSelect = (assignment: any) => {

@@ -572,3 +572,5 @@ export const EnhancedAssignmentCreation: React.FC<EnhancedAssignmentCreationProp
     </Dialog>
   );
 };
+
+export default EnhancedAssignmentCreation;

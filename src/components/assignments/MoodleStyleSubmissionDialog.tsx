@@ -290,19 +290,28 @@ export const MoodleStyleSubmissionDialog: React.FC<MoodleStyleSubmissionDialogPr
     const fileArray = Array.from(files);
     
     for (const file of fileArray) {
-      // Enhanced validation
-      const allowedTypes = assignment.allowed_file_types || [
-        'pdf', 'doc', 'docx', 'txt', 'jpg', 'jpeg', 'png', 'gif', 
-        'xlsx', 'xls', 'ppt', 'pptx', 'zip', 'rar', 'mp4', 'mp3', 'wav',
-        'py', 'js', 'html', 'css', 'java', 'cpp', 'c', 'json', 'xml'
-      ];
+      // Enhanced validation with fallback to common file types
+      const allowedTypes = assignment?.allowed_file_types && assignment.allowed_file_types.length > 0 
+        ? assignment.allowed_file_types 
+        : [
+          'pdf', 'doc', 'docx', 'txt', 'jpg', 'jpeg', 'png', 'gif', 
+          'xlsx', 'xls', 'ppt', 'pptx', 'zip', 'rar', 'mp4', 'mp3', 'wav',
+          'py', 'js', 'html', 'css', 'java', 'cpp', 'c', 'json', 'xml'
+        ];
       
       const fileExtension = file.name.split('.').pop()?.toLowerCase();
       
-      if (fileExtension && !allowedTypes.includes(fileExtension)) {
+      // More permissive validation - allow most common file types
+      const isValidType = fileExtension && (
+        allowedTypes.includes(fileExtension) ||
+        // Always allow common document types
+        ['pdf', 'doc', 'docx', 'txt', 'jpg', 'jpeg', 'png'].includes(fileExtension)
+      );
+      
+      if (!isValidType) {
         toast({
           title: "Invalid file type",
-          description: `${file.name} is not allowed. Supported: ${allowedTypes.join(', ')}`,
+          description: `${file.name} type is not supported. Try PDF, DOC, DOCX, TXT, JPG, or PNG files.`,
           variant: "destructive"
         });
         continue;

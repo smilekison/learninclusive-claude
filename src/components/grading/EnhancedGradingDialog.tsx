@@ -21,7 +21,8 @@ import {
   TrendingUp,
   Calendar,
   Code,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Paperclip
 } from 'lucide-react';
 
 interface EnhancedGradingDialogProps {
@@ -208,11 +209,16 @@ export const EnhancedGradingDialog: React.FC<EnhancedGradingDialogProps> = ({
                   </div>
                 )}
 
-                {/* File Attachments */}
+                {/* File Attachments with Enhanced Preview */}
                 {uploadedFiles.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium mb-2">File Attachments:</h4>
-                    <SubmissionFilesView files={uploadedFiles} />
+                    <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                      <Paperclip className="w-4 h-4" />
+                      File Attachments ({uploadedFiles.length}):
+                    </h4>
+                    <div className="border rounded-lg p-2 bg-muted/30">
+                      <SubmissionFilesView files={uploadedFiles} />
+                    </div>
                   </div>
                 )}
 

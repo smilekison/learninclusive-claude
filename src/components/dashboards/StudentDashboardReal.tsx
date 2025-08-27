@@ -829,6 +829,11 @@ export const StudentDashboardReal: React.FC = () => {
             </CardContent>
           </Card>
         )}
+        
+        {/* Student Video Section */}
+        <div>
+          <StudentVideoSection />
+        </div>
       </div>
 
       {/* Contact Teacher Dialog */}

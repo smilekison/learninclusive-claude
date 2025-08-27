@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTeacherClasses, useTeacherSubjects, useSupabaseMutation, useSoftDelete, useToggleStatus } from '@/hooks/useSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, ArrowLeft, Edit, Trash2 } from 'lucide-react';
+import { Plus, ArrowLeft, Edit, Trash2, Play, Accessibility, Languages, Globe, ArrowRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -235,6 +235,53 @@ export const SubjectsPage: React.FC = () => {
             classInfo={selectedClass}
             onBack={handleBackToSubjects}
           />
+        )}
+        
+        {/* Video Management for Teachers */}
+        {viewMode === 'subjects' && user?.role === 'teacher' && (
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold">Video Management</h2>
+                <p className="text-muted-foreground">Upload and manage educational videos for your lessons</p>
+              </div>
+            </div>
+            {/* Enhanced Video Library with Teacher Features */}
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-primary/5 to-accent/5 rounded-lg p-6 border">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <Play className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">Advanced Video Features</h3>
+                    <p className="text-sm text-muted-foreground">Create accessible video content with sign language support</p>
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-3 gap-4 mt-4">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Accessibility className="h-4 w-4 text-primary" />
+                    <span>Full accessibility support</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Languages className="h-4 w-4 text-primary" />
+                    <span>Sign language videos</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Globe className="h-4 w-4 text-primary" />
+                    <span>Multiple visibility levels</span>
+                  </div>
+                </div>
+                <Button 
+                  className="mt-4" 
+                  onClick={() => navigate('/video-management')}
+                >
+                  Manage Videos
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
       </main>
     </div>

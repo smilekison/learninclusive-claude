@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { FeaturedVideosSection } from '@/components/video/FeaturedVideosSection';
 import {
   GraduationCap,
   Users,
@@ -370,6 +371,15 @@ const LandingPage: React.FC = () => {
               </CardContent>
             </Card>
           </div>
+        </div>
+      </section>
+
+      {/* Featured Videos Section */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <FeaturedVideosSection 
+            onViewAll={() => navigate('/videos')}
+          />
         </div>
       </section>
 

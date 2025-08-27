@@ -35,6 +35,7 @@ import {
   Copy
 } from 'lucide-react';
 import { EngagementInsights } from './EngagementInsights';
+import { TeacherVideoSection } from './TeacherVideoSection';
 import { SubjectEnrollmentManager } from '@/components/teachers/SubjectEnrollmentManager';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -969,12 +970,21 @@ export const TeacherDashboardReal: React.FC = () => {
 
     </div>
 
-      {/* Engagement Insights */}
-      <EngagementInsights 
-        title="Subject Performance & Risk Assessment"
-        data={calculateEngagementData()}
-        userRole="teacher"
-      />
+      {/* Engagement Insights and Video Management */}
+      <div className="grid gap-6">
+        <div>
+          <EngagementInsights 
+            title="Subject Performance & Risk Assessment"
+            data={calculateEngagementData()}
+            userRole="teacher"
+          />
+        </div>
+        
+        {/* Teacher Video Section */}
+        <div>
+          <TeacherVideoSection />
+        </div>
+      </div>
 
       {/* Enhanced Recent Submissions with Action Buttons */}
         {/* Lessons Management Section */}

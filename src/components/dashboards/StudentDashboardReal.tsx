@@ -34,6 +34,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { TTSButton } from '@/components/accessibility/TTSButton';
 import { StudentLessons } from '@/components/students/StudentLessons';
+import { StudentVideoSection } from './StudentVideoSection';
 import { Truncate } from '@/components/ui/truncate';
 
 export const StudentDashboardReal: React.FC = () => {

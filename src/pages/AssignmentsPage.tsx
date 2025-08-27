@@ -11,7 +11,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AssignmentFilters } from '@/components/assignments/AssignmentFilters';
-import { AssignmentDetailView } from '@/components/assignments/AssignmentDetailView';
+import { EnhancedAssignmentView } from '@/components/assignments/EnhancedAssignmentView';
+import { EnhancedAssignmentCreation } from '@/components/assignments/EnhancedAssignmentCreation';
 
 type ViewMode = 'assignments' | 'assignmentDetail';
 
@@ -173,80 +174,17 @@ export const AssignmentsPage: React.FC = () => {
           </div>
           
           {viewMode === 'assignments' && (
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Assignment
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create New Assignment</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="assignment-title">Assignment Title</Label>
-                    <Input
-                      id="assignment-title"
-                      value={newAssignment.title}
-                      onChange={(e) => setNewAssignment({ ...newAssignment, title: e.target.value })}
-                      placeholder="Enter assignment title"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="assignment-description">Description</Label>
-                    <Textarea
-                      id="assignment-description"
-                      value={newAssignment.description}
-                      onChange={(e) => setNewAssignment({ ...newAssignment, description: e.target.value })}
-                      placeholder="Enter assignment description"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="assignment-subject">Subject</Label>
-                    <Select value={newAssignment.subjectId} onValueChange={(value) => setNewAssignment({ ...newAssignment, subjectId: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a subject" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-background border z-50">
-                        {subjects.map((subject: any) => (
-                          <SelectItem key={subject.id} value={subject.id}>
-                            {subject.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="assignment-due-date">Due Date</Label>
-                    <Input
-                      id="assignment-due-date"
-                      type="datetime-local"
-                      value={newAssignment.dueDate}
-                      onChange={(e) => setNewAssignment({ ...newAssignment, dueDate: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="assignment-max-score">Max Score</Label>
-                    <Input
-                      id="assignment-max-score"
-                      type="number"
-                      value={newAssignment.maxScore}
-                      onChange={(e) => setNewAssignment({ ...newAssignment, maxScore: parseInt(e.target.value) || 100 })}
-                    />
-                  </div>
-                  <Button 
-                    onClick={handleCreateAssignment} 
-                    disabled={createAssignmentMutation.isPending || !newAssignment.title || !newAssignment.subjectId}
-                    className="w-full"
-                  >
-                    {createAssignmentMutation.isPending ? 'Creating...' : 'Create Assignment'}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <>
+              <Button onClick={() => setIsDialogOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Assignment
+              </Button>
+              <EnhancedAssignmentCreation 
+                open={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                onSubmit={handleCreateAssignment}
+              />
+            </>
           )}
         </div>
 
@@ -345,11 +283,8 @@ export const AssignmentsPage: React.FC = () => {
                 </Dialog>
               </div>
             )}
-            <AssignmentDetailView
+            <EnhancedAssignmentView
               assignment={selectedAssignment}
-              subjectInfo={selectedSubject}
-              classInfo={selectedClass}
-              onBack={handleBackToAssignments}
             />
           </div>
         )}

@@ -70,6 +70,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { AdvancedGroupCreationDialog } from '@/components/assignments/AdvancedGroupCreationDialog';
 
 interface EnhancedSubmissionFile {
   id: string;
@@ -156,6 +157,7 @@ export const MoodleStyleSubmissionDialog: React.FC<MoodleStyleSubmissionDialogPr
   const [collaborativeEditing, setCollaborativeEditing] = useState(false);
   const [autosaveEnabled, setAutosaveEnabled] = useState(true);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [showGroupCreation, setShowGroupCreation] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [startTime] = useState(new Date());
@@ -1090,7 +1092,20 @@ export const MoodleStyleSubmissionDialog: React.FC<MoodleStyleSubmissionDialogPr
                           </SelectContent>
                         </Select>
                         
-                        <Button variant="outline" className="w-full">
+                        <AdvancedGroupCreationDialog
+                          open={showGroupCreation}
+                          onOpenChange={setShowGroupCreation}
+                          assignment={assignment}
+                          onGroupCreated={(group) => {
+                            setSubmissionData(prev => ({ ...prev, selectedGroup: group }));
+                            loadAvailableGroups();
+                          }}
+                        />
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => setShowGroupCreation(true)}
+                        >
                           <Plus className="h-4 w-4 mr-2" />
                           Create New Group
                         </Button>

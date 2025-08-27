@@ -235,77 +235,36 @@ export const AssignmentsPage: React.FC = () => {
           <div className="space-y-4">
             {user?.role === 'teacher' && (
               <div className="flex justify-end">
-                <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                  <DialogTrigger asChild>
-                    <Button onClick={openEdit}>Edit Assignment</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Edit Assignment</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="edit-assignment-title">Assignment Title</Label>
-                        <Input
-                          id="edit-assignment-title"
-                          value={editAssignment.title}
-                          onChange={(e) => setEditAssignment({ ...editAssignment, title: e.target.value })}
-                          placeholder="Enter assignment title"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="edit-assignment-description">Description</Label>
-                        <Textarea
-                          id="edit-assignment-description"
-                          value={editAssignment.description}
-                          onChange={(e) => setEditAssignment({ ...editAssignment, description: e.target.value })}
-                          placeholder="Enter assignment description"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="edit-assignment-subject">Subject</Label>
-                        <Select value={editAssignment.subjectId} onValueChange={(value) => setEditAssignment({ ...editAssignment, subjectId: value })}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a subject" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-background border z-50">
-                            {subjects.map((subject: any) => (
-                              <SelectItem key={subject.id} value={subject.id}>
-                                {subject.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="edit-assignment-due-date">Due Date</Label>
-                        <Input
-                          id="edit-assignment-due-date"
-                          type="datetime-local"
-                          value={editAssignment.dueDate}
-                          onChange={(e) => setEditAssignment({ ...editAssignment, dueDate: e.target.value })}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="edit-assignment-max-score">Max Score</Label>
-                        <Input
-                          id="edit-assignment-max-score"
-                          type="number"
-                          value={editAssignment.maxScore}
-                          onChange={(e) => setEditAssignment({ ...editAssignment, maxScore: parseInt(e.target.value) || 100 })}
-                        />
-                      </div>
-                      <Button 
-                        onClick={handleUpdateAssignment}
-                        disabled={updateAssignmentMutation.isPending || !editAssignment.title || !editAssignment.subjectId}
-                        className="w-full"
-                      >
-                        {updateAssignmentMutation.isPending ? 'Updating...' : 'Update Assignment'}
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+              <EnhancedAssignmentCreation
+                open={isEditOpen}
+                onOpenChange={setIsEditOpen}
+                onSubmit={async (data) => {
+                  await updateAssignmentMutation.mutateAsync({
+                    id: selectedAssignment.id,
+                    updates: {
+                      title: data.title,
+                      description: data.description,
+                      subject_id: data.subject_id,
+                      due_date: data.due_date || null,
+                      max_score: data.max_score,
+                      submission_types: data.submission_types,
+                      time_limit_minutes: data.time_limit_minutes,
+                      show_grades_to_students: data.show_grades_to_students,
+                      ai_assistance_config: data.ai_assistance_config,
+                      analytics_config: data.analytics_config,
+                      group_assignment: data.group_assignment,
+                      max_attempts: data.max_attempts,
+                      peer_review: data.peer_review,
+                      plagiarism_check: data.plagiarism_check,
+                      allow_late_submissions: data.allow_late_submissions
+                    }
+                  });
+                }}
+                subjects={subjects}
+                classes={classes}
+                initialData={selectedAssignment}
+              />
+              <Button onClick={openEdit}>Edit Assignment</Button>
               </div>
             )}
             <EnhancedAssignmentView

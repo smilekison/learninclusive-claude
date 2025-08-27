@@ -41,6 +41,7 @@ interface EnhancedAssignmentCreationProps {
   subjectId?: string;
   subjects?: any[];
   classes?: any[];
+  initialData?: any;
 }
 
 export const EnhancedAssignmentCreation: React.FC<EnhancedAssignmentCreationProps> = ({
@@ -49,44 +50,86 @@ export const EnhancedAssignmentCreation: React.FC<EnhancedAssignmentCreationProp
   onSubmit,
   subjectId,
   subjects = [],
-  classes = []
+  classes = [],
+  initialData
 }) => {
   const [activeTab, setActiveTab] = useState('basics');
-  const [assignmentData, setAssignmentData] = useState({
-    title: '',
-    description: '',
-    instructions: '',
-    maxScore: 100,
-    dueDate: '',
-    submissionTypes: ['text'],
-    groupAssignment: false,
-    maxAttempts: 1,
-    showGradesToStudents: true,
-    enablePeerReview: false,
-    plagiarismCheck: true,
-    allowLateSubmissions: false,
-    timeLimit: null,
-    resources: [],
-    subjectId: subjectId || '',
-    rubric: {
-      criteria: [
-        { name: 'Content Quality', maxPoints: 40, description: 'Accuracy and depth of content' },
-        { name: 'Organization', maxPoints: 30, description: 'Structure and clarity of presentation' },
-        { name: 'Grammar & Style', maxPoints: 20, description: 'Language usage and writing mechanics' },
-        { name: 'Creativity', maxPoints: 10, description: 'Original thinking and innovation' }
-      ]
-    },
-    aiAssistance: {
-      enabled: true,
-      provideFeedback: true,
-      suggestResources: true,
-      grammarCheck: true
-    },
-    analytics: {
-      trackProgress: true,
-      exportResults: true,
-      parentNotifications: false
+  const [assignmentData, setAssignmentData] = useState(() => {
+    if (initialData) {
+      return {
+        title: initialData.title || '',
+        description: initialData.description || '',
+        instructions: initialData.instructions_rich_text || '',
+        maxScore: initialData.max_score || 100,
+        dueDate: initialData.due_date ? new Date(initialData.due_date).toISOString().slice(0, 16) : '',
+        submissionTypes: initialData.submission_types || ['text'],
+        groupAssignment: initialData.group_assignment || false,
+        maxAttempts: initialData.max_attempts || 1,
+        showGradesToStudents: initialData.show_grades_to_students ?? true,
+        enablePeerReview: initialData.peer_review || false,
+        plagiarismCheck: initialData.plagiarism_check ?? true,
+        allowLateSubmissions: initialData.allow_late_submissions ?? false,
+        timeLimit: initialData.time_limit_minutes || null,
+        resources: initialData.resources_json || [],
+        subjectId: initialData.subject_id || subjectId || '',
+        rubric: {
+          criteria: [
+            { name: 'Content Quality', maxPoints: 40, description: 'Accuracy and depth of content' },
+            { name: 'Organization', maxPoints: 30, description: 'Structure and clarity of presentation' },
+            { name: 'Grammar & Style', maxPoints: 20, description: 'Language usage and writing mechanics' },
+            { name: 'Creativity', maxPoints: 10, description: 'Original thinking and innovation' }
+          ]
+        },
+        aiAssistance: initialData.ai_assistance_config || {
+          enabled: true,
+          provideFeedback: true,
+          suggestResources: true,
+          grammarCheck: true
+        },
+        analytics: initialData.analytics_config || {
+          trackProgress: true,
+          exportResults: true,
+          parentNotifications: false
+        }
+      };
     }
+    
+    return {
+      title: '',
+      description: '',
+      instructions: '',
+      maxScore: 100,
+      dueDate: '',
+      submissionTypes: ['text'],
+      groupAssignment: false,
+      maxAttempts: 1,
+      showGradesToStudents: true,
+      enablePeerReview: false,
+      plagiarismCheck: true,
+      allowLateSubmissions: false,
+      timeLimit: null,
+      resources: [],
+      subjectId: subjectId || '',
+      rubric: {
+        criteria: [
+          { name: 'Content Quality', maxPoints: 40, description: 'Accuracy and depth of content' },
+          { name: 'Organization', maxPoints: 30, description: 'Structure and clarity of presentation' },
+          { name: 'Grammar & Style', maxPoints: 20, description: 'Language usage and writing mechanics' },
+          { name: 'Creativity', maxPoints: 10, description: 'Original thinking and innovation' }
+        ]
+      },
+      aiAssistance: {
+        enabled: true,
+        provideFeedback: true,
+        suggestResources: true,
+        grammarCheck: true
+      },
+      analytics: {
+        trackProgress: true,
+        exportResults: true,
+        parentNotifications: false
+      }
+    };
   });
 
   const handleSubmit = () => {
@@ -169,7 +212,7 @@ export const EnhancedAssignmentCreation: React.FC<EnhancedAssignmentCreationProp
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-2">
             <Target className="w-6 h-6 text-primary" />
-            Create Advanced Assignment
+            {initialData ? 'Edit Advanced Assignment' : 'Create Advanced Assignment'}
           </DialogTitle>
         </DialogHeader>
 

@@ -336,7 +336,10 @@ export const SubmissionFilesView: React.FC<SubmissionFilesViewProps> = ({
       
       {/* Advanced File Preview Dialog */}
       <Dialog open={!!previewFile} onOpenChange={() => closePreview()}>
-        <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden">
+        <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden" aria-describedby="file-preview-description">
+          <div id="file-preview-description" className="sr-only">
+            Advanced file preview dialog showing {previewFile?.name} with zoom, rotation and download controls
+          </div>
           <DialogHeader>
             <div className="flex items-center justify-between">
               <DialogTitle className="flex items-center gap-2">

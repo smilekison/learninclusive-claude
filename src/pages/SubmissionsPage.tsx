@@ -21,6 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { EnhancedGradingDialog } from '@/components/grading/EnhancedGradingDialog';
+import { SubmissionFilesView } from '@/components/assignments/SubmissionFilesView';
 
 export const SubmissionsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -288,23 +289,92 @@ export const SubmissionsPage: React.FC = () => {
                           View
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
+                      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="submission-details">
+                        <div id="submission-details" className="sr-only">
+                          Detailed view of submission by {submission.student.first_name} {submission.student.last_name} for {submission.assignment.title}
+                        </div>
                         <DialogHeader>
                           <DialogTitle>
                             {submission.assignment.title} - {submission.student.first_name} {submission.student.last_name}
                           </DialogTitle>
                         </DialogHeader>
-                        <div className="space-y-4">
-                          <div>
-                            <h4 className="font-medium mb-2">Submission Text:</h4>
-                            <p className="text-sm bg-muted p-3 rounded-lg">
-                              {submission.submission_text || 'No text submission'}
-                            </p>
-                          </div>
-                          {submission.file_path && (
+                        <div className="space-y-6">
+                          {/* Assignment Info */}
+                          <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
                             <div>
-                              <h4 className="font-medium mb-2">Attached File:</h4>
-                              <p className="text-sm text-muted-foreground">{submission.file_path}</p>
+                              <span className="text-sm font-medium">Subject:</span>
+                              <p className="text-sm text-muted-foreground">{submission.assignment.subject.name}</p>
+                            </div>
+                            <div>
+                              <span className="text-sm font-medium">Class:</span>
+                              <p className="text-sm text-muted-foreground">{submission.assignment.subject.class.name}</p>
+                            </div>
+                            <div>
+                              <span className="text-sm font-medium">Submitted:</span>
+                              <p className="text-sm text-muted-foreground">{new Date(submission.submitted_at).toLocaleDateString()}</p>
+                            </div>
+                            <div>
+                              <span className="text-sm font-medium">Max Score:</span>
+                              <p className="text-sm text-muted-foreground">{submission.assignment.max_score} points</p>
+                            </div>
+                          </div>
+
+                          {/* Text Submission */}
+                          {submission.submission_text && (
+                            <div>
+                              <h4 className="font-medium mb-2">Text Submission:</h4>
+                              <div className="bg-muted p-4 rounded-lg">
+                                <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                                  {submission.submission_text}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* File Attachments */}
+                          {(() => {
+                            try {
+                              const files = submission.file_path ? JSON.parse(submission.file_path) : [];
+                              return files.length > 0 ? (
+                                <div>
+                                  <h4 className="font-medium mb-2">File Attachments:</h4>
+                                  <div className="border rounded-lg p-3 bg-muted/30">
+                                    <SubmissionFilesView files={files} />
+                                  </div>
+                                </div>
+                              ) : null;
+                            } catch {
+                              return submission.file_path ? (
+                                <div>
+                                  <h4 className="font-medium mb-2">File Attachment:</h4>
+                                  <p className="text-sm text-muted-foreground bg-muted p-3 rounded">
+                                    {submission.file_path}
+                                  </p>
+                                </div>
+                              ) : null;
+                            }
+                          })()}
+
+                          {/* Grade if available */}
+                          {submission.score !== null && (
+                            <div className="border rounded-lg p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20">
+                              <h4 className="font-medium mb-2">Grade & Feedback</h4>
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium">Score:</span>
+                                  <span className="text-lg font-bold text-green-600">
+                                    {submission.score}/{submission.assignment.max_score} ({Math.round((submission.score / submission.assignment.max_score) * 100)}%)
+                                  </span>
+                                </div>
+                                {submission.feedback && (
+                                  <div>
+                                    <span className="text-sm font-medium text-muted-foreground">Feedback:</span>
+                                    <p className="text-sm mt-1 bg-white/50 dark:bg-black/20 p-2 rounded">
+                                      {submission.feedback}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>

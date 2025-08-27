@@ -63,6 +63,7 @@ export const EnhancedAssignmentCreation: React.FC<EnhancedAssignmentCreationProp
     allowLateSubmissions: false,
     timeLimit: null,
     resources: [],
+    subjectId: subjectId || '',
     rubric: {
       criteria: [
         { name: 'Content Quality', maxPoints: 40, description: 'Accuracy and depth of content' },
@@ -78,11 +79,39 @@ export const EnhancedAssignmentCreation: React.FC<EnhancedAssignmentCreationProp
       grammarCheck: true
     },
     analytics: {
-      trackTimeSpent: true,
-      trackViewCount: true,
-      generateInsights: true
+      trackProgress: true,
+      exportResults: true,
+      parentNotifications: false
     }
   });
+
+  const handleSubmit = () => {
+    if (!assignmentData.title || !assignmentData.subjectId) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    const submissionData = {
+      title: assignmentData.title,
+      description: assignmentData.description,
+      subject_id: assignmentData.subjectId,
+      due_date: assignmentData.dueDate || null,
+      max_score: assignmentData.maxScore,
+      submission_types: assignmentData.submissionTypes,
+      time_limit_minutes: assignmentData.timeLimit,
+      show_grades_to_students: assignmentData.showGradesToStudents,
+      ai_assistance_config: assignmentData.aiAssistance,
+      analytics_config: assignmentData.analytics,
+      group_assignment: assignmentData.groupAssignment,
+      max_attempts: assignmentData.maxAttempts,
+      peer_review: assignmentData.enablePeerReview,
+      plagiarism_check: assignmentData.plagiarismCheck,
+      allow_late_submissions: assignmentData.allowLateSubmissions
+    };
+
+    onSubmit(submissionData);
+    onOpenChange(false);
+  };
 
   const submissionTypeOptions = [
     { value: 'text', label: 'Text Entry', icon: FileText },
@@ -123,11 +152,6 @@ export const EnhancedAssignmentCreation: React.FC<EnhancedAssignmentCreationProp
         { type: 'link', title: '', url: '', description: '' }
       ]
     }));
-  };
-
-  const handleSubmit = () => {
-    onSubmit({ ...assignmentData, subjectId });
-    onOpenChange(false);
   };
 
   return (

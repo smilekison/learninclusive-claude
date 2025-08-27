@@ -244,8 +244,12 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
   }, [dragging, dragOffset]);
 
   const getSignLanguageVideo = () => {
-    // Use a placeholder sign language video URL for now
-    return '/sign-language-placeholder.mp4';
+    // Check if sign language video is available for this content
+    if (videoRef.current?.src) {
+      // For custom videos, check if there's an associated sign language video
+      return videoRef.current.src.replace('.mp4', '_sign.mp4');
+    }
+    return null;
   };
 
   return (

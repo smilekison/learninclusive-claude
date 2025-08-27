@@ -264,11 +264,23 @@ export const VideoManagementPage: React.FC = () => {
 
     // If a file is selected, upload to Supabase Storage first
     if (selectedFile && user?.id) {
-      const path = `${user.id}/${Date.now()}-${selectedFile.name}`;
+      const timestamp = Date.now();
+      const sanitizedFileName = selectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const path = `${user.id}/${timestamp}-${sanitizedFileName}`;
+      
+      console.log('🎬 VIDEO UPLOAD: Starting upload to path:', path);
       const { error: uploadError } = await supabase.storage
         .from('videos')
-        .upload(path, selectedFile, { contentType: selectedFile.type });
-      if (!uploadError) {
+        .upload(path, selectedFile, { 
+          contentType: selectedFile.type,
+          cacheControl: '3600'
+        });
+      
+      if (uploadError) {
+        console.error('🎬 VIDEO UPLOAD: Error:', uploadError);
+        throw new Error(`Failed to upload video: ${uploadError.message}`);
+      } else {
+        console.log('🎬 VIDEO UPLOAD: Success!');
         payload = { ...payload, file_path: path, external_url: '' };
       }
     }

@@ -295,7 +295,8 @@ export const AdvancedSubmissionDialog: React.FC<AdvancedSubmissionDialogProps> =
         .from('assignment-submissions')
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
+          contentType: file.type
         });
 
       console.log('🔥 UPLOAD FILE TO STORAGE: Supabase response:', { data, error });

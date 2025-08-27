@@ -302,8 +302,10 @@ export type Database = {
       }
       assignments: {
         Row: {
+          ai_assistance_config: Json | null
           allow_late_submissions: boolean | null
           allowed_file_types: string[] | null
+          analytics_config: Json | null
           assignment_type: Database["public"]["Enums"]["assignment_type"] | null
           auto_grade: boolean | null
           created_at: string
@@ -321,13 +323,18 @@ export type Database = {
           plagiarism_check: boolean | null
           resources_json: Json | null
           rubric_id: string | null
+          show_grades_to_students: boolean | null
           subject_id: string
+          submission_types: string[] | null
+          time_limit_minutes: number | null
           title: string
           updated_at: string
         }
         Insert: {
+          ai_assistance_config?: Json | null
           allow_late_submissions?: boolean | null
           allowed_file_types?: string[] | null
+          analytics_config?: Json | null
           assignment_type?:
             | Database["public"]["Enums"]["assignment_type"]
             | null
@@ -347,13 +354,18 @@ export type Database = {
           plagiarism_check?: boolean | null
           resources_json?: Json | null
           rubric_id?: string | null
+          show_grades_to_students?: boolean | null
           subject_id: string
+          submission_types?: string[] | null
+          time_limit_minutes?: number | null
           title: string
           updated_at?: string
         }
         Update: {
+          ai_assistance_config?: Json | null
           allow_late_submissions?: boolean | null
           allowed_file_types?: string[] | null
+          analytics_config?: Json | null
           assignment_type?:
             | Database["public"]["Enums"]["assignment_type"]
             | null
@@ -373,7 +385,10 @@ export type Database = {
           plagiarism_check?: boolean | null
           resources_json?: Json | null
           rubric_id?: string | null
+          show_grades_to_students?: boolean | null
           subject_id?: string
+          submission_types?: string[] | null
+          time_limit_minutes?: number | null
           title?: string
           updated_at?: string
         }

@@ -90,22 +90,23 @@ export const AssignmentsPage: React.FC = () => {
       return;
     }
     
+    // Simplified assignment data that matches the database schema
     const assignmentData = {
       title: data.title,
-      description: data.description,
+      description: data.description || '',
       subject_id: data.subject_id,
       due_date: data.due_date || null,
       max_score: data.max_score || 100,
       submission_types: data.submission_types || ['file_upload'],
-      time_limit_minutes: data.time_limit_minutes,
-      show_grades_to_students: data.show_grades_to_students,
+      time_limit_minutes: data.time_limit_minutes || null,
+      show_grades_to_students: data.show_grades_to_students ?? true,
       ai_assistance_config: data.ai_assistance_config || {},
       analytics_config: data.analytics_config || {},
       group_assignment: data.group_assignment || false,
-      max_attempts: data.max_attempts || 1,
+      max_attempts: data.max_attempts || 3,
       peer_review: data.peer_review || false,
-      plagiarism_check: data.plagiarism_check || false,
-      allow_late_submissions: data.allow_late_submissions || true
+      plagiarism_check: data.plagiarism_check ?? true,
+      allow_late_submissions: data.allow_late_submissions ?? true
     };
 
     console.log('Final assignment data:', assignmentData);

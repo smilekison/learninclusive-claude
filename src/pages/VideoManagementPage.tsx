@@ -110,7 +110,7 @@ export const VideoManagementPage: React.FC = () => {
       const { data: profile } = await supabase
         .from('profiles')
         .select('id')
-        .eq('user_id', user?.id)
+        .eq('user_id', user?.authUserId)
         .single();
       
       if (profile) {
@@ -132,7 +132,7 @@ export const VideoManagementPage: React.FC = () => {
       const { data: profile } = await supabase
         .from('profiles')
         .select('id')
-        .eq('user_id', user?.id)
+        .eq('user_id', user?.authUserId)
         .single();
       
       if (!profile) throw new Error('Profile not found');
@@ -293,7 +293,7 @@ export const VideoManagementPage: React.FC = () => {
     const { data: profile } = await supabase
       .from('profiles')
       .select('id')
-      .eq('user_id', user?.id)
+      .eq('user_id', user?.authUserId)
       .single();
     
     if (!profile) throw new Error('Profile not found');

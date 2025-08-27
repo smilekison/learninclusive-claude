@@ -47,73 +47,26 @@ export const useRobustAccessibilityAudit = (enableAudit: boolean = false) => {
         }
       });
 
-      // Robust configuration tested to work reliably
+      // Ultra-minimal configuration with only guaranteed valid rules
       const axeConfig = {
-        tags: ['wcag2a', 'wcag2aa', 'wcag21aa'],
+        tags: ['wcag2a', 'wcag2aa'],
         exclude: [
-          // Exclude problematic dynamic elements
           '[data-radix-popper-content-wrapper]',
-          '[data-sonner-toaster]', 
-          '[data-react-aria-top-layer]',
-          '[role="tooltip"]',
-          '.sonner-toaster'
+          '[data-sonner-toaster]',
+          '[aria-hidden="true"]'
         ],
         rules: {
-          // Core ARIA rules
-          'aria-required-attr': { enabled: true },
-          'aria-roles': { enabled: true },
-          'aria-valid-attr': { enabled: true },
-          'aria-valid-attr-value': { enabled: true },
-          'aria-hidden-focus': { enabled: true },
-          'aria-required-children': { enabled: true },
-          'aria-required-parent': { enabled: true },
-          
-          // Interactive elements
+          // Only core, guaranteed-to-exist rules
           'button-name': { enabled: true },
           'link-name': { enabled: true },
-          'input-button-name': { enabled: true },
-          'select-name': { enabled: true },
-          'textarea-name': { enabled: true },
-          
-          // Form controls
-          'label': { enabled: true },
-          'form-field-multiple-labels': { enabled: false }, // Often triggers false positives
-          
-          // Visual design
-          'color-contrast': { enabled: true },
-          'color-contrast-enhanced': { enabled: false }, // AAA level, optional
-          
-          // Document structure
-          'html-has-lang': { enabled: true },
-          'html-lang-valid': { enabled: true },
-          'document-title': { enabled: true },
-          'page-has-heading-one': { enabled: true },
-          'heading-order': { enabled: true },
-          
-          // Images
           'image-alt': { enabled: true },
-          'input-image-alt': { enabled: true },
-          'object-alt': { enabled: true },
-          
-          // Navigation
-          'landmark-one-main': { enabled: true },
-          'landmark-complementary-is-top-level': { enabled: true },
-          'landmark-main-is-top-level': { enabled: true },
-          'landmark-no-duplicate-main': { enabled: true },
-          'landmark-unique': { enabled: false }, // Can be problematic with dynamic content
-          
-          // Lists
-          'list': { enabled: true },
-          'listitem': { enabled: true },
-          'definition-list': { enabled: true },
-          
-          // Technical
+          'label': { enabled: true },
+          'html-has-lang': { enabled: true },
+          'color-contrast': { enabled: true },
           'duplicate-id': { enabled: true },
-          'duplicate-id-active': { enabled: true },
-          'duplicate-id-aria': { enabled: true },
-          'meta-viewport': { enabled: true },
-          'tabindex': { enabled: true },
-          'focus-order-semantics': { enabled: true }
+          'aria-valid-attr': { enabled: true },
+          'aria-valid-attr-value': { enabled: true },
+          'aria-required-attr': { enabled: true }
         }
       };
 

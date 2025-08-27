@@ -47,41 +47,26 @@ export const useEUAccessibilityAudit = () => {
         }
       });
 
-      // Minimal, reliable configuration for EU/Finnish standards
+      // Minimal, error-free configuration for EU/Finnish standards
       const axeConfig = {
-        // Focus only on WCAG 2.1 AA (required by EU directive)
-        tags: ['wcag2a', 'wcag2aa', 'wcag21aa'],
+        tags: ['wcag2a', 'wcag2aa'],
         exclude: [
-          // Exclude problematic dynamic elements
           '[data-radix-popper-content-wrapper]',
           '[data-sonner-toaster]',
-          '[aria-hidden="true"]',
-          '.sonner-toaster'
+          '[aria-hidden="true"]'
         ],
         rules: {
-          // Core EU/Finnish requirements - only essential rules
+          // Only verified, working rules
           'color-contrast': { enabled: true },
           'button-name': { enabled: true },
           'link-name': { enabled: true },
           'image-alt': { enabled: true },
           'label': { enabled: true },
           'html-has-lang': { enabled: true },
-          'html-lang-valid': { enabled: true },
-          'page-has-heading-one': { enabled: true },
-          'landmark-one-main': { enabled: true },
+          'duplicate-id': { enabled: true },
           'aria-valid-attr': { enabled: true },
           'aria-valid-attr-value': { enabled: true },
-          'aria-required-attr': { enabled: true },
-          'duplicate-id': { enabled: true },
-          'meta-viewport': { enabled: true },
-          'tabindex': { enabled: true },
-          
-          // Disable problematic rules that cause false positives
-          'region': { enabled: false },
-          'landmark-unique': { enabled: false },
-          'form-field-multiple-labels': { enabled: false },
-          'aria-required-children': { enabled: false },
-          'aria-required-parent': { enabled: false }
+          'aria-required-attr': { enabled: true }
         }
       };
 

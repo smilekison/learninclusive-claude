@@ -326,8 +326,55 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Mission & Vision Section */}
+      <section className="py-20 bg-muted/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
+              Our Mission & Vision
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Driving the future of inclusive education through innovation and accessibility.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* Mission */}
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-8">
+                <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center mb-6 mx-auto">
+                  <Heart className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-2xl font-bold text-center mb-6">Our Mission</h3>
+                <p className="text-muted-foreground leading-relaxed text-center">
+                  To break down barriers in education by creating the world's most accessible learning platform. 
+                  We believe every student, regardless of their abilities or disabilities, deserves equal access 
+                  to quality education. Our mission is to empower educators with tools that make learning truly 
+                  inclusive, ensuring no student is left behind in their educational journey.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Vision */}
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-8">
+                <div className="w-16 h-16 bg-accent/10 rounded-lg flex items-center justify-center mb-6 mx-auto">
+                  <Globe className="h-8 w-8 text-accent" />
+                </div>
+                <h3 className="text-2xl font-bold text-center mb-6">Our Vision</h3>
+                <p className="text-muted-foreground leading-relaxed text-center">
+                  A world where accessibility in education is not an afterthought, but the foundation upon which 
+                  all learning experiences are built. We envision a future where every educational institution 
+                  has the tools and knowledge to create truly inclusive environments, where diversity in learning 
+                  needs is celebrated and supported through cutting-edge, accessible technology.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* Services Section */}
-      <section id="services" className="py-20 bg-muted/30">
+      <section id="services" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">

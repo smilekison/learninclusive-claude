@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Volume2, VolumeX, Maximize, Settings, Captions } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize, Settings, Captions, RotateCcw, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
@@ -107,6 +107,15 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
     setCurrentTime(newTime);
   };
 
+  const seekBy = (delta: number) => {
+    const video = videoRef.current;
+    if (!video) return;
+    
+    const newTime = Math.max(0, Math.min(video.duration || 0, video.currentTime + delta));
+    video.currentTime = newTime;
+    setCurrentTime(newTime);
+  };
+
   const handleVolumeChange = (value: number[]) => {
     const video = videoRef.current;
     if (!video) return;
@@ -153,18 +162,11 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
         break;
       case 'ArrowLeft':
         event.preventDefault();
-        if (videoRef.current) {
-          videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - 10);
-        }
+        seekBy(-5);
         break;
       case 'ArrowRight':
         event.preventDefault();
-        if (videoRef.current) {
-          videoRef.current.currentTime = Math.min(
-            videoRef.current.duration,
-            videoRef.current.currentTime + 10
-          );
-        }
+        seekBy(5);
         break;
       case 'ArrowUp':
         event.preventDefault();
@@ -197,19 +199,11 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto bg-background">
-      <div
-        ref={containerRef}
-        className="relative focus-within:ring-2 focus-within:ring-primary rounded-lg overflow-hidden"
-        onKeyDown={handleKeyDown}
-        tabIndex={0}
-        role="application"
-        aria-label={`Video player for ${title}`}
-      >
-        {/* Video Element */}
+    <Card className="overflow-hidden">
+      <div className="relative bg-black aspect-video">
         <video
           ref={videoRef}
-          className="w-full h-auto bg-black"
+          className="w-full h-full"
           poster={thumbnailUrl || undefined}
           aria-describedby="video-description"
           preload="metadata"
@@ -218,107 +212,77 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
             const v = videoRef.current;
             if (v) setMetaDuration(v.duration || 0);
           }}
+          onKeyDown={handleKeyDown}
+          tabIndex={0}
         >
           Your browser does not support the video tag.
         </video>
+      </div>
 
-        {/* Video Controls */}
-        {showControls && (
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-            {/* Progress Bar */}
-            <div className="mb-4">
-              <Slider
-                value={[metaDuration > 0 ? (currentTime / metaDuration) * 100 : 0]}
-                onValueChange={handleSeek}
-                max={100}
-                step={0.1}
-                className="w-full"
-                aria-label="Video progress"
-              />
-            </div>
+      {/* Controls */}
+      <div className="p-4 border-t border-border flex flex-col gap-3" role="group" aria-label="Video controls">
+        <div className="flex flex-wrap items-center gap-3">
+          <Button variant="outline" onClick={() => seekBy(-5)} aria-label="Rewind 5 seconds">
+            <RotateCcw className="h-4 w-4" />
+            <span className="ml-2">-5s</span>
+          </Button>
 
-            {/* Control Buttons */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={togglePlay}
-                  aria-label={isPlaying ? 'Pause video' : 'Play video'}
-                  className="text-white hover:bg-white/20 min-w-[44px] min-h-[44px]"
-                >
-                  {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-                </Button>
+          <Button onClick={togglePlay} aria-label={isPlaying ? 'Pause' : 'Play'}>
+            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            <span className="ml-2">{isPlaying ? 'Pause' : 'Play'}</span>
+          </Button>
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleMute}
-                  aria-label={isMuted ? 'Unmute' : 'Mute'}
-                  className="text-white hover:bg-white/20 min-w-[44px] min-h-[44px]"
-                >
-                  {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-                </Button>
+          <Button variant="outline" onClick={() => seekBy(5)} aria-label="Forward 5 seconds">
+            <RotateCw className="h-4 w-4" />
+            <span className="ml-2">+5s</span>
+          </Button>
 
-                <div className="w-24">
-                  <Slider
-                    value={[isMuted ? 0 : volume * 100]}
-                    onValueChange={handleVolumeChange}
-                    max={100}
-                    aria-label="Volume"
-                  />
-                </div>
-
-                <span className="text-white text-sm font-mono">
-                  {formatTime(currentTime)} / {formatTime(metaDuration || duration || 0)}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {/* Playback Speed */}
-                <select
-                  value={playbackSpeed}
-                  onChange={(e) => changePlaybackSpeed(Number(e.target.value))}
-                  className="bg-black/50 text-white border border-white/20 rounded px-2 py-1 text-sm"
-                  aria-label="Playback speed"
-                >
-                  <option value={0.5}>0.5x</option>
-                  <option value={0.75}>0.75x</option>
-                  <option value={1}>1x</option>
-                  <option value={1.25}>1.25x</option>
-                  <option value={1.5}>1.5x</option>
-                  <option value={2}>2x</option>
-                </select>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowTranscript(!showTranscript)}
-                  aria-label={showTranscript ? 'Hide transcript' : 'Show transcript'}
-                  className="text-white hover:bg-white/20 min-w-[44px] min-h-[44px]"
-                >
-                  <Captions className="h-5 w-5" />
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => containerRef.current?.requestFullscreen()}
-                  aria-label="Fullscreen"
-                  className="text-white hover:bg-white/20 min-w-[44px] min-h-[44px]"
-                >
-                  <Maximize className="h-5 w-5" />
-                </Button>
-              </div>
+          <div className="flex items-center gap-2 min-w-[200px]">
+            <Button variant="outline" onClick={toggleMute} aria-label="Toggle mute">
+              {volume === 0 || isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+            </Button>
+            <div className="w-40">
+              <Slider value={[isMuted ? 0 : volume * 100]} onValueChange={handleVolumeChange} aria-label="Volume" />
             </div>
           </div>
-        )}
 
-        {/* Keyboard Shortcuts Help */}
-        <div className="absolute top-4 right-4">
-          <Badge variant="secondary" className="text-xs">
-            Press ? for keyboard shortcuts
-          </Badge>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Speed</span>
+            <select
+              value={playbackSpeed}
+              onChange={(e) => changePlaybackSpeed(Number(e.target.value))}
+              className="border border-border rounded px-2 py-1 text-sm bg-background"
+              aria-label="Playback speed"
+            >
+              <option value={0.5}>0.5x</option>
+              <option value={0.75}>0.75x</option>
+              <option value={1}>1x</option>
+              <option value={1.25}>1.25x</option>
+              <option value={1.5}>1.5x</option>
+              <option value={2}>2x</option>
+            </select>
+          </div>
+
+          <Button variant="outline" onClick={() => setShowTranscript(!showTranscript)} aria-pressed={showTranscript} aria-label={`Captions ${showTranscript ? 'on' : 'off'}`}>
+            <Captions className="h-4 w-4" />
+            <span className="ml-2">Captions {showTranscript ? 'On' : 'Off'}</span>
+          </Button>
+
+          <div className="ml-auto text-sm tabular-nums text-muted-foreground">
+            {formatTime(currentTime)} / {formatTime(metaDuration || duration || 0)}
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="w-full">
+          <Slider
+            value={[metaDuration > 0 ? (currentTime / metaDuration) * 100 : 0]}
+            onValueChange={handleSeek}
+            max={100}
+            step={0.1}
+            className="w-full"
+            aria-label="Video progress"
+          />
         </div>
       </div>
 
@@ -347,7 +311,7 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
               <h4 className="font-medium mb-2">Keyboard Controls:</h4>
               <ul className="space-y-1 text-muted-foreground">
                 <li>• Space/Enter: Play/Pause</li>
-                <li>• ← →: Seek backward/forward 10s</li>
+                <li>• ← →: Seek backward/forward 5s</li>
                 <li>• ↑ ↓: Volume up/down</li>
                 <li>• M: Toggle mute</li>
                 <li>• F: Toggle fullscreen</li>

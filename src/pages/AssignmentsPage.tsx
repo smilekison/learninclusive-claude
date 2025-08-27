@@ -183,6 +183,8 @@ export const AssignmentsPage: React.FC = () => {
                 open={isDialogOpen}
                 onOpenChange={setIsDialogOpen}
                 onSubmit={handleCreateAssignment}
+                subjects={subjects}
+                classes={classes}
               />
             </>
           )}

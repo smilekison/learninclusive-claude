@@ -39,13 +39,17 @@ interface EnhancedAssignmentCreationProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: any) => void;
   subjectId?: string;
+  subjects?: any[];
+  classes?: any[];
 }
 
 export const EnhancedAssignmentCreation: React.FC<EnhancedAssignmentCreationProps> = ({
   open,
   onOpenChange,
   onSubmit,
-  subjectId
+  subjectId,
+  subjects = [],
+  classes = []
 }) => {
   const [activeTab, setActiveTab] = useState('basics');
   const [assignmentData, setAssignmentData] = useState({
@@ -246,6 +250,35 @@ export const EnhancedAssignmentCreation: React.FC<EnhancedAssignmentCreationProp
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    <div>
+                      <Label htmlFor="assignment-subject">Subject & Class *</Label>
+                      <Select 
+                        value={assignmentData.subjectId} 
+                        onValueChange={(value) => setAssignmentData(prev => ({ ...prev, subjectId: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a subject" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background border z-50">
+                          {subjects.map((subject: any) => {
+                            const classInfo = classes.find((c: any) => c.id === subject.class_id);
+                            return (
+                              <SelectItem key={subject.id} value={subject.id}>
+                                <div className="flex flex-col text-left">
+                                  <span className="font-medium">{subject.name}</span>
+                                  {classInfo && (
+                                    <span className="text-sm text-muted-foreground">
+                                      Class: {classInfo.name}
+                                    </span>
+                                  )}
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="maxScore">Max Score*</Label>

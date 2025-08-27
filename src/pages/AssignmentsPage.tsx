@@ -82,17 +82,33 @@ export const AssignmentsPage: React.FC = () => {
     }
   );
 
-  const handleCreateAssignment = async () => {
-    if (!newAssignment.title || !newAssignment.subjectId) return;
+  const handleCreateAssignment = async (data: any) => {
+    console.log('Creating assignment with data:', data);
+    
+    if (!data.title || !data.subject_id) {
+      console.error('Missing required fields:', { title: data.title, subject_id: data.subject_id });
+      return;
+    }
     
     const assignmentData = {
-      title: newAssignment.title,
-      description: newAssignment.description,
-      subject_id: newAssignment.subjectId,
-      due_date: newAssignment.dueDate || null,
-      max_score: newAssignment.maxScore
+      title: data.title,
+      description: data.description,
+      subject_id: data.subject_id,
+      due_date: data.due_date || null,
+      max_score: data.max_score || 100,
+      submission_types: data.submission_types || ['file_upload'],
+      time_limit_minutes: data.time_limit_minutes,
+      show_grades_to_students: data.show_grades_to_students,
+      ai_assistance_config: data.ai_assistance_config || {},
+      analytics_config: data.analytics_config || {},
+      group_assignment: data.group_assignment || false,
+      max_attempts: data.max_attempts || 1,
+      peer_review: data.peer_review || false,
+      plagiarism_check: data.plagiarism_check || false,
+      allow_late_submissions: data.allow_late_submissions || true
     };
 
+    console.log('Final assignment data:', assignmentData);
     await createAssignmentMutation.mutateAsync(assignmentData);
   };
 
@@ -188,6 +204,10 @@ export const AssignmentsPage: React.FC = () => {
                 subjects={subjects}
                 classes={classes}
               />
+              {/* Debug info */}
+              <div className="text-xs text-gray-500 mt-2">
+                Debug: {subjects?.length || 0} subjects, {classes?.length || 0} classes
+              </div>
             </>
           )}
         </div>

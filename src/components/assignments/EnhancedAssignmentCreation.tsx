@@ -90,8 +90,12 @@ export const EnhancedAssignmentCreation: React.FC<EnhancedAssignmentCreationProp
   });
 
   const handleSubmit = () => {
+    console.log('Assignment Data:', assignmentData);
+    console.log('Title:', assignmentData.title);
+    console.log('Subject ID:', assignmentData.subjectId);
+    
     if (!assignmentData.title || !assignmentData.subjectId) {
-      alert('Please fill in all required fields');
+      alert(`Please fill in all required fields. Missing: ${!assignmentData.title ? 'Title' : ''} ${!assignmentData.subjectId ? 'Subject' : ''}`);
       return;
     }
 
@@ -113,6 +117,7 @@ export const EnhancedAssignmentCreation: React.FC<EnhancedAssignmentCreationProp
       allow_late_submissions: assignmentData.allowLateSubmissions
     };
 
+    console.log('Submitting data:', submissionData);
     onSubmit(submissionData);
     onOpenChange(false);
   };
@@ -254,29 +259,49 @@ export const EnhancedAssignmentCreation: React.FC<EnhancedAssignmentCreationProp
                       <Label htmlFor="assignment-subject">Subject & Class *</Label>
                       <Select 
                         value={assignmentData.subjectId} 
-                        onValueChange={(value) => setAssignmentData(prev => ({ ...prev, subjectId: value }))}
+                        onValueChange={(value) => {
+                          console.log('Selected subject:', value);
+                          setAssignmentData(prev => ({ ...prev, subjectId: value }));
+                        }}
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a subject" />
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select a subject and class" />
                         </SelectTrigger>
-                        <SelectContent className="bg-background border z-50">
-                          {subjects.map((subject: any) => {
-                            const classInfo = classes.find((c: any) => c.id === subject.class_id);
-                            return (
-                              <SelectItem key={subject.id} value={subject.id}>
-                                <div className="flex flex-col text-left">
-                                  <span className="font-medium">{subject.name}</span>
-                                  {classInfo && (
-                                    <span className="text-sm text-muted-foreground">
-                                      Class: {classInfo.name}
+                        <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg z-[100] max-h-[300px] overflow-y-auto">
+                          {subjects && subjects.length > 0 ? (
+                            subjects.map((subject: any) => {
+                              const classInfo = classes?.find((c: any) => c.id === subject.class_id);
+                              return (
+                                <SelectItem 
+                                  key={subject.id} 
+                                  value={subject.id}
+                                  className="bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                                >
+                                  <div className="flex flex-col items-start py-1">
+                                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                                      {subject.name}
                                     </span>
-                                  )}
-                                </div>
-                              </SelectItem>
-                            );
-                          })}
+                                    {classInfo && (
+                                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                                        Class: {classInfo.name}
+                                      </span>
+                                    )}
+                                  </div>
+                                </SelectItem>
+                              );
+                            })
+                          ) : (
+                            <SelectItem value="no-subjects" disabled>
+                              <span className="text-gray-500">No subjects available</span>
+                            </SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
+                      {subjects && subjects.length === 0 && (
+                        <p className="text-sm text-red-500 mt-1">
+                          No subjects found. Please create a subject first.
+                        </p>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">

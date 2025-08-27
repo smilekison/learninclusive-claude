@@ -48,7 +48,7 @@ interface AccessibleYouTubePlayerProps {
   videoDbId?: string; // database id of video_materials row for analytics
 }
 
-export const AccessibleYouTubePlayer: React.FC<AccessibleYouTubePlayerProps> = ({
+const AccessibleYouTubePlayer: React.FC<AccessibleYouTubePlayerProps> = ({
   videoId,
   title,
   captionLang = 'en',
@@ -376,6 +376,13 @@ useEffect(() => {
     } catch { }
   }, []);
 
+  const seekTo = useCallback((time: number) => {
+    const p = playerRef.current; if (!p) return;
+    try {
+      p.seekTo?.(time, true);
+    } catch { }
+  }, []);
+
   const formatTime = useCallback((s: number) => {
     if (!isFinite(s)) return '0:00';
     s = Math.max(0, Math.floor(s));
@@ -520,68 +527,98 @@ useEffect(() => {
             <Hand className="h-4 w-4" />
             <span className="ml-2">Sign language {openSign ? 'On' : 'Off'}</span>
           </Button>
+        </div>
 
-          <div className="ml-auto text-sm tabular-nums text-muted-foreground">
-            {formatTime(currentTime)} / {formatTime(duration)}
+        {/* Enhanced Progress Bar with Clickable Seek */}
+        <div className="w-full">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>{formatTime(currentTime)}</span>
+            <div 
+              className="flex-1 bg-muted rounded-full h-2 cursor-pointer relative group" 
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const percentage = clickX / rect.width;
+                const newTime = percentage * duration;
+                if (duration > 0) {
+                  seekTo(newTime);
+                }
+              }}
+            >
+              <div 
+                className="bg-primary h-2 rounded-full transition-all group-hover:bg-primary/80"
+                style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+              />
+              <div 
+                className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ left: `${duration > 0 ? (currentTime / duration) * 100 : 0}%`, marginLeft: '-6px' }}
+              />
+            </div>
+            <span>{formatTime(duration)}</span>
           </div>
         </div>
       </div>
 
+      {/* Sign Language Overlay - Fixed and Enhanced */}
       {openSign && (
         <div
           ref={overlayRef}
+          className="fixed border-2 border-primary/20 rounded-lg overflow-hidden shadow-2xl bg-background z-50 min-w-[192px] min-h-[108px] resize-none"
+          style={{
+            left: overlayPos.x,
+            top: overlayPos.y,
+            width: overlayWidth,
+            height: overlayWidth * aspect,
+            cursor: dragging ? 'grabbing' : 'grab',
+          }}
+          tabIndex={0}
           role="dialog"
           aria-label="Sign language window (mirrored)"
-          tabIndex={0}
-          className="fixed z-40 rounded-md ring-1 ring-border shadow-lg bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70 pointer-events-none"
-          style={{ left: overlayPos.x, top: overlayPos.y }}
           onKeyDown={handleOverlayKeyDown}
+          onFocus={() => announce('Sign language window focused. Use arrow keys to move, +/- to resize, Escape to close')}
           onMouseEnter={() => announce('Sign language window')}
         >
           <div
-            className="flex items-center justify-between px-2 py-1 border-b border-border bg-muted/40 pointer-events-auto cursor-move"
+            className="bg-primary/10 backdrop-blur px-3 py-2 cursor-move select-none border-b border-primary/20"
             onMouseDown={onDragStart}
             onMouseEnter={() => announce('Sign language window header. Drag to move window')}
             aria-label="Drag to move sign language window"
-            role="button"
             tabIndex={-1}
           >
-            <span className="text-sm font-medium text-foreground">Digital Avatar - Sign Language</span>
+            <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-foreground">Sign Language Interpreter</span>
             <Button variant="ghost" size="sm" onClick={() => setOpenSign(false)} aria-label="Close sign language window" className="h-6 w-6 p-0">
               <X className="h-3 w-3" />
             </Button>
-          </div>
-          <div className="relative bg-black overflow-hidden pointer-events-auto">
-            <div className="px-3 py-2 bg-background/95 border-b border-border">
-              <p className="text-sm font-medium text-foreground text-center">
-                Sign Language Interpretation Preview
-              </p>
             </div>
-            <div className="aspect-video yt-mini-frame" style={{ width: overlayWidth }}>
-              <div id={miniContainerId} className="w-full h-full" aria-label="Mini YouTube player (muted)" />
-            </div>
-            {/* Resize handle */}
-            <div
-              className="absolute bottom-1 right-1 w-4 h-4 cursor-se-resize rounded-sm bg-muted/70 hover:bg-muted transition-colors"
-              onMouseDown={(e) => { 
-                e.preventDefault(); 
-                e.stopPropagation();
-                setResizing(true); 
-                announce('Started resizing sign language window'); 
-              }}
-              onMouseEnter={() => announce('Resize handle - drag to resize window')}
-              role="slider"
-              aria-label="Resize sign language window"
-              aria-valuemin={minWidth}
-              aria-valuemax={maxWidth}
-              aria-valuenow={Math.round(overlayWidth)}
-              title="Drag to resize sign language window"
-            />
           </div>
+          <div className="flex-1 bg-black relative overflow-hidden">
+            <div id={miniContainerId} className="w-full h-full" />
+            <div className="absolute inset-0 bg-black/20 pointer-events-none flex items-center justify-center opacity-70">
+              <div className="bg-black/70 text-white text-xs px-2 py-1 rounded">
+                Sign Language Video
+              </div>
+            </div>
+          </div>
+          <div
+            className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize bg-primary/20 hover:bg-primary/40 transition-colors"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setResizing(true);
+              announce('Started resizing sign language window'); 
+              document.body.style.userSelect = 'none';
+            }}
+            aria-label="Resize sign language window"
+            role="button"
+            tabIndex={-1}
+            title="Drag to resize sign language window"
+          />
         </div>
       )}
     </Card>
   );
 };
 
+export { AccessibleYouTubePlayer };
 export default AccessibleYouTubePlayer;

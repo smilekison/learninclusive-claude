@@ -157,17 +157,16 @@ export const SubmissionFilesView: React.FC<SubmissionFilesViewProps> = ({
               </div>
               
               <div className="flex items-center gap-2 flex-shrink-0">
-                {(file.type.startsWith('image/') || file.type.includes('pdf') || file.type.startsWith('text/')) && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => previewFile(file)}
-                    className="flex items-center gap-1"
-                  >
-                    <Eye className="w-3 h-3" />
-                    Preview
-                  </Button>
-                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => previewFile(file)}
+                  className="flex items-center gap-1"
+                  title={`Preview ${file.name}`}
+                >
+                  <Eye className="w-3 h-3" />
+                  Preview
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"

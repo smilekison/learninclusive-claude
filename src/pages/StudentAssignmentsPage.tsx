@@ -38,7 +38,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
 import { MoodleStyleSubmissionDialog } from '@/components/assignments/MoodleStyleSubmissionDialog';
-// Removed FileUploadTest - debug component
+import { StudentSubmissionView } from '@/components/students/StudentSubmissionView';
 
 export const StudentAssignmentsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -810,12 +810,16 @@ export const StudentAssignmentsPage: React.FC = () => {
                             )}
 
                             {submission && submission.submission_text && (
-                              <div>
-                                <h4 className="font-medium mb-2 text-muted-foreground">Your Submission</h4>
-                                <div className="p-3 bg-card rounded-lg border border-muted">
-                                  <p className="text-sm text-foreground">{submission.submission_text}</p>
-                                </div>
-                              </div>
+                              <StudentSubmissionView 
+                                submission={submission}
+                                assignment={assignment}
+                                showGrade={submission.score !== null}
+                                onViewFeedback={() => {
+                                  setSelectedGradedSubmission({ assignment, submission });
+                                  setGradeDetailsModal(true);
+                                }}
+                                className="mt-2"
+                              />
                             )}
                           </div>
                         </CardContent>

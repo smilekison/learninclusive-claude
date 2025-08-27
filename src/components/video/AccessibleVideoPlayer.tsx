@@ -275,14 +275,18 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
         {/* Sign Language Overlay */}
         {showSignLanguage && (
           <div
-            className="absolute border-2 border-white rounded-lg overflow-hidden shadow-lg bg-black"
+            className="absolute border-2 border-white rounded-lg overflow-hidden shadow-lg bg-black resize"
             style={{
               left: overlayPos.x,
               top: overlayPos.y,
               width: overlaySize.width,
               height: overlaySize.height,
               cursor: dragging ? 'grabbing' : 'grab',
-              zIndex: 10
+              zIndex: 10,
+              minWidth: '200px',
+              minHeight: '150px',
+              maxWidth: '600px',
+              maxHeight: '400px'
             }}
             onMouseDown={handleMouseDown}
           >
@@ -297,20 +301,35 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
               </Button>
             </div>
             
+            <div className="absolute top-1 left-1 z-20">
+              <div className="bg-black/70 text-white text-xs px-2 py-1 rounded">
+                Sign Language
+              </div>
+            </div>
+            
             <video
               ref={signVideoRef}
               className="w-full h-full object-cover"
               muted={isMuted}
               src={getSignLanguageVideo()}
+              onLoadedData={() => {
+                // Sync with main video when sign language video loads
+                const mainVideo = videoRef.current;
+                const signVideo = signVideoRef.current;
+                if (mainVideo && signVideo) {
+                  signVideo.currentTime = mainVideo.currentTime;
+                  if (!mainVideo.paused) {
+                    signVideo.play();
+                  }
+                }
+              }}
             >
-              Your browser does not support video.
+              <div className="flex items-center justify-center h-full text-white">
+                <p className="text-sm">Sign language video not available</p>
+              </div>
             </video>
             
-            <div className="absolute bottom-1 left-1 right-1">
-              <div className="bg-black/70 text-white text-xs px-2 py-1 rounded">
-                Sign Language
-              </div>
-            </div>
+            <div className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize bg-white/20 hover:bg-white/40 transition-colors"></div>
           </div>
         )}
       </div>

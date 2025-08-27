@@ -3,7 +3,7 @@ import { Play, Star, Users, BookOpen, Accessibility, ArrowRight } from 'lucide-r
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { VideoLibrary } from '@/components/video/VideoLibrary';
+import { EnhancedVideoLibrary } from '@/components/video/EnhancedVideoLibrary';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { TTSButton } from '@/components/accessibility/TTSButton';

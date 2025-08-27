@@ -48,6 +48,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import QuizManager from '../quizzes/QuizManager';
+import { AdvancedLessonVideoManager } from './AdvancedLessonVideoManager';
 
 interface LessonManagerProps {
   subjectId: string;
@@ -933,14 +934,17 @@ export const EnhancedLessonManager: React.FC<LessonManagerProps> = ({ subjectId 
                     </div>
                   </div>
 
-                  {/* Lesson quizzes section */}
-                  <div className="border-t pt-4">
-                    <QuizManager 
-                      subjectId={subjectId} 
-                      lessonId={lesson.id}
-                      className="space-y-2"
-                    />
-                  </div>
+                      {/* Advanced Video Manager */}
+                      <AdvancedLessonVideoManager 
+                        lessonId={lesson.id}
+                        lessonTitle={lesson.title}
+                      />
+
+                      {/* Include QuizManager for each lesson */}
+                      <QuizManager 
+                        subjectId={subjectId} 
+                        lessonId={lesson.id} 
+                      />
                 </CardContent>
               </Card>
             );

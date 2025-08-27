@@ -1038,6 +1038,84 @@ export type Database = {
           },
         ]
       }
+      lesson_videos: {
+        Row: {
+          accessibility_features: Json | null
+          captions_enabled: boolean | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          duration_seconds: number | null
+          file_path: string | null
+          file_size_bytes: number | null
+          id: string
+          is_featured: boolean | null
+          lesson_id: string
+          like_count: number | null
+          metadata: Json | null
+          mime_type: string | null
+          sign_language_file_path: string | null
+          sign_language_video_url: string | null
+          thumbnail_path: string | null
+          title: string
+          transcript_text: string | null
+          updated_at: string | null
+          video_url: string | null
+          view_count: number | null
+          visibility: string
+        }
+        Insert: {
+          accessibility_features?: Json | null
+          captions_enabled?: boolean | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          duration_seconds?: number | null
+          file_path?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          is_featured?: boolean | null
+          lesson_id: string
+          like_count?: number | null
+          metadata?: Json | null
+          mime_type?: string | null
+          sign_language_file_path?: string | null
+          sign_language_video_url?: string | null
+          thumbnail_path?: string | null
+          title: string
+          transcript_text?: string | null
+          updated_at?: string | null
+          video_url?: string | null
+          view_count?: number | null
+          visibility?: string
+        }
+        Update: {
+          accessibility_features?: Json | null
+          captions_enabled?: boolean | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          duration_seconds?: number | null
+          file_path?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          is_featured?: boolean | null
+          lesson_id?: string
+          like_count?: number | null
+          metadata?: Json | null
+          mime_type?: string | null
+          sign_language_file_path?: string | null
+          sign_language_video_url?: string | null
+          thumbnail_path?: string | null
+          title?: string
+          transcript_text?: string | null
+          updated_at?: string | null
+          video_url?: string | null
+          view_count?: number | null
+          visibility?: string
+        }
+        Relationships: []
+      }
       lessons: {
         Row: {
           accessibility_features: Json | null
@@ -2292,6 +2370,41 @@ export type Database = {
         }
         Relationships: []
       }
+      video_interactions: {
+        Row: {
+          created_at: string | null
+          id: string
+          interaction_data: Json | null
+          interaction_type: string
+          lesson_video_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          interaction_data?: Json | null
+          interaction_type: string
+          lesson_video_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          interaction_data?: Json | null
+          interaction_type?: string
+          lesson_video_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_interactions_lesson_video_id_fkey"
+            columns: ["lesson_video_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       video_likes: {
         Row: {
           created_at: string
@@ -2575,6 +2688,10 @@ export type Database = {
           subtitle: string
           title: string
         }[]
+      }
+      increment_video_view_count: {
+        Args: { video_id: string }
+        Returns: undefined
       }
       is_class_taught_by_current_teacher: {
         Args: { p_class_id: string }

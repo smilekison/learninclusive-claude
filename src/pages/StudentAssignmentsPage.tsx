@@ -37,7 +37,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
-import { AdvancedSubmissionDialog } from '@/components/assignments/AdvancedSubmissionDialog';
+import { MoodleStyleSubmissionDialog } from '@/components/assignments/MoodleStyleSubmissionDialog';
 // Removed FileUploadTest - debug component
 
 export const StudentAssignmentsPage: React.FC = () => {
@@ -908,7 +908,7 @@ export const StudentAssignmentsPage: React.FC = () => {
 
         {/* Advanced Submission Dialog */}
         {selectedAssignment && (
-          <AdvancedSubmissionDialog
+          <MoodleStyleSubmissionDialog
             open={submissionDialog}
             onOpenChange={setSubmissionDialog}
             assignment={selectedAssignment}

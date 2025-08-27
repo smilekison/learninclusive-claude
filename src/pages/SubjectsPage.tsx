@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTeacherClasses, useTeacherSubjects, useSupabaseMutation, useSoftDelete, useToggleStatus } from '@/hooks/useSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, ArrowLeft, Edit, Trash2, Play, Accessibility, Languages, Globe, ArrowRight } from 'lucide-react';
+import { Plus, ArrowLeft, Edit, Trash2, Play, Eye, Type, Globe, ArrowRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -260,11 +260,11 @@ export const SubjectsPage: React.FC = () => {
                 </div>
                 <div className="grid md:grid-cols-3 gap-4 mt-4">
                   <div className="flex items-center gap-2 text-sm">
-                    <Accessibility className="h-4 w-4 text-primary" />
+                    <Eye className="h-4 w-4 text-primary" />
                     <span>Full accessibility support</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <Languages className="h-4 w-4 text-primary" />
+                    <Type className="h-4 w-4 text-primary" />
                     <span>Sign language videos</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">

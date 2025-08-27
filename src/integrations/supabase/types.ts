@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      accessibility_audit_log: {
+        Row: {
+          accessibility_feature: string
+          action_type: string
+          context_data: Json | null
+          created_at: string | null
+          id: string
+          screen_reader_detected: boolean | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          accessibility_feature: string
+          action_type: string
+          context_data?: Json | null
+          created_at?: string | null
+          id?: string
+          screen_reader_detected?: boolean | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          accessibility_feature?: string
+          action_type?: string
+          context_data?: Json | null
+          created_at?: string | null
+          id?: string
+          screen_reader_detected?: boolean | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accessibility_audit_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assignment_analytics: {
         Row: {
           assignment_id: string
@@ -571,33 +612,111 @@ export type Database = {
         }
         Relationships: []
       }
+      lesson_progress: {
+        Row: {
+          accessibility_settings: Json | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          last_accessed: string | null
+          lesson_id: string
+          notes: string | null
+          progress_percentage: number | null
+          student_id: string
+          time_spent_minutes: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          accessibility_settings?: Json | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          last_accessed?: string | null
+          lesson_id: string
+          notes?: string | null
+          progress_percentage?: number | null
+          student_id: string
+          time_spent_minutes?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          accessibility_settings?: Json | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          last_accessed?: string | null
+          lesson_id?: string
+          notes?: string | null
+          progress_percentage?: number | null
+          student_id?: string
+          time_spent_minutes?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_progress_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
+          accessibility_features: Json | null
           content: string | null
           created_at: string
           description: string | null
+          difficulty_level: string | null
+          estimated_duration_minutes: number | null
           id: string
+          interactive_elements: Json | null
+          learning_objectives: Json | null
           lesson_order: number | null
+          prerequisites: Json | null
+          rich_content: Json | null
           subject_id: string
           title: string
           updated_at: string
         }
         Insert: {
+          accessibility_features?: Json | null
           content?: string | null
           created_at?: string
           description?: string | null
+          difficulty_level?: string | null
+          estimated_duration_minutes?: number | null
           id?: string
+          interactive_elements?: Json | null
+          learning_objectives?: Json | null
           lesson_order?: number | null
+          prerequisites?: Json | null
+          rich_content?: Json | null
           subject_id: string
           title: string
           updated_at?: string
         }
         Update: {
+          accessibility_features?: Json | null
           content?: string | null
           created_at?: string
           description?: string | null
+          difficulty_level?: string | null
+          estimated_duration_minutes?: number | null
           id?: string
+          interactive_elements?: Json | null
+          learning_objectives?: Json | null
           lesson_order?: number | null
+          prerequisites?: Json | null
+          rich_content?: Json | null
           subject_id?: string
           title?: string
           updated_at?: string
@@ -926,6 +1045,7 @@ export type Database = {
       }
       quiz_attempts: {
         Row: {
+          accessibility_settings: Json | null
           answers: Json
           attempt_number: number | null
           auto_submitted: boolean | null
@@ -933,13 +1053,16 @@ export type Database = {
           created_at: string
           feedback_viewed: boolean | null
           id: string
+          keyboard_navigation_used: boolean | null
           quiz_id: string
           score: number | null
+          screen_reader_used: boolean | null
           student_id: string
           time_limit_minutes: number | null
           time_started: string | null
         }
         Insert: {
+          accessibility_settings?: Json | null
           answers?: Json
           attempt_number?: number | null
           auto_submitted?: boolean | null
@@ -947,13 +1070,16 @@ export type Database = {
           created_at?: string
           feedback_viewed?: boolean | null
           id?: string
+          keyboard_navigation_used?: boolean | null
           quiz_id: string
           score?: number | null
+          screen_reader_used?: boolean | null
           student_id: string
           time_limit_minutes?: number | null
           time_started?: string | null
         }
         Update: {
+          accessibility_settings?: Json | null
           answers?: Json
           attempt_number?: number | null
           auto_submitted?: boolean | null
@@ -961,8 +1087,10 @@ export type Database = {
           created_at?: string
           feedback_viewed?: boolean | null
           id?: string
+          keyboard_navigation_used?: boolean | null
           quiz_id?: string
           score?: number | null
+          screen_reader_used?: boolean | null
           student_id?: string
           time_limit_minutes?: number | null
           time_started?: string | null
@@ -1304,6 +1432,69 @@ export type Database = {
           {
             foreignKeyName: "student_progress_tracking_tracked_by_fkey"
             columns: ["tracked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_quiz_sessions: {
+        Row: {
+          accessibility_settings: Json | null
+          attempt_number: number
+          auto_submitted: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          current_question_index: number | null
+          id: string
+          last_activity: string | null
+          quiz_id: string
+          session_data: Json | null
+          started_at: string | null
+          student_id: string
+          time_remaining_seconds: number | null
+        }
+        Insert: {
+          accessibility_settings?: Json | null
+          attempt_number?: number
+          auto_submitted?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          current_question_index?: number | null
+          id?: string
+          last_activity?: string | null
+          quiz_id: string
+          session_data?: Json | null
+          started_at?: string | null
+          student_id: string
+          time_remaining_seconds?: number | null
+        }
+        Update: {
+          accessibility_settings?: Json | null
+          attempt_number?: number
+          auto_submitted?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          current_question_index?: number | null
+          id?: string
+          last_activity?: string | null
+          quiz_id?: string
+          session_data?: Json | null
+          started_at?: string | null
+          student_id?: string
+          time_remaining_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_quiz_sessions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_quiz_sessions_student_id_fkey"
+            columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

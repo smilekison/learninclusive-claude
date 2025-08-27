@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 
 import { LessonManager } from './LessonManager';
+import { EnhancedLessonManager } from '../lessons/EnhancedLessonManager';
 import { StudentEnrollmentPanel } from './StudentEnrollmentPanel';
 import QuizManager from '../quizzes/QuizManager';
 
@@ -435,7 +436,7 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
           </TabsContent>
 
           <TabsContent value="lessons" className="space-y-6">
-            <LessonManager subjectId={subject.id} />
+            <EnhancedLessonManager subjectId={subject.id} />
           </TabsContent>
 
           <TabsContent value="quizzes" className="space-y-6">

@@ -24,10 +24,10 @@ export const YouTubeNavbar: React.FC<YouTubeNavbarProps> = ({ onSearch, searchTe
           <Button 
             variant="ghost" 
             size="icon" 
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/home')}
             className="h-9 w-9" 
             title="Home"
-            aria-label="Go to dashboard"
+            aria-label="Go to home page"
           >
             <Home className="h-4 w-4" />
           </Button>

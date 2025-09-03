@@ -147,7 +147,7 @@ const LandingPage: React.FC = () => {
               <a href="#about" className="text-foreground hover:text-primary transition-colors">About</a>
               <a href="#services" className="text-foreground hover:text-primary transition-colors">Services</a>
               <a href="#contact" className="text-foreground hover:text-primary transition-colors">Contact</a>
-              <Button onClick={() => navigate('/')} variant="ghost" size="sm" className="text-foreground hover:text-primary">
+              <Button onClick={() => navigate('/videos')} variant="ghost" size="sm" className="text-foreground hover:text-primary">
                 Browse Videos
               </Button>
               
@@ -196,7 +196,7 @@ const LandingPage: React.FC = () => {
                 <a href="#services" className="text-foreground hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Services</a>
                 <a href="#contact" className="text-foreground hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Contact</a>
                 <Button 
-                  onClick={() => { navigate('/'); setMobileMenuOpen(false); }} 
+                  onClick={() => { navigate('/videos'); setMobileMenuOpen(false); }} 
                   variant="ghost" 
                   size="sm" 
                   className="text-left justify-start text-foreground hover:text-primary"

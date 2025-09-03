@@ -374,14 +374,6 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Featured Videos Section */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <FeaturedVideosSection 
-            onViewAll={() => navigate('/videos')}
-          />
-        </div>
-      </section>
 
       {/* Services Section */}
       <section id="services" className="py-20">

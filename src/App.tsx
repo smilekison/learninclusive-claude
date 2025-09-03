@@ -70,7 +70,7 @@ const AppContent = () => {
       <Routes>
         <Route 
           path="/" 
-          element={<YouTubeHomepage />} 
+          element={<LandingPage />} 
         />
         <Route 
           path="/home" 

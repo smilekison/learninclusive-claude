@@ -6,6 +6,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { FeaturedVideosSection } from '@/components/video/FeaturedVideosSection';
 import {
   GraduationCap,
@@ -35,19 +37,47 @@ import {
 const LandingPage: React.FC = () => {
   const { t, language, setLanguage } = useLanguage();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [contactForm, setContactForm] = React.useState({
     name: '',
     email: '',
     message: ''
   });
 
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle contact form submission
-    console.log('Contact form submitted:', contactForm);
-    // Reset form
-    setContactForm({ name: '', email: '', message: '' });
+    setIsSubmitting(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('send-contact-email', {
+        body: {
+          name: contactForm.name,
+          email: contactForm.email,
+          message: contactForm.message
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Message Sent!",
+        description: "Thank you for contacting us. We'll get back to you soon.",
+      });
+
+      // Reset form
+      setContactForm({ name: '', email: '', message: '' });
+    } catch (error: any) {
+      console.error('Contact form error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again or contact us directly.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const features = [
@@ -463,7 +493,7 @@ const LandingPage: React.FC = () => {
                   </div>
                   <div>
                     <div className="font-semibold">Email</div>
-                    <div className="text-muted-foreground">hello@learninclusive.com</div>
+                    <div className="text-muted-foreground">contact@learninclusive.com</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -472,19 +502,7 @@ const LandingPage: React.FC = () => {
                   </div>
                   <div>
                     <div className="font-semibold">Phone</div>
-                    <div className="text-muted-foreground">+358 (0) 123 456 789</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <MapPin className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <div className="font-semibold">Address</div>
-                    <div className="text-muted-foreground">
-                      Accessibility Center<br />
-                      Helsinki, Finland
-                    </div>
+                    <div className="text-muted-foreground">+447464242039</div>
                   </div>
                 </div>
               </div>
@@ -525,8 +543,8 @@ const LandingPage: React.FC = () => {
                       required
                     />
                   </div>
-                  <Button type="submit" className="w-full">
-                    Send Message
+                  <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting ? 'Sending...' : 'Send Message'}
                   </Button>
                 </form>
               </CardContent>
@@ -556,7 +574,7 @@ const LandingPage: React.FC = () => {
             <Button 
               size="lg" 
               variant="outline" 
-              className="text-lg px-8 py-4 h-auto border-white text-white hover:bg-white/10"
+              className="text-lg px-8 py-4 h-auto border-white text-white hover:bg-white hover:text-primary bg-transparent"
             >
               Request Demo
             </Button>

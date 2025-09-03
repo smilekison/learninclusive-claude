@@ -77,12 +77,8 @@ const AppContent = () => {
           element={<LandingPage />} 
         />
         <Route 
-          path="/auth" 
-          element={<AuthPage />} 
-        />
-        <Route 
           path="/videos" 
-          element={<VideoHomepage />} 
+          element={<YouTubeHomepage />} 
         />
         <Route 
           path="/video/:id" 

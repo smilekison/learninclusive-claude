@@ -94,5 +94,30 @@
   
   "presence.online": "Paikalla",
   "nav.welcome": "Tervetuloa",
-  "videos.searchPlaceholder": "Hae videoita..."
+  "videos.searchPlaceholder": "Hae videoita...",
+  
+  "landing.nav.home": "Koti",
+  "landing.nav.about": "Meistä",
+  "landing.nav.services": "Palvelut",
+  "landing.nav.contact": "Yhteystiedot",
+  "landing.nav.browseVideos": "Selaa Videoita",
+  "landing.nav.getStarted": "Aloita",
+  
+  "landing.hero.badge": "WCAG 2.1 AA Yhteensopiva • Suomen Saavutettavuussertifioitu",
+  "landing.hero.title": "Koulutusta Kaikille, Saavutettava Suunnittelultaan",
+  "landing.hero.subtitle": "Maailman ensimmäinen täysin osallistava oppimisympäristö. Rakennettu saavutettavuus mielessä, varmistaen että jokainen opiskelija voi oppia, osallistua ja menestyä kyvyistään riippumatta.",
+  "landing.hero.startLearning": "Aloita Oppiminen Tänään",
+  "landing.hero.watchDemo": "Katso Demo",
+  
+  "landing.features.title": "Saavutettavuus Ensisijaisena",
+  "landing.features.wcag.title": "WCAG 2.1 AA Yhteensopiva",
+  "landing.features.wcag.description": "Täysi saavutettavuusyhteensopivuus varmistaen, että koulutus on kaikkien saatavilla kyvyistä riippumatta.",
+  "landing.features.visual.title": "Visuaalinen Saavutettavuus",
+  "landing.features.visual.description": "Korkea kontrasti, mukautettavat fontit, värisokeavertävä käyttöliittymä ja näytönlukijan optimointi.",
+  "landing.features.audio.title": "Äänituet",
+  "landing.features.audio.description": "Teksti puheeksi, äänike kuvaukset, tekstitykset ja visuaaliset hälytykset kattavaan äänisaavutettavuuteen.",
+  "landing.features.cognitive.title": "Kognitiivinen Tuki",
+  "landing.features.cognitive.description": "Yksinkertainen navigointi, fokusilmaisimet, lukuapuvälineet ja mukautettava oppimistahti kognitiiviseen saavutettavuuteen.",
+  "landing.features.motor.title": "Motorinen Saavutettavuus",
+  "landing.features.motor.description": "Näppäimistönavigointi, äänikomennot, mukautettava käyttöliittymä ja vaihtoehtoiset syöttömenetelmät."
 }

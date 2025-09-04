@@ -94,5 +94,30 @@
   
   "presence.online": "Online",
   "nav.welcome": "Welcome",
-  "videos.searchPlaceholder": "Search videos..."
+  "videos.searchPlaceholder": "Search videos...",
+  
+  "landing.nav.home": "Home",
+  "landing.nav.about": "About",
+  "landing.nav.services": "Services",
+  "landing.nav.contact": "Contact",
+  "landing.nav.browseVideos": "Browse Videos",
+  "landing.nav.getStarted": "Get Started",
+  
+  "landing.hero.badge": "WCAG 2.1 AA Compliant • Finnish Accessibility Certified",
+  "landing.hero.title": "Education for Everyone, Accessible by Design",
+  "landing.hero.subtitle": "The world's first fully inclusive learning management system. Built with accessibility at its core, ensuring every student can learn, participate, and succeed regardless of their abilities.",
+  "landing.hero.startLearning": "Start Learning Today",
+  "landing.hero.watchDemo": "Watch Demo",
+  
+  "landing.features.title": "Accessibility-First Features",
+  "landing.features.wcag.title": "WCAG 2.1 AA Compliant",
+  "landing.features.wcag.description": "Full accessibility compliance ensuring education is available to everyone, regardless of abilities.",
+  "landing.features.visual.title": "Visual Accessibility",
+  "landing.features.visual.description": "High contrast mode, customizable fonts, color-blind friendly interface, and screen reader optimization.",
+  "landing.features.audio.title": "Audio Support",
+  "landing.features.audio.description": "Text-to-speech, audio descriptions, captions, and visual alerts for comprehensive audio accessibility.",
+  "landing.features.cognitive.title": "Cognitive Support",
+  "landing.features.cognitive.description": "Simplified navigation, focus indicators, reading aids, and customizable learning pace for cognitive accessibility.",
+  "landing.features.motor.title": "Motor Accessibility",
+  "landing.features.motor.description": "Keyboard navigation, voice commands, customizable interface, and alternative input methods."
 }

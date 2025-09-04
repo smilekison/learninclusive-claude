@@ -618,8 +618,8 @@ const LandingPage: React.FC = () => {
                   </div>
                 </div>
                 <p className="text-lg text-muted-foreground leading-relaxed max-w-4xl mx-auto">
-                  This progression demonstrates <strong>traction → scalability → defensibility → dominance</strong>, 
-                  exactly what Business Finland and investors want to see in a technology venture positioned for European market leadership.
+                  Our strategic framework demonstrates clear progression from validation through to market dominance, 
+                  positioning LearnInclusive as a transformative force in accessible education technology.
                 </p>
               </CardContent>
             </Card>

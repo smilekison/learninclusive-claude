@@ -368,7 +368,8 @@ const LandingPage: React.FC = () => {
               Driving the future of inclusive education through innovation and accessibility.
             </p>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
             {/* Mission */}
             <Card className="border-0 shadow-lg">
               <CardContent className="p-8">
@@ -398,6 +399,189 @@ const LandingPage: React.FC = () => {
                   has the tools and knowledge to create truly inclusive environments, where diversity in learning 
                   needs is celebrated and supported through cutting-edge, accessible technology.
                 </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Roadmap Section */}
+          <div className="text-center mb-12">
+            <h3 className="text-2xl lg:text-3xl font-bold text-foreground mb-4">
+              🎯 LearnInclusive Goals & Roadmap
+            </h3>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Our strategic four-year plan to transform accessibility in education across Europe
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Year 1 */}
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+              <CardContent className="p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                    <span className="text-lg font-bold text-primary">1</span>
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-bold text-foreground">Year 1 (2025–2026)</h4>
+                    <p className="text-sm text-primary font-semibold">Finland Pilot & Foundation</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">Launch in multiple Finnish schools (Grades 1–5) with free/non-binding pilots</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">Partner with NGOs to test accessibility in real-world community events</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">Build Finnish Sign Language (FinSL) dataset and refine AI avatars</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">Explore collaboration with media partners for sign language accessibility</p>
+                  </div>
+                </div>
+                <div className="mt-6 p-4 bg-primary/5 rounded-lg">
+                  <p className="text-sm font-semibold text-primary">Goal: Validate technology, gather feedback, and establish credibility</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Year 2 */}
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+              <CardContent className="p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center">
+                    <span className="text-lg font-bold text-accent">2</span>
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-bold text-foreground">Year 2 (2026–2027)</h4>
+                    <p className="text-sm text-accent font-semibold">Germany Expansion</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-accent mt-1 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">Roll out to German schools with German Sign Language (GSL) support</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-accent mt-1 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">Extend scope in Finland to Grades 6–8, possibly up to Grade 10</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-accent mt-1 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">Secure cross-border NGO and educational partnerships</p>
+                  </div>
+                </div>
+                <div className="mt-6 p-4 bg-accent/5 rounded-lg">
+                  <p className="text-sm font-semibold text-accent">Goal: Prove scalability across languages, cultures, and curricula</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Year 3 */}
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+              <CardContent className="p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
+                    <span className="text-lg font-bold text-primary">3</span>
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-bold text-foreground">Year 3 (2027–2028)</h4>
+                    <p className="text-sm text-primary font-semibold">Nordic Rollout & Innovation</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">Expand to Scandinavian countries with localized sign language implementations</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">Pilot "sign-to-sign translation" technology (FinSL ↔ GSL ↔ ISL)</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">Strengthen partnerships with Nordic accessibility associations</p>
+                  </div>
+                </div>
+                <div className="mt-6 p-4 bg-primary/5 rounded-lg">
+                  <p className="text-sm font-semibold text-primary">Goal: Leading accessibility-first EdTech platform in Northern Europe</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Year 4 */}
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+              <CardContent className="p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center">
+                    <span className="text-lg font-bold text-accent">4</span>
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-bold text-foreground">Year 4 (2028–2029)</h4>
+                    <p className="text-sm text-accent font-semibold">Full Implementation & Market Leadership</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-accent mt-1 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">Achieve full implementation in Finland and Germany up to high school level</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-accent mt-1 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">Make LearnInclusive a default solution for accessibility compliance</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-accent mt-1 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">Position as European leader in AI accessibility with strong IP</p>
+                  </div>
+                </div>
+                <div className="mt-6 p-4 bg-accent/5 rounded-lg">
+                  <p className="text-sm font-semibold text-accent">Goal: System-wide adoption and long-term institutional contracts</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Strategic Focus */}
+          <div className="mt-12 text-center">
+            <Card className="border-0 shadow-lg bg-gradient-to-r from-primary/5 to-accent/5">
+              <CardContent className="p-8">
+                <h4 className="text-xl font-bold text-foreground mb-4">Strategic Progression</h4>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <span className="text-sm font-bold text-primary">Year 1</span>
+                    </div>
+                    <p className="text-sm font-semibold text-foreground">Validation</p>
+                    <p className="text-xs text-muted-foreground">Pilot & NGO</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <span className="text-sm font-bold text-accent">Year 2</span>
+                    </div>
+                    <p className="text-sm font-semibold text-foreground">Expansion</p>
+                    <p className="text-xs text-muted-foreground">Germany</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <span className="text-sm font-bold text-primary">Year 3</span>
+                    </div>
+                    <p className="text-sm font-semibold text-foreground">Innovation & Scale</p>
+                    <p className="text-xs text-muted-foreground">Nordics</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <span className="text-sm font-bold text-accent">Year 4</span>
+                    </div>
+                    <p className="text-sm font-semibold text-foreground">Market Leadership</p>
+                    <p className="text-xs text-muted-foreground">Full National Rollout</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>

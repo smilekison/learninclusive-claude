@@ -46,7 +46,7 @@ import { LanguageSwitcher } from "@/components/ui/language-switcher"
 const getNavigationItems = (userRole: string, t: (key: string) => string) => {
   const baseItems = [
     { title: t("nav.dashboard"), url: "/dashboard", icon: Home },
-    { title: "Video Library", url: "/", icon: Clapperboard },
+    { title: "Video Library", url: "/videos", icon: Clapperboard },
     { title: t("nav.insights"), url: "/insights", icon: BarChart3 }
   ];
 

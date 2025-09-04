@@ -6,11 +6,13 @@ import { Badge } from '@/components/ui/badge';
 import { EnhancedVideoLibrary } from '@/components/video/EnhancedVideoLibrary';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { TTSButton } from '@/components/accessibility/TTSButton';
 
 export const VideoHomepage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   // Set SEO meta tags for publishing
   useEffect(() => {
@@ -116,17 +118,15 @@ export const VideoHomepage: React.FC = () => {
             </Badge>
             
             <h1 className="text-4xl md:text-6xl font-bold text-foreground leading-tight">
-              Accessible Education
+              {t('videoHomepage.title')}
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
-                For Everyone
+                {t('landing.everyone')}
               </span>
             </h1>
             
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              Experience learning like never before with our fully accessible video platform. 
-              Designed for students with diverse abilities, featuring comprehensive accessibility 
-              tools and inclusive educational content.
+              {t('videoHomepage.description')}
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">

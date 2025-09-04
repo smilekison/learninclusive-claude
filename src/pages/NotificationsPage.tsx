@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +36,7 @@ export const NotificationsPage: React.FC = () => {
   const navigate = useNavigate();
   const { notificationId } = useParams();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [filter, setFilter] = useState<'all' | 'assignment' | 'submission' | 'grade' | 'deadline' | 'general'>('all');
 
   // Use the existing working notification hook
@@ -281,7 +283,7 @@ export const NotificationsPage: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
             <Bell className="h-8 w-8" />
-            Notifications
+            {t('notificationsPage.notifications')}
             {unreadCount > 0 && (
               <Badge variant="destructive" className="text-sm">
                 {unreadCount} unread
@@ -289,7 +291,7 @@ export const NotificationsPage: React.FC = () => {
             )}
           </h1>
           <p className="text-muted-foreground mt-2">
-            Stay updated with your teaching activities and student progress
+            {t('notificationsPage.allNotifications')}
           </p>
         </div>
 

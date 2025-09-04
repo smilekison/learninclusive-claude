@@ -173,12 +173,12 @@ const LandingPage: React.FC = () => {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#home" className="text-foreground hover:text-primary transition-colors">Home</a>
-              <a href="#about" className="text-foreground hover:text-primary transition-colors">About</a>
-              <a href="#services" className="text-foreground hover:text-primary transition-colors">Services</a>
-              <a href="#contact" className="text-foreground hover:text-primary transition-colors">Contact</a>
+              <a href="#home" className="text-foreground hover:text-primary transition-colors">{t('landing.home')}</a>
+              <a href="#about" className="text-foreground hover:text-primary transition-colors">{t('landing.about')}</a>
+              <a href="#services" className="text-foreground hover:text-primary transition-colors">{t('landing.services')}</a>
+              <a href="#contact" className="text-foreground hover:text-primary transition-colors">{t('landing.contact')}</a>
               <Button onClick={() => navigate('/videos')} variant="ghost" size="sm" className="text-foreground hover:text-primary">
-                Browse Videos
+                {t('landing.browseVideos')}
               </Button>
               
               {/* Language Switcher */}
@@ -202,7 +202,7 @@ const LandingPage: React.FC = () => {
               </div>
 
               <Button onClick={() => navigate('/auth')} size="sm">
-                Get Started
+                {t('landing.getStarted')}
               </Button>
             </div>
 
@@ -221,17 +221,17 @@ const LandingPage: React.FC = () => {
           {mobileMenuOpen && (
             <div className="md:hidden py-4 border-t">
               <div className="flex flex-col space-y-4">
-                <a href="#home" className="text-foreground hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Home</a>
-                <a href="#about" className="text-foreground hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>About</a>
-                <a href="#services" className="text-foreground hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Services</a>
-                <a href="#contact" className="text-foreground hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Contact</a>
+                <a href="#home" className="text-foreground hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>{t('landing.home')}</a>
+                <a href="#about" className="text-foreground hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>{t('landing.about')}</a>
+                <a href="#services" className="text-foreground hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>{t('landing.services')}</a>
+                <a href="#contact" className="text-foreground hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>{t('landing.contact')}</a>
                 <Button 
                   onClick={() => { navigate('/videos'); setMobileMenuOpen(false); }} 
                   variant="ghost" 
                   size="sm" 
                   className="text-left justify-start text-foreground hover:text-primary"
                 >
-                  Browse Videos
+                  {t('landing.browseVideos')}
                 </Button>
                 <div className="flex items-center gap-2 pt-2">
                   <Button 
@@ -250,7 +250,7 @@ const LandingPage: React.FC = () => {
                   </Button>
                 </div>
                 <Button onClick={() => navigate('/auth')} className="w-full">
-                  Get Started
+                  {t('landing.getStarted')}
                 </Button>
               </div>
             </div>
@@ -267,24 +267,23 @@ const LandingPage: React.FC = () => {
               WCAG 2.1 AA Compliant • Finnish Accessibility Certified
             </Badge>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 animate-fade-in">
-              Education for{' '}
-              <span className="text-primary">Everyone</span>,{' '}
+              {t('landing.educationForEveryone')}{' '}
+              <span className="text-primary">{t('landing.everyone')}</span>,{' '}
               <span className="bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
-                Accessible by Design
+                {t('landing.accessibleByDesign')}
               </span>
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto animate-fade-in">
-              The world's first fully inclusive learning management system. Built with accessibility at its core, 
-              ensuring every student can learn, participate, and succeed regardless of their abilities.
+              {t('landing.heroSubtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in">
               <Button size="lg" onClick={() => navigate('/auth')} className="text-lg px-8 py-4 h-auto">
-                Start Learning Today
+                {t('landing.startLearningToday')}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               <Button variant="outline" size="lg" onClick={() => navigate('/videos')} className="text-lg px-8 py-4 h-auto">
                 <Play className="mr-2 h-5 w-5" />
-                Watch Demo
+                {t('landing.watchDemo')}
               </Button>
             </div>
           </div>

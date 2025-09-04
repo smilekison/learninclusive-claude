@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
@@ -27,10 +27,10 @@ const NotFound = () => {
         </div>
         
         <Button asChild size="lg">
-          <a href="/">
+          <Link to="/">
             <Home className="w-4 h-4 mr-2" />
             {t('notFound.goHome')}
-          </a>
+          </Link>
         </Button>
       </div>
     </div>

@@ -119,5 +119,35 @@
   "landing.features.cognitive.title": "Kognitiivinen Tuki",
   "landing.features.cognitive.description": "Yksinkertainen navigointi, fokusilmaisimet, lukuapuvälineet ja mukautettava oppimistahti kognitiiviseen saavutettavuuteen.",
   "landing.features.motor.title": "Motorinen Saavutettavuus",
-  "landing.features.motor.description": "Näppäimistönavigointi, äänikomennot, mukautettava käyttöliittymä ja vaihtoehtoiset syöttömenetelmät."
+  "landing.features.motor.description": "Näppäimistönavigointi, äänikomennot, mukautettava käyttöliittymä ja vaihtoehtoiset syöttömenetelmät.",
+
+  "landing.mission.title": "Missiomme & Visiomme",
+  "landing.mission.subtitle": "Rakentamassa osallistavan koulutuksen tulevaisuutta strategisten vaiheiden kautta",
+  
+  "landing.mission.year1.title": "Vuosi 1 (2025–2026) – Validointi & Perusta",
+  "landing.mission.year1.mission": "Todistaa että tekoälypohjaiset viittomakieliavatarit ja saavutettavuustyökalut toimivat oikeissa luokkahuoneissa.",
+  "landing.mission.year1.point1": "Käynnistetään pilotit 2–3 suomalaisessa koulussa (luokat 1–5).",
+  "landing.mission.year1.point2": "Yhteistyö yhden kansalaisjärjestön kanssa osallisuuden testaamiseksi yhteisötapahtumissa.",
+  "landing.mission.year1.point3": "Rakennetaan ydinsyysvikiä tietokanta opettajien ja kuurojen yhteisöjen avustajien kanssa.",
+  
+  "landing.mission.year2.title": "Vuosi 2 (2026–2027) – Laajentuminen & Varhaiset Tulot",
+  "landing.mission.year2.mission": "Osoittaa että LearnInclusive voi skaalautua Suomen ulkopuolelle ja alkaa tuottaa tuloja.",
+  "landing.mission.year2.point1": "Tulo saksalaisiin kouluihin saksalaisen viittomakielen tuella.",
+  "landing.mission.year2.point2": "Suomalaisten pilottien laajentaminen luokkiin 6–8.",
+  "landing.mission.year2.point3": "Varmistetaan 2–3 maksullista kunnallista pilottia.",
+  "landing.mission.year2.point4": "Yhteistyö median/koulutussisällön tuottajien kanssa suomenkielisen viittomakielen saavutettavuudessa.",
+  
+  "landing.mission.year3.title": "Vuosi 3 (2027–2028) – Innovaatio & Pohjoismainen Mittakaava",
+  "landing.mission.year3.mission": "Tulla johtavaksi saavutettavuuskeskiseksi EdTech-alustaksi Pohjois-Euroopassa.",
+  "landing.mission.year3.point1": "Laajentuminen Ruotsiin, Norjaan ja Tanskaan.",
+  "landing.mission.year3.point2": "Pilotoida viittomakielestä viittomakieleen -käännösteknologiaa (FinSL ↔ GSL ↔ ISL).",
+  "landing.mission.year3.point3": "Allekirjoitetaan 10–15 pitkäaikaista sopimusta koulujen kanssa Suomessa ja Saksassa.",
+  
+  "landing.mission.year4.title": "Vuosi 4 (2028–2029) – Järjestelmätason Hyväksyntä",
+  "landing.mission.year4.mission": "Saavutetaan täysi hyväksyntä Suomessa ja Saksassa ja varmistetaan tunnustus eurooppalaisena johtajana.",
+  "landing.mission.year4.point1": "Käyttöönotto 25–30 koulussa (luokat 1–12).",
+  "landing.mission.year4.point2": "Tulla oletusvaatimusratkaisuksi kunnille EU:n Saavutettavuusdirektiivin 2025 alla.",
+  "landing.mission.year4.point3": "Laajentaa saavutettavuusominaisuuksia heikkonäköisille ja monikielisille oppijoille.",
+  
+  "landing.mission.framework": "Strateginen viitekehyksemme rakentuu validoinnista skaalautuvuuden kautta markkinajohtajuuteen, asemoiden learninclusive määritteleväksi saavutettavuuskeskiseksi ratkaisuksi eurooppalaisessa koulutuksessa."
 }

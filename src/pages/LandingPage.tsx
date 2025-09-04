@@ -357,10 +357,10 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
-              Our Mission & Vision
+              {t('landing.mission.title')}
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Driving the future of inclusive education through innovation and accessibility.
+              {t('landing.mission.subtitle')}
             </p>
           </div>
           
@@ -430,20 +430,20 @@ const LandingPage: React.FC = () => {
                           </div>
                         </div>
                         <p className="text-lg font-semibold text-primary mb-4">
-                          Mission: Prove that AI-powered sign language avatars and accessibility tools work in real classrooms.
+                          {t('landing.mission.year1.mission')}
                         </p>
                         <div className="space-y-3 text-muted-foreground">
                           <div className="flex items-start gap-3">
                             <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                            <span>Launch pilots in 2–3 Finnish schools (Grades 1–5)</span>
+                            <span>{t('landing.mission.year1.point1')}</span>
                           </div>
                           <div className="flex items-start gap-3">
                             <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                            <span>Partner with one NGO to test inclusivity at community events</span>
+                            <span>{t('landing.mission.year1.point2')}</span>
                           </div>
                           <div className="flex items-start gap-3">
                             <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                            <span>Build the core FinSL dataset with teachers and Deaf community contributors</span>
+                            <span>{t('landing.mission.year1.point3')}</span>
                           </div>
                         </div>
                       </CardContent>
@@ -472,24 +472,24 @@ const LandingPage: React.FC = () => {
                           </div>
                         </div>
                         <p className="text-lg font-semibold text-accent mb-4">
-                          Mission: Show that LearnInclusive can scale beyond Finland and begin generating revenue.
+                          {t('landing.mission.year2.mission')}
                         </p>
                         <div className="space-y-3 text-muted-foreground">
                           <div className="flex items-start gap-3">
                             <CheckCircle className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
-                            <span>Enter German schools with German Sign Language support</span>
+                            <span>{t('landing.mission.year2.point1')}</span>
                           </div>
                           <div className="flex items-start gap-3">
                             <CheckCircle className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
-                            <span>Extend Finnish pilots to Grades 6–8</span>
+                            <span>{t('landing.mission.year2.point2')}</span>
                           </div>
                           <div className="flex items-start gap-3">
                             <CheckCircle className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
-                            <span>Secure 2–3 paid municipal pilots</span>
+                            <span>{t('landing.mission.year2.point3')}</span>
                           </div>
                           <div className="flex items-start gap-3">
                             <CheckCircle className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
-                            <span>Partner with media/education content providers for FinSL accessibility</span>
+                            <span>{t('landing.mission.year2.point4')}</span>
                           </div>
                         </div>
                       </CardContent>
@@ -516,19 +516,19 @@ const LandingPage: React.FC = () => {
                           </div>
                         </div>
                         <p className="text-lg font-semibold text-green-700 mb-4">
-                          Mission: Become the leading accessibility-first EdTech platform in Northern Europe.
+                          {t('landing.mission.year3.mission')}
                         </p>
                         <div className="space-y-3 text-muted-foreground">
                           <div className="flex items-start gap-3 lg:justify-end lg:text-right">
-                            <span>Expand to Sweden, Norway, and Denmark</span>
+                            <span>{t('landing.mission.year3.point1')}</span>
                             <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                           </div>
                           <div className="flex items-start gap-3 lg:justify-end lg:text-right">
-                            <span>Pilot sign-to-sign translation technology (FinSL ↔ GSL ↔ ISL)</span>
+                            <span>{t('landing.mission.year3.point2')}</span>
                             <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                           </div>
                           <div className="flex items-start gap-3 lg:justify-end lg:text-right">
-                            <span>Sign 10–15 long-term contracts with schools across Finland and Germany</span>
+                            <span>{t('landing.mission.year3.point3')}</span>
                             <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                           </div>
                         </div>
@@ -558,20 +558,20 @@ const LandingPage: React.FC = () => {
                           </div>
                         </div>
                         <p className="text-lg font-semibold text-purple-700 mb-4">
-                          Mission: Achieve full adoption in Finland and Germany and secure recognition as a European leader.
+                          {t('landing.mission.year4.mission')}
                         </p>
                         <div className="space-y-3 text-muted-foreground">
                           <div className="flex items-start gap-3">
                             <CheckCircle className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
-                            <span>Roll out to 25–30 schools (Grades 1–12)</span>
+                            <span>{t('landing.mission.year4.point1')}</span>
                           </div>
                           <div className="flex items-start gap-3">
                             <CheckCircle className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
-                            <span>Become the default compliance solution for municipalities under the EU Accessibility Act 2025</span>
+                            <span>{t('landing.mission.year4.point2')}</span>
                           </div>
                           <div className="flex items-start gap-3">
                             <CheckCircle className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
-                            <span>Expand accessibility features to low-vision and multilingual learners</span>
+                            <span>{t('landing.mission.year4.point3')}</span>
                           </div>
                         </div>
                       </CardContent>
@@ -613,8 +613,7 @@ const LandingPage: React.FC = () => {
                   </div>
                 </div>
                 <p className="text-lg text-muted-foreground leading-relaxed max-w-4xl mx-auto">
-                  Our strategic framework demonstrates clear progression from validation through to market dominance, 
-                  positioning LearnInclusive as a transformative force in accessible education technology.
+                  {t('landing.mission.framework')}
                 </p>
               </CardContent>
             </Card>

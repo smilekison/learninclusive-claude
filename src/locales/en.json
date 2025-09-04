@@ -119,5 +119,35 @@
   "landing.features.cognitive.title": "Cognitive Support",
   "landing.features.cognitive.description": "Simplified navigation, focus indicators, reading aids, and customizable learning pace for cognitive accessibility.",
   "landing.features.motor.title": "Motor Accessibility",
-  "landing.features.motor.description": "Keyboard navigation, voice commands, customizable interface, and alternative input methods."
+  "landing.features.motor.description": "Keyboard navigation, voice commands, customizable interface, and alternative input methods.",
+
+  "landing.mission.title": "Our Mission & Vision",
+  "landing.mission.subtitle": "Building the future of inclusive education through strategic phases",
+  
+  "landing.mission.year1.title": "Year 1 (2025–2026) – Validation & Foundation",
+  "landing.mission.year1.mission": "Prove that AI-powered sign language avatars and accessibility tools work in real classrooms.",
+  "landing.mission.year1.point1": "Launch pilots in 2–3 Finnish schools (Grades 1–5).",
+  "landing.mission.year1.point2": "Partner with one NGO to test inclusivity at community events.",
+  "landing.mission.year1.point3": "Build the core FinSL dataset with teachers and Deaf community contributors.",
+  
+  "landing.mission.year2.title": "Year 2 (2026–2027) – Expansion & Early Revenue",
+  "landing.mission.year2.mission": "Show that LearnInclusive can scale beyond Finland and begin generating revenue.",
+  "landing.mission.year2.point1": "Enter German schools with German Sign Language support.",
+  "landing.mission.year2.point2": "Extend Finnish pilots to Grades 6–8.",
+  "landing.mission.year2.point3": "Secure 2–3 paid municipal pilots.",
+  "landing.mission.year2.point4": "Partner with media/education content providers for FinSL accessibility.",
+  
+  "landing.mission.year3.title": "Year 3 (2027–2028) – Innovation & Nordic Scale",
+  "landing.mission.year3.mission": "Become the leading accessibility-first EdTech platform in Northern Europe.",
+  "landing.mission.year3.point1": "Expand to Sweden, Norway, and Denmark.",
+  "landing.mission.year3.point2": "Pilot sign-to-sign translation technology (FinSL ↔ GSL ↔ ISL).",
+  "landing.mission.year3.point3": "Sign 10–15 long-term contracts with schools across Finland and Germany.",
+  
+  "landing.mission.year4.title": "Year 4 (2028–2029) – System-Wide Adoption",
+  "landing.mission.year4.mission": "Achieve full adoption in Finland and Germany and secure recognition as a European leader.",
+  "landing.mission.year4.point1": "Roll out to 25–30 schools (Grades 1–12).",
+  "landing.mission.year4.point2": "Become the default compliance solution for municipalities under the EU Accessibility Act 2025.",
+  "landing.mission.year4.point3": "Expand accessibility features to low-vision and multilingual learners.",
+  
+  "landing.mission.framework": "Our strategic framework builds from validation through scalability to market leadership, positioning learninclusive as the definitive accessibility-first solution in European education."
 }

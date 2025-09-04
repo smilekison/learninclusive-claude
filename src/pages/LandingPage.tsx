@@ -108,51 +108,51 @@ const LandingPage: React.FC = () => {
     },
     {
       icon: Globe,
-      title: 'Multilingual',
-      description: 'Support for multiple languages including English and Finnish, with easy language switching.'
+      title: t('landing.features.multilingual.title'),
+      description: t('landing.features.multilingual.description')
     }
   ];
 
   const services = [
     {
-      title: 'Comprehensive LMS',
-      description: 'Complete learning management system with assignments, grading, and progress tracking.',
-      benefits: ['Assignment Management', 'Real-time Grading', 'Progress Analytics', 'Student Portfolios']
+      title: t('landing.services.lms.title'),
+      description: t('landing.services.lms.description'),
+      benefits: [t('landing.services.lms.benefit1'), t('landing.services.lms.benefit2'), t('landing.services.lms.benefit3'), t('landing.services.lms.benefit4')]
     },
     {
-      title: 'Accessibility First',
+      title: t('landing.services.accessibility.title'),
       description: 'Built from the ground up with accessibility as a core principle, not an afterthought.',
-      benefits: ['WCAG 2.1 AA Compliant', 'Screen Reader Support', 'Keyboard Navigation', 'Multiple Input Methods']
+      benefits: [t('landing.services.accessibility.benefit1'), t('landing.services.accessibility.benefit2'), t('landing.services.accessibility.benefit3'), t('landing.services.accessibility.benefit4')]
     },
     {
-      title: 'Video Learning',
-      description: 'Interactive video platform with accessibility features like sign language interpretation.',
-      benefits: ['Accessible Video Player', 'Automatic Captions', 'Sign Language Support', 'Audio Descriptions']
+      title: t('landing.services.video.title'),
+      description: t('landing.services.video.description'),
+      benefits: [t('landing.services.video.benefit1'), t('landing.services.video.benefit2'), t('landing.services.video.benefit3'), t('landing.services.video.benefit4')]
     },
     {
-      title: 'Analytics & Insights',
-      description: 'Powerful analytics to help educators understand student progress and engagement.',
-      benefits: ['Learning Analytics', 'Engagement Metrics', 'Performance Tracking', 'Custom Reports']
+      title: t('landing.services.analytics.title'),
+      description: t('landing.services.analytics.description'),
+      benefits: [t('landing.services.analytics.benefit1'), t('landing.services.analytics.benefit2'), t('landing.services.analytics.benefit3'), t('landing.services.analytics.benefit4')]
     }
   ];
 
   const testimonials = [
     {
-      name: 'Dr. Maria Korhonen',
-      role: 'Special Education Director',
-      content: 'Learninclusive has revolutionized how we deliver education to students with diverse needs. The accessibility features are unmatched.',
+      name: t('landing.testimonials.maria.name'),
+      role: t('landing.testimonials.maria.role'),
+      content: t('landing.testimonials.maria.content'),
       rating: 5
     },
     {
-      name: 'James Wilson',
-      role: 'High School Principal',
-      content: 'Finally, an LMS that truly works for all students. The inclusive design has improved engagement across our entire school.',
+      name: t('landing.testimonials.james.name'),
+      role: t('landing.testimonials.james.role'),
+      content: t('landing.testimonials.james.content'),
       rating: 5
     },
     {
-      name: 'Sarah Chen',
-      role: 'Special Needs Coordinator',
-      content: 'The sign language support and cognitive accessibility features have been game-changers for our students.',
+      name: t('landing.testimonials.sarah.name'),
+      role: t('landing.testimonials.sarah.role'),
+      content: t('landing.testimonials.sarah.content'),
       rating: 5
     }
   ];
@@ -294,7 +294,7 @@ const LandingPage: React.FC = () => {
               {t('landing.features.title')}
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Every feature is designed with inclusivity in mind, ensuring all students can access and benefit from education.
+              {t('landing.features.subtitle')}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -319,24 +319,22 @@ const LandingPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
               <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-6">
-                About Learninclusive
+                {t('landing.about.title')}
               </h2>
               <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-                Born from the belief that education should be accessible to everyone, Learninclusive is the first 
-                learning management system built with accessibility as its foundation, not as an afterthought.
+                {t('landing.about.description1')}
               </p>
               <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                We comply with WCAG 2.1 AA standards and Finnish accessibility legislation, ensuring that students 
-                with visual, auditory, motor, and cognitive disabilities can fully participate in their education.
+                {t('landing.about.description2')}
               </p>
               <div className="grid grid-cols-2 gap-6">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-primary">100%</div>
-                  <div className="text-sm text-muted-foreground">WCAG Compliant</div>
+                  <div className="text-sm text-muted-foreground">{t('landing.about.wcagCompliant')}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-primary">50k+</div>
-                  <div className="text-sm text-muted-foreground">Students Served</div>
+                  <div className="text-sm text-muted-foreground">{t('landing.about.studentsServed')}</div>
                 </div>
               </div>
             </div>
@@ -344,7 +342,7 @@ const LandingPage: React.FC = () => {
               <div className="w-full h-96 bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center">
                 <div className="text-center">
                   <Accessibility className="h-24 w-24 text-primary mx-auto mb-4" />
-                  <p className="text-lg font-semibold text-foreground">Inclusive by Design</p>
+                  <p className="text-lg font-semibold text-foreground">{t('landing.about.inclusiveDesign')}</p>
                 </div>
               </div>
             </div>
@@ -371,12 +369,9 @@ const LandingPage: React.FC = () => {
                 <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center mb-6 mx-auto">
                   <Heart className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-2xl font-bold text-center mb-6">Our Mission</h3>
+                <h3 className="text-2xl font-bold text-center mb-6">{t('landing.mission.ourMission')}</h3>
                 <p className="text-muted-foreground leading-relaxed text-center">
-                  To break down barriers in education by creating the world's most accessible learning platform. 
-                  We believe every student, regardless of their abilities or disabilities, deserves equal access 
-                  to quality education. Our mission is to empower educators with tools that make learning truly 
-                  inclusive, ensuring no student is left behind in their educational journey.
+                  {t('landing.mission.missionContent')}
                 </p>
               </CardContent>
             </Card>
@@ -387,12 +382,9 @@ const LandingPage: React.FC = () => {
                 <div className="w-16 h-16 bg-accent/10 rounded-lg flex items-center justify-center mb-6 mx-auto">
                   <Globe className="h-8 w-8 text-accent" />
                 </div>
-                <h3 className="text-2xl font-bold text-center mb-6">Our Vision</h3>
+                <h3 className="text-2xl font-bold text-center mb-6">{t('landing.mission.ourVision')}</h3>
                 <p className="text-muted-foreground leading-relaxed text-center">
-                  A world where accessibility in education is not an afterthought, but the foundation upon which 
-                  all learning experiences are built. We envision a future where every educational institution 
-                  has the tools and knowledge to create truly inclusive environments, where diversity in learning 
-                  needs is celebrated and supported through cutting-edge, accessible technology.
+                  {t('landing.mission.visionContent')}
                 </p>
               </CardContent>
             </Card>
@@ -627,10 +619,10 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
-              Why Choose Learninclusive?
+              {t('landing.services.title')}
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              We don't just add accessibility features – we build them into the foundation of everything we do.
+              {t('landing.services.subtitle')}
             </p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -659,10 +651,10 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
-              What Educators Say
+              {t('landing.testimonials.title')}
             </h2>
             <p className="text-xl text-muted-foreground">
-              Hear from the educators who've transformed their classrooms with Learninclusive.
+              {t('landing.testimonials.subtitle')}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -693,23 +685,23 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
-              Get in Touch
+              {t('landing.contact.title')}
             </h2>
             <p className="text-xl text-muted-foreground">
-              Ready to make education accessible for all? Let's start the conversation.
+              {t('landing.contact.subtitle')}
             </p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             {/* Contact Info */}
             <div>
-              <h3 className="text-2xl font-semibold mb-8">Contact Information</h3>
+              <h3 className="text-2xl font-semibold mb-8">{t('landing.contact.info')}</h3>
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
                     <Mail className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <div className="font-semibold">Email</div>
+                    <div className="font-semibold">{t('landing.contact.email')}</div>
                     <div className="text-muted-foreground">contact@learninclusive.com</div>
                   </div>
                 </div>
@@ -718,7 +710,7 @@ const LandingPage: React.FC = () => {
                     <Phone className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <div className="font-semibold">Phone</div>
+                    <div className="font-semibold">{t('landing.contact.phone')}</div>
                     <div className="text-muted-foreground">+447464242039</div>
                   </div>
                 </div>
@@ -728,10 +720,10 @@ const LandingPage: React.FC = () => {
             {/* Contact Form */}
             <Card className="border-0 shadow-lg">
               <CardContent className="p-8">
-                <h3 className="text-2xl font-semibold mb-6">Send us a Message</h3>
+                <h3 className="text-2xl font-semibold mb-6">{t('landing.contact.formTitle')}</h3>
                 <form onSubmit={handleContactSubmit} className="space-y-6">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium mb-2">Name</label>
+                    <label htmlFor="name" className="block text-sm font-medium mb-2">{t('landing.contact.name')}</label>
                     <Input
                       id="name"
                       type="text"
@@ -741,7 +733,7 @@ const LandingPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium mb-2">Email</label>
+                    <label htmlFor="email" className="block text-sm font-medium mb-2">{t('landing.contact.email')}</label>
                     <Input
                       id="email"
                       type="email"
@@ -751,7 +743,7 @@ const LandingPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label htmlFor="message" className="block text-sm font-medium mb-2">Message</label>
+                    <label htmlFor="message" className="block text-sm font-medium mb-2">{t('landing.contact.message')}</label>
                     <Textarea
                       id="message"
                       rows={4}
@@ -761,7 +753,7 @@ const LandingPage: React.FC = () => {
                     />
                   </div>
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? 'Sending...' : 'Send Message'}
+                    {isSubmitting ? t('landing.contact.sending') : t('landing.contact.send')}
                   </Button>
                 </form>
               </CardContent>
@@ -774,10 +766,10 @@ const LandingPage: React.FC = () => {
       <section className="py-20 bg-gradient-to-r from-primary to-accent">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
-            Ready to Transform Education?
+            {t('landing.cta.title')}
           </h2>
           <p className="text-xl text-white/90 mb-8">
-            Join thousands of educators who are making learning accessible for everyone.
+            {t('landing.cta.subtitle')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
@@ -786,14 +778,14 @@ const LandingPage: React.FC = () => {
               onClick={() => navigate('/auth')}
               className="text-lg px-8 py-4 h-auto bg-white text-primary hover:bg-white/90"
             >
-              Get Started Free
+              {t('landing.cta.getStarted')}
             </Button>
             <Button 
               size="lg" 
               variant="outline" 
               className="text-lg px-8 py-4 h-auto border-white text-white hover:bg-white hover:text-primary bg-transparent"
             >
-              Request Demo
+              {t('landing.cta.requestDemo')}
             </Button>
           </div>
         </div>
@@ -812,8 +804,7 @@ const LandingPage: React.FC = () => {
                 <span className="text-xl font-bold text-primary">learninclusive</span>
               </div>
               <p className="text-muted-foreground mb-4 max-w-md">
-                Making education accessible for everyone through innovative, inclusive technology 
-                that complies with international accessibility standards.
+                {t('landing.footer.description')}
               </p>
               <Badge variant="outline" className="mb-4">
                 WCAG 2.1 AA Compliant
@@ -822,32 +813,32 @@ const LandingPage: React.FC = () => {
 
             {/* Quick Links */}
             <div>
-              <h4 className="font-semibold mb-4">Quick Links</h4>
+              <h4 className="font-semibold mb-4">{t('landing.footer.quickLinks')}</h4>
               <div className="space-y-3">
-                <div><a href="#about" className="text-muted-foreground hover:text-primary transition-colors">About</a></div>
-                <div><a href="#services" className="text-muted-foreground hover:text-primary transition-colors">Services</a></div>
-                <div><Link to="/accessibility-statement" className="text-muted-foreground hover:text-primary transition-colors">Accessibility</Link></div>
-                <div><a href="#contact" className="text-muted-foreground hover:text-primary transition-colors">Contact</a></div>
+                <div><a href="#about" className="text-muted-foreground hover:text-primary transition-colors">{t('landing.footer.about')}</a></div>
+                <div><a href="#services" className="text-muted-foreground hover:text-primary transition-colors">{t('landing.footer.services')}</a></div>
+                <div><Link to="/accessibility-statement" className="text-muted-foreground hover:text-primary transition-colors">{t('landing.footer.accessibility')}</Link></div>
+                <div><a href="#contact" className="text-muted-foreground hover:text-primary transition-colors">{t('landing.footer.contact')}</a></div>
               </div>
             </div>
 
             {/* Legal */}
             <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
+              <h4 className="font-semibold mb-4">{t('landing.footer.legal')}</h4>
               <div className="space-y-3">
-                <div><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Privacy Policy</a></div>
-                <div><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Terms of Service</a></div>
-                <div><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Cookie Policy</a></div>
+                <div><a href="#" className="text-muted-foreground hover:text-primary transition-colors">{t('landing.footer.privacy')}</a></div>
+                <div><a href="#" className="text-muted-foreground hover:text-primary transition-colors">{t('landing.footer.terms')}</a></div>
+                <div><a href="#" className="text-muted-foreground hover:text-primary transition-colors">{t('landing.footer.cookies')}</a></div>
               </div>
             </div>
           </div>
 
           <div className="border-t pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-muted-foreground text-sm">
-              © 2024 Learninclusive. All rights reserved.
+              {t('landing.footer.copyright')}
             </p>
             <div className="flex items-center space-x-4 mt-4 md:mt-0">
-              <span className="text-sm text-muted-foreground">Made with accessibility in mind</span>
+              <span className="text-sm text-muted-foreground">{t('landing.footer.compliance')}</span>
               <Heart className="h-4 w-4 text-red-500" />
             </div>
           </div>

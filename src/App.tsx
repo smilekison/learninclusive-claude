@@ -15,7 +15,7 @@ import { GlobalShortcutsProvider } from "@/contexts/GlobalShortcutsContext";
 import { ShortcutsHelp } from "@/components/accessibility/ShortcutsHelp";
 import { ChatbotDrawer } from "@/components/chatbot/ChatbotDrawer";
 import UniversalAssistBar from "@/components/layout/UniversalAssistBar";
-import { LiveAnnouncer } from "@/components/accessibility/LiveAnnouncer";
+import { LiveAnnouncer, LiveAnnouncerProvider } from "@/components/accessibility/LiveAnnouncer";
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { LoadingScreen } from "@/components/ui/loading-screen";
@@ -325,20 +325,22 @@ const App = () => (
             <TTSProvider>
               <TooltipProvider>
                 <GlobalShortcutsProvider>
-                  <SkipNavigation />
-                  <AccessibilityAnnouncements />
-                  <AccessibilityPanel />
-                  <ShortcutsHelp />
-                  {/* Chatbot is global, lightweight, and opt-in */}
-                  <ChatbotDrawer />
-                  <UniversalAssistBar />
-                  
-        <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
-                    <LiveAnnouncer />
-                    <AppContent />
-                  </BrowserRouter>
+                  <LiveAnnouncerProvider>
+                    <SkipNavigation />
+                    <AccessibilityAnnouncements />
+                    <AccessibilityPanel />
+                    <ShortcutsHelp />
+                    {/* Chatbot is global, lightweight, and opt-in */}
+                    <ChatbotDrawer />
+                    <UniversalAssistBar />
+                    
+                    <Toaster />
+                    <Sonner />
+                    <BrowserRouter>
+                      <LiveAnnouncer />
+                      <AppContent />
+                    </BrowserRouter>
+                  </LiveAnnouncerProvider>
                 </GlobalShortcutsProvider>
               </TooltipProvider>
             </TTSProvider>

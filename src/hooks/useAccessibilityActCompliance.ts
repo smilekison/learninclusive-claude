@@ -43,15 +43,16 @@ export const useAccessibilityActCompliance = () => {
       // ADA Title II & III Compliance Assessment
       const adaCompliance: ComplianceResult = {
         standard: 'Americans with Disabilities Act (ADA)',
-        compliant: criticalViolations.length === 0 && seriousViolations.length <= 2,
-        score: Math.max(0, baseScore - (criticalViolations.length * 20) - (seriousViolations.length * 10)),
+        compliant: criticalViolations.length === 0 && seriousViolations.length <= 1 && baseScore >= 85,
+        score: Math.max(0, baseScore - (criticalViolations.length * 25) - (seriousViolations.length * 15)),
         criticalIssues: criticalViolations.length + seriousViolations.length,
         recommendations: [
-          criticalViolations.length > 0 ? 'Fix critical accessibility violations immediately' : '',
-          seriousViolations.length > 2 ? 'Address serious accessibility issues' : '',
-          baseScore < 90 ? 'Implement comprehensive accessibility testing' : '',
-          'Ensure keyboard navigation works throughout the application',
-          'Verify screen reader compatibility with all interactive elements'
+          criticalViolations.length > 0 ? 'Fix critical accessibility violations immediately - these block users with disabilities' : '',
+          seriousViolations.length > 1 ? 'Address serious accessibility issues that prevent equal access' : '',
+          baseScore < 85 ? 'Achieve minimum 85% accessibility score for ADA compliance' : '',
+          'Ensure all interactive elements have proper labels and keyboard access',
+          'Verify sufficient color contrast (4.5:1 minimum for normal text)',
+          'Test with screen readers and keyboard-only navigation'
         ].filter(Boolean)
       };
 
@@ -112,7 +113,7 @@ export const useAccessibilityActCompliance = () => {
         ].filter(Boolean)
       };
 
-      // Calculate overall compliance
+      // Calculate overall compliance - stricter requirements
       const allStandards = [adaCompliance, section508Compliance, wcag21aaCompliance, wcag22aaCompliance, enActCompliance];
       const compliantStandards = allStandards.filter(s => s.compliant).length;
       const averageScore = allStandards.reduce((sum, s) => sum + s.score, 0) / allStandards.length;
@@ -123,7 +124,7 @@ export const useAccessibilityActCompliance = () => {
         wcag21aa: wcag21aaCompliance,
         wcag22aa: wcag22aaCompliance,
         enAct: enActCompliance,
-        overallCompliance: compliantStandards >= 3, // At least 3 out of 5 standards
+        overallCompliance: adaCompliance.compliant && wcag21aaCompliance.compliant && compliantStandards >= 3,
         overallScore: Math.round(averageScore),
         timestamp: new Date()
       };
@@ -162,10 +163,17 @@ export const useAccessibilityActCompliance = () => {
       ...complianceResults.wcag21aa.recommendations
     ];
     
-    // Remove duplicates and prioritize
-    return Array.from(new Set(allRecommendations))
-      .filter(rec => rec.includes('critical') || rec.includes('Fix'))
-      .slice(0, 5);
+    // Prioritize critical and serious issues
+    const prioritized = Array.from(new Set(allRecommendations))
+      .sort((a, b) => {
+        const aWeight = (a.includes('critical') || a.includes('Fix')) ? 3 : 
+                       a.includes('serious') ? 2 : 1;
+        const bWeight = (b.includes('critical') || b.includes('Fix')) ? 3 : 
+                       b.includes('serious') ? 2 : 1;
+        return bWeight - aWeight;
+      });
+    
+    return prioritized.slice(0, 5);
   }, [complianceResults]);
 
   const getComplianceStatus = useCallback((standard: keyof Omit<AccessibilityActResults, 'overallCompliance' | 'overallScore' | 'timestamp'>) => {

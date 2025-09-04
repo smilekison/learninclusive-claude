@@ -225,7 +225,7 @@ export const VideoDetailsPage: React.FC = () => {
     <div className="min-h-screen bg-background">
       <YouTubeNavbar onSearch={setSearchTerm} searchTerm={searchTerm} />
       
-      <main className="max-w-screen-xl mx-auto px-4 py-6">
+      <main className="max-w-screen-xl mx-auto px-4 py-6" role="main" aria-label="Video details page">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Video Section */}
           <div className="lg:col-span-2 space-y-6">
@@ -245,7 +245,7 @@ export const VideoDetailsPage: React.FC = () => {
             {/* Video Info Header */}
             <div className="space-y-4">
               <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-foreground leading-tight mb-2">
+                <h1 className="text-2xl lg:text-3xl font-bold text-foreground leading-tight mb-2" id="video-title">
                   {video.title}
                 </h1>
                 
@@ -277,6 +277,8 @@ export const VideoDetailsPage: React.FC = () => {
                     variant={isLiked ? "default" : "outline"}
                     size="sm"
                     onClick={() => setIsLiked(!isLiked)}
+                    aria-label={isLiked ? "Remove like" : "Like this video"}
+                    aria-pressed={isLiked}
                   >
                     <ThumbsUp className="h-4 w-4 mr-2" />
                     Like
@@ -285,16 +287,28 @@ export const VideoDetailsPage: React.FC = () => {
                     variant={isDisliked ? "default" : "outline"}
                     size="sm"
                     onClick={() => setIsDisliked(!isDisliked)}
+                    aria-label={isDisliked ? "Remove dislike" : "Dislike this video"}
+                    aria-pressed={isDisliked}
                   >
                     <ThumbsDown className="h-4 w-4 mr-2" />
                     Dislike
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleShare}>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleShare}
+                    aria-label="Share this video"
+                  >
                     <Share2 className="h-4 w-4 mr-2" />
                     Share
                   </Button>
                   {video.videoFormat === 'mp4' && (
-                    <Button variant="outline" size="sm" onClick={handleDownload}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleDownload}
+                      aria-label="Download this video"
+                    >
                       <Download className="h-4 w-4 mr-2" />
                       Download
                     </Button>
@@ -307,38 +321,41 @@ export const VideoDetailsPage: React.FC = () => {
 
               <Separator />
 
-              {/* Channel Info */}
-              <div className="flex items-start justify-between">
+            {/* Channel Info */}
+              <section className="flex items-start justify-between" aria-labelledby="channel-info">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center">
+                  <div 
+                    className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center"
+                    aria-hidden="true"
+                  >
                     <span className="text-lg font-bold text-white">
                       {video.channel.charAt(0)}
                     </span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">{video.channel}</h3>
+                    <h3 id="channel-info" className="font-semibold text-foreground">{video.channel}</h3>
                     <p className="text-sm text-muted-foreground">
                       {video.channelSubscribers}
                     </p>
                   </div>
                 </div>
                 {video.videoFormat === 'youtube' && (
-                  <Button size="sm">
+                  <Button size="sm" aria-label={`Subscribe to ${video.channel}`}>
                     Subscribe
                   </Button>
                 )}
-              </div>
+              </section>
             </div>
 
             {/* Video Content Tabs */}
-            <Tabs defaultValue="description" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="description">Description</TabsTrigger>
-                <TabsTrigger value="transcript">Transcript</TabsTrigger>
-                <TabsTrigger value="resources">Resources</TabsTrigger>
+            <Tabs defaultValue="description" className="w-full" aria-label="Video content sections">
+              <TabsList className="grid w-full grid-cols-3" role="tablist">
+                <TabsTrigger value="description" aria-controls="description-panel">Description</TabsTrigger>
+                <TabsTrigger value="transcript" aria-controls="transcript-panel">Transcript</TabsTrigger>
+                <TabsTrigger value="resources" aria-controls="resources-panel">Resources</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="description" className="mt-4">
+              <TabsContent value="description" className="mt-4" id="description-panel" role="tabpanel">
                 <Card>
                   <CardContent className="pt-6">
                     <div className="prose prose-sm max-w-none text-foreground">
@@ -363,7 +380,7 @@ export const VideoDetailsPage: React.FC = () => {
                 </Card>
               </TabsContent>
               
-              <TabsContent value="transcript" className="mt-4">
+              <TabsContent value="transcript" className="mt-4" id="transcript-panel" role="tabpanel">
                 <Card>
                   <CardContent className="pt-6">
                     {video.transcript ? (
@@ -384,7 +401,7 @@ export const VideoDetailsPage: React.FC = () => {
                 </Card>
               </TabsContent>
               
-              <TabsContent value="resources" className="mt-4">
+              <TabsContent value="resources" className="mt-4" id="resources-panel" role="tabpanel">
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-center py-8 text-muted-foreground">
@@ -398,7 +415,7 @@ export const VideoDetailsPage: React.FC = () => {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <aside className="space-y-6" aria-label="Related content and comments">
             <RelatedVideos
               currentVideoId={video.id}
               currentVideoCategory={video.category}
@@ -416,7 +433,7 @@ export const VideoDetailsPage: React.FC = () => {
                 </p>
               </CardContent>
             </Card>
-          </div>
+          </aside>
         </div>
       </main>
     </div>

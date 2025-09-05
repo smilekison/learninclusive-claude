@@ -418,7 +418,7 @@ const LandingPage: React.FC = () => {
                           </div>
                           <div>
                             <h4 className="text-2xl font-bold text-foreground">Validation & Foundation</h4>
-                            <Badge className="mt-2 bg-primary/20 text-primary border-primary/30">2025–2026</Badge>
+                            <Badge className="mt-2 bg-primary/20 text-primary border-primary/30">2026–2027</Badge>
                           </div>
                         </div>
                         <p className="text-lg font-semibold text-primary mb-4">
@@ -460,7 +460,7 @@ const LandingPage: React.FC = () => {
                           </div>
                           <div>
                             <h4 className="text-2xl font-bold text-foreground">Expansion & Early Revenue</h4>
-                            <Badge className="mt-2 bg-accent/20 text-accent border-accent/30">2026–2027</Badge>
+                            <Badge className="mt-2 bg-accent/20 text-accent border-accent/30">2027–2028</Badge>
                           </div>
                         </div>
                         <p className="text-lg font-semibold text-accent mb-4">
@@ -504,7 +504,7 @@ const LandingPage: React.FC = () => {
                           </div>
                           <div>
                             <h4 className="text-2xl font-bold text-foreground">Innovation & Nordic Scale</h4>
-                            <Badge className="mt-2 bg-green-500/20 text-green-700 border-green-500/30">2027–2028</Badge>
+                            <Badge className="mt-2 bg-green-500/20 text-green-700 border-green-500/30">2028–2029</Badge>
                           </div>
                         </div>
                         <p className="text-lg font-semibold text-green-700 mb-4">
@@ -546,7 +546,7 @@ const LandingPage: React.FC = () => {
                           </div>
                           <div>
                             <h4 className="text-2xl font-bold text-foreground">System-Wide Adoption</h4>
-                            <Badge className="mt-2 bg-purple-500/20 text-purple-700 border-purple-500/30">2028–2029</Badge>
+                            <Badge className="mt-2 bg-purple-500/20 text-purple-700 border-purple-500/30">2029–2030</Badge>
                           </div>
                         </div>
                         <p className="text-lg font-semibold text-purple-700 mb-4">

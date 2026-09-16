@@ -35,7 +35,7 @@ export const YouTubeNavbar: React.FC<YouTubeNavbarProps> = ({ onSearch, searchTe
           <Button size="sm" variant={language === 'en' ? 'default' : 'outline'} className="h-9 px-3" onClick={() => setLanguage('en')} aria-pressed={language === 'en'}>
             EN
           </Button>
-          <Button size="sm" variant={language === 'fi' ? 'default' : 'outline'} className="h-9 px-3" onClick={() => setLanguage('fi')} aria-pressed={language === 'fi'}>
+          <Button size="sm" variant={language === 'lt' ? 'default' : 'outline'} className="h-9 px-3" onClick={() => setLanguage('lt')} aria-pressed={language === 'lt'}>
             FI
           </Button>
         </div>

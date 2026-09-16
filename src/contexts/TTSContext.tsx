@@ -1,4 +1,7 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+const TTS_LOCALE_PREFIX: Record<string, string> = { en: 'en', lt: 'lt' };
 
 interface TTSSettings {
   enabled: boolean;
@@ -47,34 +50,41 @@ export const TTSProvider: React.FC<TTSProviderProps> = ({ children }) => {
   const [isPaused, setIsPaused] = useState(false);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [currentUtterance, setCurrentUtterance] = useState<SpeechSynthesisUtterance | null>(null);
+  const { language } = useLanguage();
+  // Tracks whether the current voice came from an explicit user choice
+  // (via updateSettings) rather than the language-matching default, so
+  // switching the app language doesn't clobber a deliberate pick.
+  const voiceManuallySet = useRef(false);
+
+  const pickVoiceForLanguage = useCallback((voices: SpeechSynthesisVoice[]) => {
+    const prefix = TTS_LOCALE_PREFIX[language] || 'en';
+    return voices.find(voice => voice.lang.toLowerCase().startsWith(prefix))
+      || voices.find(voice => voice.lang.toLowerCase().startsWith('en'))
+      || voices[0];
+  }, [language]);
 
   // Load available voices
   useEffect(() => {
     const loadVoices = () => {
       const voices = speechSynthesis.getVoices();
       setAvailableVoices(voices);
-      
-      // Set default voice if none selected
-      if (!settings.voice && voices.length > 0) {
-        // Try to find an English voice, otherwise use the first one
-        const englishVoice = voices.find(voice => voice.lang.startsWith('en'));
-        setSettings(prev => ({
-          ...prev,
-          voice: englishVoice?.name || voices[0].name
-        }));
+
+      if (voices.length > 0 && !voiceManuallySet.current) {
+        const match = pickVoiceForLanguage(voices);
+        setSettings(prev => (match && prev.voice !== match.name ? { ...prev, voice: match.name } : prev));
       }
     };
 
     // Load voices immediately
     loadVoices();
-    
+
     // Also load when voices change (some browsers load voices asynchronously)
     speechSynthesis.addEventListener('voiceschanged', loadVoices);
-    
+
     return () => {
       speechSynthesis.removeEventListener('voiceschanged', loadVoices);
     };
-  }, [settings.voice]);
+  }, [pickVoiceForLanguage]);
 
   const speak = useCallback((text: string) => {
     if (!settings.enabled || !text.trim()) return;
@@ -149,6 +159,7 @@ export const TTSProvider: React.FC<TTSProviderProps> = ({ children }) => {
   }, [isSpeaking, isPaused]);
 
   const updateSettings = useCallback((newSettings: Partial<TTSSettings>) => {
+    if (newSettings.voice) voiceManuallySet.current = true;
     setSettings(prev => ({ ...prev, ...newSettings }));
   }, []);
 

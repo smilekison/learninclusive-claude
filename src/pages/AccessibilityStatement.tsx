@@ -39,7 +39,7 @@ export const AccessibilityStatement: React.FC = () => {
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span>Finnish Accessibility Act</span>
+                <span>Lithuanian Accessibility Act</span>
                 <Badge variant="default" className="bg-success text-success-foreground">
                   Compliant
                 </Badge>

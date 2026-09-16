@@ -22,7 +22,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
 
   const languages: { code: Language; name: string; flag: string }[] = [
     { code: 'en', name: t('language.english'), flag: '🇺🇸' },
-    { code: 'fi', name: t('language.finnish'), flag: '🇫🇮' },
+    { code: 'lt', name: t('language.lithuanian'), flag: '🇱🇹' },
   ];
 
   const currentLanguage = languages.find(lang => lang.code === language);

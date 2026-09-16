@@ -78,11 +78,11 @@ export const AuthPage: React.FC = () => {
                 </Button>
                 <Button 
                   size="sm" 
-                  variant={language === 'fi' ? 'default' : 'outline'} 
-                  onClick={() => setLanguage('fi')}
+                  variant={language === 'lt' ? 'default' : 'outline'} 
+                  onClick={() => setLanguage('lt')}
                   className="h-8 px-3"
                 >
-                  FI
+                  LT
                 </Button>
               </div>
             </div>

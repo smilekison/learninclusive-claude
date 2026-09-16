@@ -194,7 +194,7 @@ export const VideoDetailsPage: React.FC = () => {
         <AccessibleYouTubePlayer
           videoId={ytId}
           title={video.title}
-          captionLang={video.category === 'FSL' ? 'fi' : 'en'}
+          captionLang={video.category === 'LGK' ? 'lt' : 'en'}
           className="overflow-hidden rounded-lg"
           videoDbId={video.id}
         />

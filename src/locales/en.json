@@ -15,7 +15,7 @@
   "nav.signOut": "Sign Out",
   "nav.navigation": "Navigation",
   "nav.videos": "Videos Section",
-  
+
   "auth.welcomeBack": "Welcome Back",
   "auth.signInDescription": "Sign in to your learninclusive account",
   "auth.emailAddress": "Email Address",
@@ -34,7 +34,7 @@
   "auth.student": "Student",
   "auth.passwordLabel": "Password",
   "auth.signUp": "Sign Up",
-  
+
   "common.search": "Search",
   "common.filter": "Filter",
   "common.all": "All",
@@ -51,33 +51,33 @@
   "common.preparingEnvironment": "Preparing your learning environment",
   "common.quickSearch": "Quick search...",
   "common.allClasses": "All Classes",
-  
+
   "header.insightsAnalytics": "Insights & Analytics",
   "header.subjectManagement": "Subject Management",
   "header.assignmentCenter": "Assignment Center",
   "header.studentManagement": "Student Management",
   "header.submissionReview": "Submission Review",
   "header.learningManagement": "learninclusive",
-  
+
   "stats.teachers": "Teachers",
   "stats.classes": "Classes",
   "stats.students": "Students",
   "stats.myClasses": "My Classes",
-  
+
   "footer.accessibilityCompliant": "Built with accessibility and inclusion in mind",
   "footer.compliance": "WCAG 2.1 AA Compliant • Privacy Focused • GDPR Ready",
-  
+
   "app.title": "learninclusive",
   "app.subtitle": "Accessible education for everyone",
   "app.shortName": "learninclusive",
-  
+
   "language.english": "English",
-  "language.finnish": "Finnish",
+  "language.lithuanian": "Lithuanian",
   "language.switch": "Switch Language",
-  
-  "homepage.title": "Learn Sign Language: BSL & Finnish Sign Language",
+
+  "homepage.title": "Learn Sign Language: BSL & Lithuanian Sign Language",
   "homepage.subtitle": "Curated free YouTube lessons with accessible controls.",
-  
+
   "chatbot.title": "Assistant",
   "chatbot.subtitle": "Ask about using the app or where to find things",
   "chatbot.openAssistant": "Open assistant",
@@ -91,24 +91,24 @@
   "chatbot.errorFallback": "Sorry, I couldn't answer right now.",
   "chatbot.assistantReplied": "Assistant replied",
   "chatbot.errorAnnounce": "Assistant failed to reply",
-  
+
   "presence.online": "Online",
   "nav.welcome": "Welcome",
   "videos.searchPlaceholder": "Search videos...",
-  
+
   "landing.nav.home": "Home",
   "landing.nav.about": "About",
   "landing.nav.services": "Services",
   "landing.nav.contact": "Contact",
   "landing.nav.browseVideos": "Browse Videos",
   "landing.nav.getStarted": "Get Started",
-  
-  "landing.hero.badge": "WCAG 2.1 AA Compliant • Finnish Accessibility Certified",
+
+  "landing.hero.badge": "WCAG 2.1 AA Compliant • Lithuanian Accessibility Certified",
   "landing.hero.title": "Education for Everyone, Accessible by Design",
   "landing.hero.subtitle": "The world's first fully inclusive learning management system. Built with accessibility at its core, ensuring every student can learn, participate, and succeed regardless of their abilities.",
   "landing.hero.startLearning": "Start Learning Today",
   "landing.hero.watchDemo": "Watch Demo",
-  
+
   "landing.features.title": "Accessibility-First Features",
   "landing.features.wcag.title": "WCAG 2.1 AA Compliant",
   "landing.features.wcag.description": "Full accessibility compliance ensuring education is available to everyone, regardless of abilities.",
@@ -123,56 +123,56 @@
 
   "landing.mission.title": "Our Mission & Vision",
   "landing.mission.subtitle": "Building the future of inclusive education through strategic phases",
-  
+
   "landing.mission.year1.title": "Year 1 (2025–2026) – Validation & Foundation",
   "landing.mission.year1.mission": "Prove that AI-powered sign language avatars and accessibility tools work in real classrooms.",
-  "landing.mission.year1.point1": "Launch pilots in 2–3 Finnish schools (Grades 1–5).",
+  "landing.mission.year1.point1": "Launch pilots in 2–3 Lithuanian schools (Grades 1–5).",
   "landing.mission.year1.point2": "Partner with one NGO to test inclusivity at community events.",
-  "landing.mission.year1.point3": "Build the core FinSL dataset with teachers and Deaf community contributors.",
-  
+  "landing.mission.year1.point3": "Build the core LGK (Lithuanian Sign Language) dataset with teachers and Deaf community contributors.",
+
   "landing.mission.year2.title": "Year 2 (2026–2027) – Expansion & Early Revenue",
-  "landing.mission.year2.mission": "Show that LearnInclusive can scale beyond Finland and begin generating revenue.",
-  "landing.mission.year2.point1": "Enter German schools with German Sign Language support.",
-  "landing.mission.year2.point2": "Extend Finnish pilots to Grades 6–8.",
+  "landing.mission.year2.mission": "Show that LearnInclusive can scale beyond Lithuania and begin generating revenue.",
+  "landing.mission.year2.point1": "Enter Polish schools with Polish Sign Language support.",
+  "landing.mission.year2.point2": "Extend Lithuanian pilots to Grades 6–8.",
   "landing.mission.year2.point3": "Secure 2–3 paid municipal pilots.",
-  "landing.mission.year2.point4": "Partner with media/education content providers for FinSL accessibility.",
-  
-  "landing.mission.year3.title": "Year 3 (2027–2028) – Innovation & Nordic Scale",
-  "landing.mission.year3.mission": "Become the leading accessibility-first EdTech platform in Northern Europe.",
-  "landing.mission.year3.point1": "Expand to Sweden, Norway, and Denmark.",
-  "landing.mission.year3.point2": "Pilot sign-to-sign translation technology (FinSL ↔ GSL ↔ ISL).",
-  "landing.mission.year3.point3": "Sign 10–15 long-term contracts with schools across Finland and Germany.",
-  
+  "landing.mission.year2.point4": "Partner with media/education content providers for LGK accessibility.",
+
+  "landing.mission.year3.title": "Year 3 (2027–2028) – Innovation & Baltic Scale",
+  "landing.mission.year3.mission": "Become the leading accessibility-first EdTech platform in the Baltic region.",
+  "landing.mission.year3.point1": "Expand to Latvia and Estonia.",
+  "landing.mission.year3.point2": "Pilot sign-to-sign translation technology (LGK ↔ Latvian SL ↔ Estonian SL).",
+  "landing.mission.year3.point3": "Sign 10–15 long-term contracts with schools across Lithuania and Poland.",
+
   "landing.mission.year4.title": "Year 4 (2028–2029) – System-Wide Adoption",
-  "landing.mission.year4.mission": "Achieve full adoption in Finland and Germany and secure recognition as a European leader.",
+  "landing.mission.year4.mission": "Achieve full adoption in Lithuania and Poland and secure recognition as a European leader.",
   "landing.mission.year4.point1": "Roll out to 25–30 schools (Grades 1–12).",
   "landing.mission.year4.point2": "Become the default compliance solution for municipalities under the EU Accessibility Act 2025.",
   "landing.mission.year4.point3": "Expand accessibility features to low-vision and multilingual learners.",
-  
+
   "landing.mission.framework": "Our strategic framework builds from validation through scalability to market leadership, positioning learninclusive as the definitive accessibility-first solution in European education.",
-  
+
   "landing.about.title": "About Learninclusive",
   "landing.about.description1": "Born from the belief that education should be accessible to everyone, Learninclusive is the first learning management system built with accessibility as its foundation, not as an afterthought.",
-  "landing.about.description2": "We comply with WCAG 2.1 AA standards and Finnish accessibility legislation, ensuring that students with visual, auditory, motor, and cognitive disabilities can fully participate in their education.",
+  "landing.about.description2": "We comply with WCAG 2.1 AA standards and Lithuanian accessibility legislation, ensuring that students with visual, auditory, motor, and cognitive disabilities can fully participate in their education.",
   "landing.about.wcagCompliant": "WCAG Compliant",
   "landing.about.studentsServed": "Students Served",
   "landing.about.inclusiveDesign": "Inclusive by Design",
-  
+
   "landing.mission.ourMission": "Our Mission",
   "landing.mission.missionContent": "To break down barriers in education by creating the world's most accessible learning platform. We believe every student, regardless of their abilities or disabilities, deserves equal access to quality education. Our mission is to empower educators with tools that make learning truly inclusive, ensuring no student is left behind in their educational journey.",
   "landing.mission.ourVision": "Our Vision",
   "landing.mission.visionContent": "A world where accessibility in education is not an afterthought, but the foundation upon which all learning experiences are built. We envision a future where every educational institution has the tools and knowledge to create truly inclusive environments, where diversity in learning needs is celebrated and supported through cutting-edge, accessible technology.",
-  
+
   "landing.features.multilingual.title": "Multilingual",
-  "landing.features.multilingual.description": "Support for multiple languages including English and Finnish, with easy language switching.",
+  "landing.features.multilingual.description": "Support for multiple languages including English and Lithuanian, with easy language switching.",
   "landing.features.subtitle": "Every feature is designed with inclusivity in mind, ensuring all students can access and benefit from education.",
-  
+
   "landing.services.title": "Why Choose Learninclusive?",
   "landing.services.subtitle": "We don't just add accessibility features – we build them into the foundation of everything we do.",
   "landing.services.lms.title": "Comprehensive LMS",
   "landing.services.lms.description": "Complete learning management system with assignments, grading, and progress tracking.",
   "landing.services.lms.benefit1": "Assignment Management",
-  "landing.services.lms.benefit2": "Real-time Grading", 
+  "landing.services.lms.benefit2": "Real-time Grading",
   "landing.services.lms.benefit3": "Progress Analytics",
   "landing.services.lms.benefit4": "Student Portfolios",
   "landing.services.accessibility.title": "Accessibility First",
@@ -193,19 +193,19 @@
   "landing.services.analytics.benefit2": "Engagement Metrics",
   "landing.services.analytics.benefit3": "Performance Tracking",
   "landing.services.analytics.benefit4": "Custom Reports",
-  
+
   "landing.testimonials.title": "What Educators Say",
   "landing.testimonials.subtitle": "Hear from the educators who've transformed their classrooms with Learninclusive.",
-  "landing.testimonials.maria.name": "Dr. Maria Korhonen",
+  "landing.testimonials.maria.name": "Dr. Rūta Jankauskienė",
   "landing.testimonials.maria.role": "Special Education Director",
   "landing.testimonials.maria.content": "Learninclusive has revolutionized how we deliver education to students with diverse needs. The accessibility features are unmatched.",
-  "landing.testimonials.james.name": "James Wilson", 
+  "landing.testimonials.james.name": "Tomas Petrauskas",
   "landing.testimonials.james.role": "High School Principal",
   "landing.testimonials.james.content": "Finally, an LMS that truly works for all students. The inclusive design has improved engagement across our entire school.",
-  "landing.testimonials.sarah.name": "Sarah Chen",
+  "landing.testimonials.sarah.name": "Eglė Baranauskaitė",
   "landing.testimonials.sarah.role": "Special Needs Coordinator",
   "landing.testimonials.sarah.content": "The sign language support and cognitive accessibility features have been game-changers for our students.",
-  
+
   "landing.contact.title": "Get in Touch",
   "landing.contact.subtitle": "Ready to make education accessible for all? Let's start the conversation.",
   "landing.contact.info": "Contact Information",
@@ -216,12 +216,12 @@
   "landing.contact.message": "Message",
   "landing.contact.send": "Send Message",
   "landing.contact.sending": "Sending...",
-  
+
   "landing.cta.title": "Ready to Transform Education?",
   "landing.cta.subtitle": "Join thousands of educators who are making learning accessible for everyone.",
   "landing.cta.getStarted": "Get Started Free",
   "landing.cta.requestDemo": "Request Demo",
-  
+
   "landing.footer.description": "Making education accessible for everyone through innovative, inclusive technology that complies with international accessibility standards.",
   "landing.footer.quickLinks": "Quick Links",
   "landing.footer.about": "About",

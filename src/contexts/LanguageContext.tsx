@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type Language = 'en' | 'fi';
+export type Language = 'en' | 'lt';
 
 interface LanguageContextType {
   language: Language;
@@ -34,7 +34,7 @@ const getLanguageFromCookie = (): Language => {
     const langCookie = cookies.find(cookie => cookie.trim().startsWith('language='));
     if (langCookie) {
       const lang = langCookie.split('=')[1].trim() as Language;
-      return ['en', 'fi'].includes(lang) ? lang : 'en';
+      return ['en', 'lt'].includes(lang) ? lang : 'en';
     }
   } catch (error) {
     console.error('Error reading language cookie:', error);

@@ -1,0 +1,12 @@
+node_modules
+dist
+dist-ssr
+.git
+.env
+.env.local
+*.local
+supabase/.branches
+supabase/.temp
+.vscode
+.idea
+npm-debug.log*

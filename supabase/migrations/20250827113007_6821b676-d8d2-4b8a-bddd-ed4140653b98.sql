@@ -2,7 +2,7 @@
 ALTER TABLE public.quizzes ADD COLUMN lesson_id uuid REFERENCES public.lessons(id) ON DELETE CASCADE;
 
 -- Create quiz_analytics table for tracking quiz performance
-CREATE TABLE public.quiz_analytics (
+CREATE TABLE IF NOT EXISTS public.quiz_analytics (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   quiz_id uuid NOT NULL REFERENCES public.quizzes(id) ON DELETE CASCADE,
   student_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -19,6 +19,7 @@ CREATE TABLE public.quiz_analytics (
 ALTER TABLE public.quiz_analytics ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for quiz_analytics
+DROP POLICY IF EXISTS "Teachers can view analytics for their quizzes" ON public.quiz_analytics;
 CREATE POLICY "Teachers can view analytics for their quizzes"
 ON public.quiz_analytics FOR SELECT
 USING (
@@ -31,12 +32,13 @@ USING (
   ) OR is_principal()
 );
 
+DROP POLICY IF EXISTS "System can insert analytics" ON public.quiz_analytics;
 CREATE POLICY "System can insert analytics"
 ON public.quiz_analytics FOR INSERT
 WITH CHECK (true);
 
 -- Create quiz_feedback table for detailed feedback
-CREATE TABLE public.quiz_feedback (
+CREATE TABLE IF NOT EXISTS public.quiz_feedback (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   quiz_attempt_id uuid NOT NULL REFERENCES public.quiz_attempts(id) ON DELETE CASCADE,
   overall_feedback text,
@@ -50,6 +52,7 @@ CREATE TABLE public.quiz_feedback (
 ALTER TABLE public.quiz_feedback ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for quiz_feedback
+DROP POLICY IF EXISTS "Students can view their own feedback" ON public.quiz_feedback;
 CREATE POLICY "Students can view their own feedback"
 ON public.quiz_feedback FOR SELECT
 USING (
@@ -60,6 +63,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Teachers can manage feedback for their quizzes" ON public.quiz_feedback;
 CREATE POLICY "Teachers can manage feedback for their quizzes"
 ON public.quiz_feedback FOR ALL
 USING (

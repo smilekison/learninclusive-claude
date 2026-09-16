@@ -10,7 +10,8 @@ BEGIN
     SELECT 1 FROM pg_policies 
     WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Students can upload their assignment files'
   ) THEN
-    CREATE POLICY "Students can upload their assignment files"
+    DROP POLICY IF EXISTS "Students can upload their assignment files" ON storage.objects;
+CREATE POLICY "Students can upload their assignment files"
     ON storage.objects
     FOR INSERT
     TO authenticated
@@ -32,7 +33,8 @@ BEGIN
     SELECT 1 FROM pg_policies 
     WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Students can view their assignment files'
   ) THEN
-    CREATE POLICY "Students can view their assignment files"
+    DROP POLICY IF EXISTS "Students can view their assignment files" ON storage.objects;
+CREATE POLICY "Students can view their assignment files"
     ON storage.objects
     FOR SELECT
     TO authenticated
@@ -54,7 +56,8 @@ BEGIN
     SELECT 1 FROM pg_policies 
     WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Teachers can view assignment files they own'
   ) THEN
-    CREATE POLICY "Teachers can view assignment files they own"
+    DROP POLICY IF EXISTS "Teachers can view assignment files they own" ON storage.objects;
+CREATE POLICY "Teachers can view assignment files they own"
     ON storage.objects
     FOR SELECT
     TO authenticated
@@ -67,7 +70,7 @@ BEGIN
         JOIN public.classes c ON s.class_id = c.id
         JOIN public.profiles t ON c.teacher_id = t.id
         WHERE t.user_id = auth.uid()
-          AND (storage.foldername(name))[2] = a.id::text
+          AND (storage.foldername(storage.objects.name))[2] = a.id::text
       )
     );
   END IF;
@@ -80,7 +83,8 @@ BEGIN
     SELECT 1 FROM pg_policies 
     WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Principals can view all assignment files'
   ) THEN
-    CREATE POLICY "Principals can view all assignment files"
+    DROP POLICY IF EXISTS "Principals can view all assignment files" ON storage.objects;
+CREATE POLICY "Principals can view all assignment files"
     ON storage.objects
     FOR SELECT
     USING (

@@ -7,6 +7,7 @@ DROP POLICY IF EXISTS "Users can view their specific invitation by token" ON pub
 DROP POLICY IF EXISTS "Allow specific invitation token lookup" ON public.email_invitations;
 
 -- Create a secure policy that only allows lookup with exact token match and proper authentication
+DROP POLICY IF EXISTS "Secure invitation token access" ON public.email_invitations;
 CREATE POLICY "Secure invitation token access" 
 ON public.email_invitations 
 FOR SELECT 

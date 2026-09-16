@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS assignment_classes (
 ALTER TABLE assignment_classes ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for assignment_classes
+DROP POLICY IF EXISTS "Teachers can manage assignment classes for their assignments" ON assignment_classes;
 CREATE POLICY "Teachers can manage assignment classes for their assignments"
 ON assignment_classes FOR ALL
 USING (
@@ -31,6 +32,7 @@ USING (
   OR is_principal()
 );
 
+DROP POLICY IF EXISTS "Users can view assignment classes for accessible assignments" ON assignment_classes;
 CREATE POLICY "Users can view assignment classes for accessible assignments"
 ON assignment_classes FOR SELECT
 USING (
@@ -79,6 +81,7 @@ CREATE TABLE IF NOT EXISTS video_materials (
 ALTER TABLE video_materials ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for video_materials
+DROP POLICY IF EXISTS "Teachers can manage videos for their subjects" ON video_materials;
 CREATE POLICY "Teachers can manage videos for their subjects"
 ON video_materials FOR ALL
 USING (
@@ -91,6 +94,7 @@ USING (
   OR is_principal()
 );
 
+DROP POLICY IF EXISTS "Students can view videos for their enrolled subjects" ON video_materials;
 CREATE POLICY "Students can view videos for their enrolled subjects"
 ON video_materials FOR SELECT
 USING (
@@ -122,6 +126,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_video_materials_updated_at ON video_materials;
 CREATE TRIGGER update_video_materials_updated_at
   BEFORE UPDATE ON video_materials
   FOR EACH ROW

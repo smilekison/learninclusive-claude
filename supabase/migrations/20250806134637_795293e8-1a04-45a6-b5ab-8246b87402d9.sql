@@ -5,11 +5,13 @@ DROP POLICY IF EXISTS "Teachers can view all classes for demo" ON public.classes
 DROP POLICY IF EXISTS "Principals can manage all classes" ON public.classes;
 
 -- Create new policies using existing security definer functions
+DROP POLICY IF EXISTS "Teachers can view all classes for demo" ON public.classes;
 CREATE POLICY "Teachers can view all classes for demo" 
 ON public.classes 
 FOR SELECT 
 USING (get_user_role() = 'teacher');
 
+DROP POLICY IF EXISTS "Principals can manage all classes" ON public.classes;
 CREATE POLICY "Principals can manage all classes" 
 ON public.classes 
 FOR ALL 
@@ -23,6 +25,7 @@ FOR INSERT
 WITH CHECK (get_user_role() = 'teacher');
 
 -- Allow teachers to view all classes for subject creation
+DROP POLICY IF EXISTS "Teachers can view all classes for subjects" ON public.classes;
 CREATE POLICY "Teachers can view all classes for subjects" 
 ON public.classes 
 FOR SELECT 
@@ -30,12 +33,14 @@ USING (get_user_role() = 'teacher');
 
 -- Ensure teachers can view all student enrollments for adding students
 DROP POLICY IF EXISTS "Teachers can view enrollments in their classes" ON public.student_enrollments;
+DROP POLICY IF EXISTS "Teachers can view all enrollments for demo" ON public.student_enrollments;
 CREATE POLICY "Teachers can view all enrollments for demo" 
 ON public.student_enrollments 
 FOR SELECT 
 USING (get_user_role() = 'teacher');
 
 -- Allow teachers to create enrollments for any student in any class for demo
+DROP POLICY IF EXISTS "Teachers can create enrollments for demo" ON public.student_enrollments;
 CREATE POLICY "Teachers can create enrollments for demo" 
 ON public.student_enrollments 
 FOR INSERT 

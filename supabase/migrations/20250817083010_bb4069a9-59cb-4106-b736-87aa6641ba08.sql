@@ -24,6 +24,7 @@ BEGIN
 END;
 $function$;
 
+DROP FUNCTION IF EXISTS public.request_subject_enrollment(text);
 CREATE OR REPLACE FUNCTION public.request_subject_enrollment(invitation_code text)
 RETURNS text
 LANGUAGE plpgsql

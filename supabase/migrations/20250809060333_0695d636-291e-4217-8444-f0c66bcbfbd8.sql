@@ -123,7 +123,19 @@ BEGIN
     (teacher2_id, 'Sarah', 'Johnson', 'teacher', NULL),
     (student1_id, 'Alex', 'Martinez', 'student', NULL),
     (student2_id, 'Emma', 'Davis', 'student', NULL),
-    (student3_id, 'Jordan', 'Wilson', 'student', NULL);
+    (student3_id, 'Jordan', 'Wilson', 'student', NULL)
+        ON CONFLICT (user_id) DO NOTHING;
+
+    -- Everything below FKs to profiles(id), not auth.users(id) — rebind each
+    -- *_id variable from the auth user id to its actual profile id (the
+    -- handle_new_user trigger creates the profile with its own generated id,
+    -- distinct from the auth user id).
+    SELECT id INTO principal_id FROM profiles WHERE user_id = principal_id;
+    SELECT id INTO teacher1_id FROM profiles WHERE user_id = teacher1_id;
+    SELECT id INTO teacher2_id FROM profiles WHERE user_id = teacher2_id;
+    SELECT id INTO student1_id FROM profiles WHERE user_id = student1_id;
+    SELECT id INTO student2_id FROM profiles WHERE user_id = student2_id;
+    SELECT id INTO student3_id FROM profiles WHERE user_id = student3_id;
 
     -- Create school
     school_id := gen_random_uuid();

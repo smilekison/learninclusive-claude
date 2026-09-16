@@ -1,4 +1,5 @@
 -- Add missing RLS policies for materials table
+DROP POLICY IF EXISTS "Students can view materials in their subjects" ON public.materials;
 CREATE POLICY "Students can view materials in their subjects" 
 ON public.materials 
 FOR SELECT 
@@ -8,6 +9,7 @@ USING (subject_id IN ( SELECT s.id
      JOIN profiles p ON ((se.student_id = p.id)))
   WHERE (p.user_id = auth.uid())));
 
+DROP POLICY IF EXISTS "Teachers can manage materials in their subjects" ON public.materials;
 CREATE POLICY "Teachers can manage materials in their subjects" 
 ON public.materials 
 FOR ALL 
@@ -18,6 +20,7 @@ USING (subject_id IN ( SELECT s.id
   WHERE (p.user_id = auth.uid())));
 
 -- Add missing RLS policies for quizzes table
+DROP POLICY IF EXISTS "Students can view quizzes in their subjects" ON public.quizzes;
 CREATE POLICY "Students can view quizzes in their subjects" 
 ON public.quizzes 
 FOR SELECT 
@@ -27,6 +30,7 @@ USING (subject_id IN ( SELECT s.id
      JOIN profiles p ON ((se.student_id = p.id)))
   WHERE (p.user_id = auth.uid())));
 
+DROP POLICY IF EXISTS "Teachers can manage quizzes in their subjects" ON public.quizzes;
 CREATE POLICY "Teachers can manage quizzes in their subjects" 
 ON public.quizzes 
 FOR ALL 
@@ -37,6 +41,7 @@ USING (subject_id IN ( SELECT s.id
   WHERE (p.user_id = auth.uid())));
 
 -- Add missing RLS policies for quiz_attempts table
+DROP POLICY IF EXISTS "Students can manage their own quiz attempts" ON public.quiz_attempts;
 CREATE POLICY "Students can manage their own quiz attempts" 
 ON public.quiz_attempts 
 FOR ALL 
@@ -44,6 +49,7 @@ USING (student_id IN ( SELECT profiles.id
    FROM profiles
   WHERE (profiles.user_id = auth.uid())));
 
+DROP POLICY IF EXISTS "Teachers can view quiz attempts for their quizzes" ON public.quiz_attempts;
 CREATE POLICY "Teachers can view quiz attempts for their quizzes" 
 ON public.quiz_attempts 
 FOR SELECT 
@@ -55,6 +61,7 @@ USING (quiz_id IN ( SELECT q.id
   WHERE (p.user_id = auth.uid())));
 
 -- Add missing RLS policies for student_enrollments table
+DROP POLICY IF EXISTS "Students can view their own enrollments" ON public.student_enrollments;
 CREATE POLICY "Students can view their own enrollments" 
 ON public.student_enrollments 
 FOR SELECT 
@@ -62,6 +69,7 @@ USING (student_id IN ( SELECT profiles.id
    FROM profiles
   WHERE (profiles.user_id = auth.uid())));
 
+DROP POLICY IF EXISTS "Principals can manage all enrollments" ON public.student_enrollments;
 CREATE POLICY "Principals can manage all enrollments" 
 ON public.student_enrollments 
 FOR ALL 
@@ -69,6 +77,7 @@ USING (EXISTS ( SELECT 1
    FROM profiles
   WHERE ((profiles.user_id = auth.uid()) AND (profiles.role = 'principal'::text))));
 
+DROP POLICY IF EXISTS "Teachers can view enrollments in their classes" ON public.student_enrollments;
 CREATE POLICY "Teachers can view enrollments in their classes" 
 ON public.student_enrollments 
 FOR SELECT 

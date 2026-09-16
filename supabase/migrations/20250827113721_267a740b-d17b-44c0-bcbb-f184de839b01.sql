@@ -8,7 +8,7 @@ ALTER TABLE public.lessons ADD COLUMN rich_content jsonb DEFAULT '{}'::jsonb;
 ALTER TABLE public.lessons ADD COLUMN interactive_elements jsonb DEFAULT '[]'::jsonb;
 
 -- Create lesson_progress table for tracking student progress
-CREATE TABLE public.lesson_progress (
+CREATE TABLE IF NOT EXISTS public.lesson_progress (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   student_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   lesson_id uuid NOT NULL REFERENCES public.lessons(id) ON DELETE CASCADE,
@@ -27,6 +27,7 @@ CREATE TABLE public.lesson_progress (
 ALTER TABLE public.lesson_progress ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for lesson_progress
+DROP POLICY IF EXISTS "Students can manage their own lesson progress" ON public.lesson_progress;
 CREATE POLICY "Students can manage their own lesson progress"
 ON public.lesson_progress FOR ALL
 USING (
@@ -40,6 +41,7 @@ WITH CHECK (
   )
 );
 
+DROP POLICY IF EXISTS "Teachers can view lesson progress for their students" ON public.lesson_progress;
 CREATE POLICY "Teachers can view lesson progress for their students"
 ON public.lesson_progress FOR SELECT
 USING (
@@ -53,7 +55,7 @@ USING (
 );
 
 -- Create student_quiz_sessions table for real-time quiz tracking
-CREATE TABLE public.student_quiz_sessions (
+CREATE TABLE IF NOT EXISTS public.student_quiz_sessions (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   student_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   quiz_id uuid NOT NULL REFERENCES public.quizzes(id) ON DELETE CASCADE,
@@ -73,6 +75,7 @@ CREATE TABLE public.student_quiz_sessions (
 ALTER TABLE public.student_quiz_sessions ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for student_quiz_sessions
+DROP POLICY IF EXISTS "Students can manage their own quiz sessions" ON public.student_quiz_sessions;
 CREATE POLICY "Students can manage their own quiz sessions"
 ON public.student_quiz_sessions FOR ALL
 USING (
@@ -86,6 +89,7 @@ WITH CHECK (
   )
 );
 
+DROP POLICY IF EXISTS "Teachers can view quiz sessions for their quizzes" ON public.student_quiz_sessions;
 CREATE POLICY "Teachers can view quiz sessions for their quizzes"
 ON public.student_quiz_sessions FOR SELECT
 USING (
@@ -99,7 +103,7 @@ USING (
 );
 
 -- Add accessibility audit log table
-CREATE TABLE public.accessibility_audit_log (
+CREATE TABLE IF NOT EXISTS public.accessibility_audit_log (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
   action_type text NOT NULL,
@@ -114,6 +118,7 @@ CREATE TABLE public.accessibility_audit_log (
 ALTER TABLE public.accessibility_audit_log ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for accessibility_audit_log
+DROP POLICY IF EXISTS "Users can insert their own accessibility logs" ON public.accessibility_audit_log;
 CREATE POLICY "Users can insert their own accessibility logs"
 ON public.accessibility_audit_log FOR INSERT
 WITH CHECK (
@@ -122,6 +127,7 @@ WITH CHECK (
   ) OR user_id IS NULL
 );
 
+DROP POLICY IF EXISTS "Principals and teachers can view accessibility logs" ON public.accessibility_audit_log;
 CREATE POLICY "Principals and teachers can view accessibility logs"
 ON public.accessibility_audit_log FOR SELECT
 USING (is_principal() OR get_user_role() = 'teacher');

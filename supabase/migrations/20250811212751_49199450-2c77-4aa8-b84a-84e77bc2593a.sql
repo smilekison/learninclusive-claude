@@ -5,9 +5,10 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies 
     WHERE schemaname = 'public' AND tablename = 'profiles' 
-      AND polname = 'Principals can view all profiles'
+      AND policyname = 'Principals can view all profiles'
   ) THEN
-    CREATE POLICY "Principals can view all profiles"
+    DROP POLICY IF EXISTS "Principals can view all profiles" ON public.profiles;
+CREATE POLICY "Principals can view all profiles"
     ON public.profiles
     FOR SELECT
     USING (is_principal());
@@ -20,9 +21,10 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies 
     WHERE schemaname = 'public' AND tablename = 'classes'
-      AND polname = 'Principals can manage all classes'
+      AND policyname = 'Principals can manage all classes'
   ) THEN
-    CREATE POLICY "Principals can manage all classes"
+    DROP POLICY IF EXISTS "Principals can manage all classes" ON public.classes;
+CREATE POLICY "Principals can manage all classes"
     ON public.classes
     FOR ALL
     USING (is_principal() AND is_active = true)
@@ -31,9 +33,10 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies 
     WHERE schemaname = 'public' AND tablename = 'classes'
-      AND polname = 'Principals can view all classes'
+      AND policyname = 'Principals can view all classes'
   ) THEN
-    CREATE POLICY "Principals can view all classes"
+    DROP POLICY IF EXISTS "Principals can view all classes" ON public.classes;
+CREATE POLICY "Principals can view all classes"
     ON public.classes
     FOR SELECT
     USING (is_principal());
@@ -46,9 +49,10 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies 
     WHERE schemaname = 'public' AND tablename = 'subjects'
-      AND polname = 'Principals can manage all subjects'
+      AND policyname = 'Principals can manage all subjects'
   ) THEN
-    CREATE POLICY "Principals can manage all subjects"
+    DROP POLICY IF EXISTS "Principals can manage all subjects" ON public.subjects;
+CREATE POLICY "Principals can manage all subjects"
     ON public.subjects
     FOR ALL
     USING (is_principal())
@@ -57,9 +61,10 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies 
     WHERE schemaname = 'public' AND tablename = 'subjects'
-      AND polname = 'Principals can view all subjects'
+      AND policyname = 'Principals can view all subjects'
   ) THEN
-    CREATE POLICY "Principals can view all subjects"
+    DROP POLICY IF EXISTS "Principals can view all subjects" ON public.subjects;
+CREATE POLICY "Principals can view all subjects"
     ON public.subjects
     FOR SELECT
     USING (is_principal());
@@ -72,9 +77,10 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies 
     WHERE schemaname = 'public' AND tablename = 'student_enrollments'
-      AND polname = 'Principals can manage all student enrollments'
+      AND policyname = 'Principals can manage all student enrollments'
   ) THEN
-    CREATE POLICY "Principals can manage all student enrollments"
+    DROP POLICY IF EXISTS "Principals can manage all student enrollments" ON public.student_enrollments;
+CREATE POLICY "Principals can manage all student enrollments"
     ON public.student_enrollments
     FOR ALL
     USING (is_principal())
@@ -83,9 +89,10 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies 
     WHERE schemaname = 'public' AND tablename = 'student_enrollments'
-      AND polname = 'Principals can view all enrollments'
+      AND policyname = 'Principals can view all enrollments'
   ) THEN
-    CREATE POLICY "Principals can view all enrollments"
+    DROP POLICY IF EXISTS "Principals can view all enrollments" ON public.student_enrollments;
+CREATE POLICY "Principals can view all enrollments"
     ON public.student_enrollments
     FOR SELECT
     USING (is_principal());

@@ -93,7 +93,7 @@ BEGIN
 
   RETURN user_id;
 END;
-$function$
+$function$;
 
 -- Add demo teachers for testing
 SELECT public.create_demo_user('demoteacher@riverside.edu', 'demo123', 'Demo', 'Teacher', 'teacher');

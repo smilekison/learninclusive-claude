@@ -17,6 +17,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 DROP POLICY IF EXISTS "Parents can view their children's profiles" ON public.profiles;
 
 -- Create a new policy using the security definer function
+DROP POLICY IF EXISTS "Parents can view their children's profiles" ON public.profiles;
 CREATE POLICY "Parents can view their children's profiles" 
 ON public.profiles 
 FOR SELECT 

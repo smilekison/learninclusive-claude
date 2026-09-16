@@ -7,7 +7,8 @@ BEGIN
     SELECT 1 FROM pg_policies 
     WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Students can upload their assignment files'
   ) THEN
-    CREATE POLICY "Students can upload their assignment files"
+    DROP POLICY IF EXISTS "Students can upload their assignment files" ON storage.objects;
+CREATE POLICY "Students can upload their assignment files"
     ON storage.objects
     FOR INSERT
     TO authenticated
@@ -29,7 +30,8 @@ BEGIN
     SELECT 1 FROM pg_policies 
     WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Students can view their assignment files'
   ) THEN
-    CREATE POLICY "Students can view their assignment files"
+    DROP POLICY IF EXISTS "Students can view their assignment files" ON storage.objects;
+CREATE POLICY "Students can view their assignment files"
     ON storage.objects
     FOR SELECT
     TO authenticated
@@ -51,7 +53,8 @@ BEGIN
     SELECT 1 FROM pg_policies 
     WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Teachers can view assignment files they own'
   ) THEN
-    CREATE POLICY "Teachers can view assignment files they own"
+    DROP POLICY IF EXISTS "Teachers can view assignment files they own" ON storage.objects;
+CREATE POLICY "Teachers can view assignment files they own"
     ON storage.objects
     FOR SELECT
     TO authenticated
@@ -77,7 +80,8 @@ BEGIN
     SELECT 1 FROM pg_policies 
     WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Principals can view all assignment files'
   ) THEN
-    CREATE POLICY "Principals can view all assignment files"
+    DROP POLICY IF EXISTS "Principals can view all assignment files" ON storage.objects;
+CREATE POLICY "Principals can view all assignment files"
     ON storage.objects
     FOR SELECT
     USING (

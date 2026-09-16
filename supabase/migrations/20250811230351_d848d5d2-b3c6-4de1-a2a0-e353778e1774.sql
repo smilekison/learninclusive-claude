@@ -13,7 +13,7 @@ DECLARE
   i int;
   u_id uuid;
   p_id uuid;
-  email text;
+  student_email text;
   fnames text[] := ARRAY['Alex','Sam','Jordan','Taylor','Casey','Riley','Quinn','Morgan','Avery','Jamie'];
   lnames text[] := ARRAY['Lee','Smith','Garcia','Patel','Nguyen','Khan','Brown','Kim','Ivanov','Santos'];
 BEGIN
@@ -59,15 +59,15 @@ BEGIN
 
   -- Create 10 student users and enroll them across the 3 classes
   FOR i IN 1..10 LOOP
-    email := format('student%02s@example.com', i);
+    student_email := format('student%02s@example.com', i);
 
     -- Check if user already exists
-    SELECT u.id INTO u_id FROM auth.users u WHERE u.email = email LIMIT 1;
+    SELECT u.id INTO u_id FROM auth.users u WHERE u.email = student_email LIMIT 1;
 
     IF u_id IS NULL THEN
       -- Create demo auth user and profile via SECURITY DEFINER function
       u_id := public.create_demo_user(
-        email,
+        student_email,
         'password123!',
         fnames[i],
         lnames[i],

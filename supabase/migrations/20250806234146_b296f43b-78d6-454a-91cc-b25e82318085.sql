@@ -4,6 +4,7 @@ DROP POLICY IF EXISTS "Teachers can create subjects in any class for demo" ON pu
 DROP POLICY IF EXISTS "Teachers can manage subjects in their classes" ON public.subjects;
 
 -- Create a single comprehensive policy for teachers
+DROP POLICY IF EXISTS "Teachers can manage subjects in any class for demo" ON public.subjects;
 CREATE POLICY "Teachers can manage subjects in any class for demo" 
 ON public.subjects 
 FOR ALL 

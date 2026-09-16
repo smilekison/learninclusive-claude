@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS deleted_items (
 ALTER TABLE deleted_items ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for deleted_items
+DROP POLICY IF EXISTS "Principals can manage all deleted items" ON deleted_items;
 CREATE POLICY "Principals can manage all deleted items" ON deleted_items
 FOR ALL TO authenticated
 USING (
@@ -30,6 +31,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Teachers can view their deleted items" ON deleted_items;
 CREATE POLICY "Teachers can view their deleted items" ON deleted_items
 FOR SELECT TO authenticated
 USING (

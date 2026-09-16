@@ -13,7 +13,7 @@ END $$;
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'subject_enrollment_requests') THEN
-        CREATE TABLE subject_enrollment_requests (
+        CREATE TABLE IF NOT EXISTS subject_enrollment_requests (
           id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
           student_id uuid NOT NULL,
           subject_id uuid NOT NULL,
@@ -35,7 +35,7 @@ END $$;
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'student_subject_enrollments') THEN
-        CREATE TABLE student_subject_enrollments (
+        CREATE TABLE IF NOT EXISTS student_subject_enrollments (
           id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
           student_id uuid NOT NULL,
           subject_id uuid NOT NULL,

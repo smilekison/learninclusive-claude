@@ -1,6 +1,6 @@
 -- Create parent profiles and relationships
 -- First, create parent-student relationships
-CREATE TABLE public.parent_student_relationships (
+CREATE TABLE IF NOT EXISTS public.parent_student_relationships (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   parent_id UUID NOT NULL,
   student_id UUID NOT NULL,
@@ -14,18 +14,20 @@ CREATE TABLE public.parent_student_relationships (
 ALTER TABLE public.parent_student_relationships ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for parent-student relationships
+DROP POLICY IF EXISTS "Parents can view their relationships" ON public.parent_student_relationships;
 CREATE POLICY "Parents can view their relationships" 
 ON public.parent_student_relationships 
 FOR SELECT 
 USING (parent_id IN (SELECT profiles.id FROM profiles WHERE profiles.user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "Principals can manage all relationships" ON public.parent_student_relationships;
 CREATE POLICY "Principals can manage all relationships" 
 ON public.parent_student_relationships 
 FOR ALL 
 USING (is_principal());
 
 -- Create enhanced grading rubrics table
-CREATE TABLE public.grading_rubrics (
+CREATE TABLE IF NOT EXISTS public.grading_rubrics (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   assignment_id UUID NOT NULL,
   name TEXT NOT NULL,
@@ -40,6 +42,7 @@ CREATE TABLE public.grading_rubrics (
 ALTER TABLE public.grading_rubrics ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for grading rubrics
+DROP POLICY IF EXISTS "Teachers can manage rubrics for their assignments" ON public.grading_rubrics;
 CREATE POLICY "Teachers can manage rubrics for their assignments" 
 ON public.grading_rubrics 
 FOR ALL 
@@ -51,6 +54,7 @@ USING (assignment_id IN (
   WHERE p.user_id = auth.uid()
 ));
 
+DROP POLICY IF EXISTS "Principals can manage all rubrics" ON public.grading_rubrics;
 CREATE POLICY "Principals can manage all rubrics" 
 ON public.grading_rubrics 
 FOR ALL 
@@ -95,7 +99,7 @@ INSERT INTO auth.users (
   FALSE,
   NOW(),
   NOW()
-) ON CONFLICT (email) DO NOTHING;
+) ON CONFLICT DO NOTHING;
 
 -- Insert parent profile
 INSERT INTO public.profiles (user_id, first_name, last_name, role)
@@ -109,17 +113,30 @@ WHERE au.email = 'parent@riverside.edu'
 AND NOT EXISTS (
   SELECT 1 FROM public.profiles p 
   WHERE p.user_id = au.id
-);
+)
+        ON CONFLICT (user_id) DO NOTHING;
 
--- Create a demo student for the parent
-INSERT INTO public.profiles (user_id, first_name, last_name, role, parent_email)
-VALUES (
-  gen_random_uuid(),
-  'Emma',
-  'Thompson',
-  'student',
-  'parent@riverside.edu'
+-- Create a demo student for the parent (needs a real auth.users row first —
+-- the original gen_random_uuid() here could never satisfy profiles_user_id_fkey)
+INSERT INTO auth.users (
+  instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, is_super_admin, created_at, updated_at
+) VALUES (
+  '00000000-0000-0000-0000-000000000000'::uuid,
+  'e33a1111-1111-1111-1111-111111111111'::uuid,
+  'authenticated', 'authenticated', 'emma.thompson@riverside.edu',
+  '$2a$10$demo.password.hash.for.testing.purposes.only', NOW(),
+  '{"provider": "email", "providers": ["email"]}'::jsonb,
+  jsonb_build_object('first_name', 'Emma', 'last_name', 'Thompson', 'role', 'student'),
+  FALSE, NOW(), NOW()
 ) ON CONFLICT DO NOTHING;
+
+INSERT INTO public.profiles (user_id, first_name, last_name, role, parent_email)
+SELECT 'e33a1111-1111-1111-1111-111111111111'::uuid, 'Emma', 'Thompson', 'student', 'parent@riverside.edu'
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.profiles WHERE user_id = 'e33a1111-1111-1111-1111-111111111111'::uuid
+)
+ON CONFLICT DO NOTHING;
 
 -- Create parent-student relationship
 INSERT INTO public.parent_student_relationships (parent_id, student_id, relationship_type)
@@ -137,11 +154,13 @@ WHERE parent_profile.role = 'parent'
 ON CONFLICT (parent_id, student_id) DO NOTHING;
 
 -- Create triggers for updated_at
+DROP TRIGGER IF EXISTS update_parent_student_relationships_updated_at ON parent_student_relationships;
 CREATE TRIGGER update_parent_student_relationships_updated_at
 BEFORE UPDATE ON public.parent_student_relationships
 FOR EACH ROW
 EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_grading_rubrics_updated_at ON grading_rubrics;
 CREATE TRIGGER update_grading_rubrics_updated_at
 BEFORE UPDATE ON public.grading_rubrics
 FOR EACH ROW

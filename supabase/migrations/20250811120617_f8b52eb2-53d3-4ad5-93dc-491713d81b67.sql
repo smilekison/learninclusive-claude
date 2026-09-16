@@ -21,6 +21,7 @@ END;
 $function$;
 
 -- Recreate the trigger
+DROP TRIGGER IF EXISTS trg_after_subject_insert_create_inv_code ON subjects;
 CREATE TRIGGER trg_after_subject_insert_create_inv_code
   AFTER INSERT ON public.subjects
   FOR EACH ROW

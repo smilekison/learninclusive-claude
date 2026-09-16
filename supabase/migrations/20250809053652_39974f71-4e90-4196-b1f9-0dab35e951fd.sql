@@ -100,14 +100,22 @@ INSERT INTO auth.users (
   NOW()
 );
 
--- Insert corresponding profiles
+-- Insert corresponding profiles. On local replay, the auth.users inserts
+-- above already trigger handle_new_user(), which auto-creates a matching
+-- profiles row from raw_user_meta_data (same name/role values used here) —
+-- so this becomes an upsert rather than a plain insert to tolerate that.
 INSERT INTO public.profiles (user_id, first_name, last_name, role, school_name) VALUES
 ('11111111-1111-1111-1111-111111111111', 'Dr. Sarah', 'Johnson', 'principal', 'Riverside Elementary School'),
 ('22222222-2222-2222-2222-222222222222', 'John', 'Smith', 'teacher', 'Riverside Elementary School'),
 ('33333333-3333-3333-3333-333333333333', 'Emily', 'Davis', 'teacher', 'Riverside Elementary School'),
 ('44444444-4444-4444-4444-444444444444', 'Michael', 'Brown', 'teacher', 'Riverside Elementary School'),
 ('55555555-5555-5555-5555-555555555555', 'Lisa', 'Wilson', 'teacher', 'Riverside Elementary School'),
-('66666666-6666-6666-6666-666666666666', 'David', 'Anderson', 'teacher', 'Riverside Elementary School');
+('66666666-6666-6666-6666-666666666666', 'David', 'Anderson', 'teacher', 'Riverside Elementary School')
+ON CONFLICT (user_id) DO UPDATE SET
+  first_name = EXCLUDED.first_name,
+  last_name = EXCLUDED.last_name,
+  role = EXCLUDED.role,
+  school_name = EXCLUDED.school_name;
 
 -- Insert school
 INSERT INTO public.schools (id, name, principal_id) VALUES

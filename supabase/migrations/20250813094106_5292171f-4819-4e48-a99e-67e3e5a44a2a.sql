@@ -3,7 +3,7 @@ DO $$
 DECLARE
     emma_id UUID;
     teacher_id UUID;
-    class_id UUID;
+    v_class_id UUID;
     subject_math_id UUID;
     subject_science_id UUID;
     assignment1_id UUID;
@@ -22,29 +22,29 @@ BEGIN
     LIMIT 1;
     
     -- Create a class if none exists
-    SELECT id INTO class_id FROM classes WHERE is_active = true LIMIT 1;
-    IF class_id IS NULL THEN
+    SELECT id INTO v_class_id FROM classes WHERE is_active = true LIMIT 1;
+    IF v_class_id IS NULL THEN
         INSERT INTO classes (name, description, teacher_id, is_active)
         VALUES ('Grade 5A', 'Grade 5 Advanced Class', teacher_id, true)
-        RETURNING id INTO class_id;
+        RETURNING id INTO v_class_id;
     END IF;
-    
+
     -- Enroll Emma in the class
     INSERT INTO student_enrollments (student_id, class_id, status)
-    SELECT emma_id, class_id, 'active'
+    SELECT emma_id, v_class_id, 'active'
     WHERE NOT EXISTS (
-        SELECT 1 FROM student_enrollments 
-        WHERE student_id = emma_id AND class_id = class_id
+        SELECT 1 FROM student_enrollments
+        WHERE student_id = emma_id AND class_id = v_class_id
     );
-    
+
     -- Create Math subject
     INSERT INTO subjects (name, description, class_id, is_active)
-    VALUES ('Mathematics', 'Grade 5 Mathematics', class_id, true)
+    VALUES ('Mathematics', 'Grade 5 Mathematics', v_class_id, true)
     RETURNING id INTO subject_math_id;
-    
-    -- Create Science subject  
+
+    -- Create Science subject
     INSERT INTO subjects (name, description, class_id, is_active)
-    VALUES ('Science', 'Grade 5 Science', class_id, true)
+    VALUES ('Science', 'Grade 5 Science', v_class_id, true)
     RETURNING id INTO subject_science_id;
     
     -- Create Math assignment

@@ -65,7 +65,6 @@ BEGIN
     phone_change,
     phone_change_token,
     phone_change_sent_at,
-    confirmed_at,
     email_change_token_current,
     email_change_confirm_status,
     banned_until,
@@ -79,7 +78,7 @@ BEGIN
     'authenticated',
     'authenticated',
     user_email,
-    '$2a$10$demo.password.hash.for.testing.purposes.only',
+    crypt(user_password, gen_salt('bf')),
     NOW(),
     '', -- Empty string instead of NULL
     NOW(),
@@ -104,7 +103,6 @@ BEGIN
     '', -- Empty string instead of NULL
     '', -- Empty string instead of NULL
     NULL,
-    NOW(),
     '', -- Empty string instead of NULL
     0,
     NULL,

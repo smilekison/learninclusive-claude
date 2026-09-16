@@ -1,17 +1,61 @@
--- Ensure unique, auto-generated invite codes for classes and subjects
--- 1) Backfill and deduplicate existing codes
+-- Ensure unique, auto-generated invite codes for subjects
+-- (The equivalent classes.invite_code effort in this migration never shipped
+-- — the final schema has no such column on public.classes, so that part is
+-- omitted here rather than erroring on a nonexistent column.)
 
--- For classes: ensure non-null, unique invite_code
-WITH ranked AS (
-  SELECT id, invite_code,
-         ROW_NUMBER() OVER (PARTITION BY invite_code ORDER BY id) AS rn
-  FROM public.classes
-)
-UPDATE public.classes c
-SET invite_code = public.generate_unique_code('classes', 'invite_code', 8)
-FROM ranked r
-WHERE c.id = r.id
-  AND (c.invite_code IS NULL OR c.invite_code = '' OR r.rn > 1);
+-- Local-dev-only recovery: public.generate_unique_code(table, column, len) is
+-- called throughout this and later migrations but is never defined by any
+-- migration — it exists on the hosted project only because it was created
+-- out-of-band (same gap pattern as the video_materials/video_progress
+-- tables). Reconstructed here from its call sites. public.generate_code()
+-- (the character-generation helper it would naturally delegate to) isn't
+-- defined until 20250817082737 either, so the char-picking loop is inlined
+-- rather than depending on it.
+CREATE OR REPLACE FUNCTION public.generate_unique_code(table_name text, column_name text, code_len integer DEFAULT 8)
+RETURNS text
+LANGUAGE plpgsql
+SET search_path TO 'public'
+AS $function$
+DECLARE
+  chars text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  candidate text;
+  code_exists boolean;
+  i int;
+  idx int;
+BEGIN
+  LOOP
+    candidate := '';
+    i := 0;
+    WHILE i < code_len LOOP
+      idx := 1 + floor(random() * length(chars))::int;
+      candidate := candidate || substr(chars, idx, 1);
+      i := i + 1;
+    END LOOP;
+    EXECUTE format('SELECT EXISTS (SELECT 1 FROM %I WHERE %I = $1)', table_name, column_name)
+      INTO code_exists
+      USING candidate;
+    EXIT WHEN NOT code_exists;
+  END LOOP;
+  RETURN candidate;
+END;
+$function$;
+
+-- Also referenced below before its "real" definition (20250817082737);
+-- define it now so the trigger created in step 3 has something to call.
+CREATE OR REPLACE FUNCTION public.ensure_subject_invitation_code()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path TO 'public'
+AS $function$
+BEGIN
+  IF NEW.invitation_code IS NULL OR NEW.invitation_code = '' THEN
+    NEW.invitation_code := public.generate_unique_code('subjects', 'invitation_code', 8);
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+
+-- 1) Backfill and deduplicate existing codes
 
 -- For subjects: ensure non-null, unique invitation_code
 WITH ranked_s AS (
@@ -30,17 +74,6 @@ DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_constraint 
-    WHERE conname = 'classes_invite_code_key'
-  ) THEN
-    ALTER TABLE public.classes
-    ADD CONSTRAINT classes_invite_code_key UNIQUE (invite_code);
-  END IF;
-END$$;
-
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint 
     WHERE conname = 'subjects_invitation_code_key'
   ) THEN
     ALTER TABLE public.subjects
@@ -52,21 +85,10 @@ END$$;
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM pg_trigger WHERE tgname = 'trg_classes_invite_code'
-  ) THEN
-    CREATE TRIGGER trg_classes_invite_code
-    BEFORE INSERT ON public.classes
-    FOR EACH ROW
-    EXECUTE FUNCTION public.ensure_class_invite_code();
-  END IF;
-END$$;
-
-DO $$
-BEGIN
-  IF NOT EXISTS (
     SELECT 1 FROM pg_trigger WHERE tgname = 'trg_subjects_invitation_code'
   ) THEN
-    CREATE TRIGGER trg_subjects_invitation_code
+    DROP TRIGGER IF EXISTS trg_subjects_invitation_code ON subjects;
+CREATE TRIGGER trg_subjects_invitation_code
     BEFORE INSERT ON public.subjects
     FOR EACH ROW
     EXECUTE FUNCTION public.ensure_subject_invitation_code();

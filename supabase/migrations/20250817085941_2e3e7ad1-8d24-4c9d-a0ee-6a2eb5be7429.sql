@@ -1,6 +1,7 @@
 -- Create RLS policies for assignment submissions storage bucket
 
 -- Policy: Students can upload assignment files to their own folder
+DROP POLICY IF EXISTS "Students can upload assignment files" ON storage.objects;
 CREATE POLICY "Students can upload assignment files" 
 ON storage.objects 
 FOR INSERT 
@@ -14,6 +15,7 @@ WITH CHECK (
 );
 
 -- Policy: Students can view their own uploaded files
+DROP POLICY IF EXISTS "Students can view their own uploaded files" ON storage.objects;
 CREATE POLICY "Students can view their own uploaded files" 
 ON storage.objects 
 FOR SELECT 
@@ -27,6 +29,7 @@ USING (
 );
 
 -- Policy: Students can update their own uploaded files
+DROP POLICY IF EXISTS "Students can update their own uploaded files" ON storage.objects;
 CREATE POLICY "Students can update their own uploaded files" 
 ON storage.objects 
 FOR UPDATE 
@@ -40,6 +43,7 @@ USING (
 );
 
 -- Policy: Students can delete their own uploaded files
+DROP POLICY IF EXISTS "Students can delete their own uploaded files" ON storage.objects;
 CREATE POLICY "Students can delete their own uploaded files" 
 ON storage.objects 
 FOR DELETE 
@@ -53,6 +57,7 @@ USING (
 );
 
 -- Policy: Teachers can view assignment files from their students
+DROP POLICY IF EXISTS "Teachers can view assignment files from their students" ON storage.objects;
 CREATE POLICY "Teachers can view assignment files from their students" 
 ON storage.objects 
 FOR SELECT 
@@ -75,6 +80,7 @@ USING (
 );
 
 -- Policy: Principals can view all assignment files
+DROP POLICY IF EXISTS "Principals can view all assignment files" ON storage.objects;
 CREATE POLICY "Principals can view all assignment files" 
 ON storage.objects 
 FOR SELECT 

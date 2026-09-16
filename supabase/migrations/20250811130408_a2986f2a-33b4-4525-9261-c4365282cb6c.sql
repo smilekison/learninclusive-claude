@@ -1,5 +1,6 @@
 
 -- 1) Allow teachers to view only their students' profiles (active ones)
+DROP POLICY IF EXISTS "Teachers can view their students' profiles" ON public.profiles;
 CREATE POLICY "Teachers can view their students' profiles"
 ON public.profiles
 FOR SELECT
@@ -16,6 +17,7 @@ USING (
 );
 
 -- 2) Allow students to view only the classes they are enrolled in (active ones)
+DROP POLICY IF EXISTS "Students can view their enrolled classes" ON public.classes;
 CREATE POLICY "Students can view their enrolled classes"
 ON public.classes
 FOR SELECT
@@ -31,6 +33,7 @@ USING (
 );
 
 -- 3) Allow students to view subjects in the classes they are enrolled in (active ones)
+DROP POLICY IF EXISTS "Students can view subjects in their enrolled classes" ON public.subjects;
 CREATE POLICY "Students can view subjects in their enrolled classes"
 ON public.subjects
 FOR SELECT

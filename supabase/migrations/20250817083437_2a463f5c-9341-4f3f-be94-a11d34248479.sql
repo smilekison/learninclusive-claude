@@ -22,25 +22,20 @@ SET
   updated_at = NOW()
 WHERE email IS NOT NULL;
 
--- Let me use a properly generated bcrypt hash for "demo123"
--- This hash was generated specifically for the password "demo123"
-UPDATE auth.users 
-SET 
-  encrypted_password = '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+-- Local-dev fix: none of the hardcoded hashes above are valid bcrypt for
+-- "demo123" (they don't verify against crypt()) — compute a real one instead
+-- so every seeded demo account actually logs in with password "demo123".
+-- Also: auth.users has no email_confirmation_sent_at column (that was
+-- confirmation_sent_at), so that assignment is dropped.
+UPDATE auth.users
+SET
+  encrypted_password = crypt('demo123', gen_salt('bf')),
   email_confirmed_at = NOW(),
-  email_confirmation_sent_at = NOW(),
   updated_at = NOW()
 WHERE email IS NOT NULL;
 
--- Add a comment to document this change
-COMMENT ON TABLE auth.users IS 'Demo environment: All user passwords updated to "demo123" for testing purposes';
+-- (Skipped for local replay: COMMENT ON auth.users requires table ownership
+-- the local migration role doesn't have. Cosmetic only.)
 
--- Log the password update for demo users
-INSERT INTO public.deleted_items (item_type, item_name, item_details, original_data, deleted_by) 
-SELECT 
-  'password_reset',
-  'Demo Password Update', 
-  'All user passwords reset to demo123',
-  jsonb_build_object('timestamp', NOW(), 'affected_users', COUNT(*)),
-  (SELECT id FROM public.profiles WHERE role = 'principal' LIMIT 1)
-FROM auth.users;
+-- (Skipped for local replay: this INSERT abuses deleted_items as an audit
+-- log without its required item_id, which fails NOT NULL. Cosmetic only.)

@@ -31,39 +31,41 @@ INSERT INTO public.profiles (id, user_id, first_name, last_name, role, school_na
 
 -- Insert demo classes
 INSERT INTO public.classes (id, name, teacher_id, description) VALUES
-('class-550e8400-e29b-41d4-a716-446655440001', '5th Grade Math', '550e8400-e29b-41d4-a716-446655440002', 'Advanced mathematics for 5th grade students'),
-('class-550e8400-e29b-41d4-a716-446655440002', '5th Grade Science', '550e8400-e29b-41d4-a716-446655440003', 'Earth science and basic physics'),
-('class-550e8400-e29b-41d4-a716-446655440003', '4th Grade English', '550e8400-e29b-41d4-a716-446655440004', 'Reading comprehension and writing skills'),
-('class-550e8400-e29b-41d4-a716-446655440004', '4th Grade Art', '550e8400-e29b-41d4-a716-446655440003', 'Creative arts and expression');
+('650e8400-e29b-41d4-a716-446655440001', '5th Grade Math', '550e8400-e29b-41d4-a716-446655440002', 'Advanced mathematics for 5th grade students'),
+('650e8400-e29b-41d4-a716-446655440002', '5th Grade Science', '550e8400-e29b-41d4-a716-446655440003', 'Earth science and basic physics'),
+('650e8400-e29b-41d4-a716-446655440003', '4th Grade English', '550e8400-e29b-41d4-a716-446655440004', 'Reading comprehension and writing skills'),
+('650e8400-e29b-41d4-a716-446655440004', '4th Grade Art', '550e8400-e29b-41d4-a716-446655440003', 'Creative arts and expression');
 
 -- Insert demo subjects
 INSERT INTO public.subjects (id, name, class_id, description) VALUES
-('subject-550e8400-e29b-41d4-a716-446655440001', 'Algebra Basics', 'class-550e8400-e29b-41d4-a716-446655440001', 'Introduction to algebraic concepts'),
-('subject-550e8400-e29b-41d4-a716-446655440002', 'Geometry', 'class-550e8400-e29b-41d4-a716-446655440001', 'Shapes, angles, and spatial reasoning'),
-('subject-550e8400-e29b-41d4-a716-446655440003', 'Earth Systems', 'class-550e8400-e29b-41d4-a716-446655440002', 'Weather, geology, and climate'),
-('subject-550e8400-e29b-41d4-a716-446655440004', 'Physics Fundamentals', 'class-550e8400-e29b-41d4-a716-446655440002', 'Motion, force, and energy'),
-('subject-550e8400-e29b-41d4-a716-446655440005', 'Creative Writing', 'class-550e8400-e29b-41d4-a716-446655440003', 'Story writing and narrative skills'),
-('subject-550e8400-e29b-41d4-a716-446655440006', 'Reading Comprehension', 'class-550e8400-e29b-41d4-a716-446655440003', 'Understanding and analyzing texts'),
-('subject-550e8400-e29b-41d4-a716-446655440007', 'Drawing Techniques', 'class-550e8400-e29b-41d4-a716-446655440004', 'Basic drawing and sketching skills'),
-('subject-550e8400-e29b-41d4-a716-446655440008', 'Color Theory', 'class-550e8400-e29b-41d4-a716-446655440004', 'Understanding colors and their relationships');
+('750e8400-e29b-41d4-a716-446655440001', 'Algebra Basics', '650e8400-e29b-41d4-a716-446655440001', 'Introduction to algebraic concepts'),
+('750e8400-e29b-41d4-a716-446655440002', 'Geometry', '650e8400-e29b-41d4-a716-446655440001', 'Shapes, angles, and spatial reasoning'),
+('750e8400-e29b-41d4-a716-446655440003', 'Earth Systems', '650e8400-e29b-41d4-a716-446655440002', 'Weather, geology, and climate'),
+('750e8400-e29b-41d4-a716-446655440004', 'Physics Fundamentals', '650e8400-e29b-41d4-a716-446655440002', 'Motion, force, and energy'),
+('750e8400-e29b-41d4-a716-446655440005', 'Creative Writing', '650e8400-e29b-41d4-a716-446655440003', 'Story writing and narrative skills'),
+('750e8400-e29b-41d4-a716-446655440006', 'Reading Comprehension', '650e8400-e29b-41d4-a716-446655440003', 'Understanding and analyzing texts'),
+('750e8400-e29b-41d4-a716-446655440007', 'Drawing Techniques', '650e8400-e29b-41d4-a716-446655440004', 'Basic drawing and sketching skills'),
+('750e8400-e29b-41d4-a716-446655440008', 'Color Theory', '650e8400-e29b-41d4-a716-446655440004', 'Understanding colors and their relationships');
 
 -- Insert demo student enrollments
 INSERT INTO public.student_enrollments (id, student_id, class_id) VALUES
-('enroll-550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440005', 'class-550e8400-e29b-41d4-a716-446655440001'),
-('enroll-550e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440006', 'class-550e8400-e29b-41d4-a716-446655440001'),
-('enroll-550e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440007', 'class-550e8400-e29b-41d4-a716-446655440002'),
-('enroll-550e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440008', 'class-550e8400-e29b-41d4-a716-446655440003'),
-('enroll-550e8400-e29b-41d4-a716-446655440005', '550e8400-e29b-41d4-a716-446655440009', 'class-550e8400-e29b-41d4-a716-446655440003'),
-('enroll-550e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440010', 'class-550e8400-e29b-41d4-a716-446655440004'),
-('enroll-550e8400-e29b-41d4-a716-446655440007', '550e8400-e29b-41d4-a716-446655440005', 'class-550e8400-e29b-41d4-a716-446655440002'),
-('enroll-550e8400-e29b-41d4-a716-446655440008', '550e8400-e29b-41d4-a716-446655440006', 'class-550e8400-e29b-41d4-a716-446655440004');
+('850e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440005', '650e8400-e29b-41d4-a716-446655440001'),
+('850e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440006', '650e8400-e29b-41d4-a716-446655440001'),
+('850e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440007', '650e8400-e29b-41d4-a716-446655440002'),
+('850e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440008', '650e8400-e29b-41d4-a716-446655440003'),
+('850e8400-e29b-41d4-a716-446655440005', '550e8400-e29b-41d4-a716-446655440009', '650e8400-e29b-41d4-a716-446655440003'),
+('850e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440010', '650e8400-e29b-41d4-a716-446655440004'),
+('850e8400-e29b-41d4-a716-446655440007', '550e8400-e29b-41d4-a716-446655440005', '650e8400-e29b-41d4-a716-446655440002'),
+('850e8400-e29b-41d4-a716-446655440008', '550e8400-e29b-41d4-a716-446655440006', '650e8400-e29b-41d4-a716-446655440004');
 
 -- Add RLS policies to allow teachers to manage student disabilities
+DROP POLICY IF EXISTS "Teachers can update student profiles for disability management" ON public.profiles;
 CREATE POLICY "Teachers can update student profiles for disability management" 
 ON public.profiles 
 FOR UPDATE 
 USING (get_user_role() = 'teacher' AND role = 'student');
 
+DROP POLICY IF EXISTS "Teachers can view student profiles for disability management" ON public.profiles;
 CREATE POLICY "Teachers can view student profiles for disability management" 
 ON public.profiles 
 FOR SELECT 

@@ -6,6 +6,7 @@ DROP POLICY IF EXISTS "Allow access to specific invitation by token" ON email_in
 DROP POLICY IF EXISTS "Allow updating invitation as used during registration" ON email_invitations;
 
 -- Create secure policies for email_invitations
+DROP POLICY IF EXISTS "Users can view their specific invitation by token" ON email_invitations;
 CREATE POLICY "Users can view their specific invitation by token" 
 ON email_invitations 
 FOR SELECT 
@@ -24,6 +25,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Allow invitation token lookup for registration" ON email_invitations;
 CREATE POLICY "Allow invitation token lookup for registration" 
 ON email_invitations 
 FOR SELECT 
@@ -33,6 +35,7 @@ USING (
   AND (token IS NOT NULL)
 );
 
+DROP POLICY IF EXISTS "Allow updating invitation as used during registration" ON email_invitations;
 CREATE POLICY "Allow updating invitation as used during registration" 
 ON email_invitations 
 FOR UPDATE 
@@ -47,6 +50,7 @@ WITH CHECK (used = true);
 DROP POLICY IF EXISTS "Students can view active invitation codes" ON subject_invitation_codes;
 
 -- Create secure policy for subject_invitation_codes
+DROP POLICY IF EXISTS "Authenticated users can view invitation codes for enrollment" ON subject_invitation_codes;
 CREATE POLICY "Authenticated users can view invitation codes for enrollment" 
 ON subject_invitation_codes 
 FOR SELECT 
@@ -179,12 +183,12 @@ AS $function$
       'profile'::text as entity_type,
       p.id,
       trim(coalesce(p.first_name,'') || ' ' || coalesce(p.last_name,'')) as title,
-      coalesce(p.role,'') as subtitle,
+      coalesce(p.role::text,'') as subtitle,
       CASE WHEN p.role = 'teacher' THEN '/teachers' ELSE '/students' END as route,
-      ts_rank(to_tsvector('finnish', trim(coalesce(p.first_name,'') || ' ' || coalesce(p.last_name,'')) || ' ' || coalesce(p.role,'')), plainto_tsquery('finnish', q)) AS rank
+      ts_rank(to_tsvector('finnish', trim(coalesce(p.first_name,'') || ' ' || coalesce(p.last_name,'')) || ' ' || coalesce(p.role::text,'')), plainto_tsquery('finnish', q)) AS rank
     FROM profiles p
     WHERE coalesce(p.is_active, true) = true
-      AND to_tsvector('finnish', trim(coalesce(p.first_name,'') || ' ' || coalesce(p.last_name,'')) || ' ' || coalesce(p.role,'')) @@ plainto_tsquery('finnish', q)
+      AND to_tsvector('finnish', trim(coalesce(p.first_name,'') || ' ' || coalesce(p.last_name,'')) || ' ' || coalesce(p.role::text,'')) @@ plainto_tsquery('finnish', q)
   ) t
   ORDER BY rank DESC
   LIMIT limit_count;
@@ -274,6 +278,7 @@ $function$;
 DROP POLICY IF EXISTS "Anyone can view schools" ON schools;
 
 -- Create secure policy for schools
+DROP POLICY IF EXISTS "Authenticated users can view schools" ON schools;
 CREATE POLICY "Authenticated users can view schools" 
 ON schools 
 FOR SELECT 

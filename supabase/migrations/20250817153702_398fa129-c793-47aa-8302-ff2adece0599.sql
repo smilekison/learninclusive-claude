@@ -126,6 +126,7 @@ ALTER TABLE public.student_support_services ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.student_progress_tracking ENABLE ROW LEVEL SECURITY;
 
 -- RLS policies for student accommodations
+DROP POLICY IF EXISTS "Teachers can manage accommodations for their students" ON public.student_accommodations;
 CREATE POLICY "Teachers can manage accommodations for their students" ON public.student_accommodations
   FOR ALL USING (
     student_id IN (
@@ -137,9 +138,11 @@ CREATE POLICY "Teachers can manage accommodations for their students" ON public.
     )
   );
 
+DROP POLICY IF EXISTS "Principals can manage all accommodations" ON public.student_accommodations;
 CREATE POLICY "Principals can manage all accommodations" ON public.student_accommodations
   FOR ALL USING (is_principal());
 
+DROP POLICY IF EXISTS "Students can view their own accommodations" ON public.student_accommodations;
 CREATE POLICY "Students can view their own accommodations" ON public.student_accommodations
   FOR SELECT USING (
     student_id IN (
@@ -148,6 +151,7 @@ CREATE POLICY "Students can view their own accommodations" ON public.student_acc
   );
 
 -- RLS policies for support services
+DROP POLICY IF EXISTS "Teachers can manage support services for their students" ON public.student_support_services;
 CREATE POLICY "Teachers can manage support services for their students" ON public.student_support_services
   FOR ALL USING (
     student_id IN (
@@ -159,9 +163,11 @@ CREATE POLICY "Teachers can manage support services for their students" ON publi
     )
   );
 
+DROP POLICY IF EXISTS "Principals can manage all support services" ON public.student_support_services;
 CREATE POLICY "Principals can manage all support services" ON public.student_support_services
   FOR ALL USING (is_principal());
 
+DROP POLICY IF EXISTS "Students can view their own support services" ON public.student_support_services;
 CREATE POLICY "Students can view their own support services" ON public.student_support_services
   FOR SELECT USING (
     student_id IN (
@@ -170,6 +176,7 @@ CREATE POLICY "Students can view their own support services" ON public.student_s
   );
 
 -- RLS policies for progress tracking
+DROP POLICY IF EXISTS "Teachers can manage progress tracking for their students" ON public.student_progress_tracking;
 CREATE POLICY "Teachers can manage progress tracking for their students" ON public.student_progress_tracking
   FOR ALL USING (
     student_id IN (
@@ -181,9 +188,11 @@ CREATE POLICY "Teachers can manage progress tracking for their students" ON publ
     )
   );
 
+DROP POLICY IF EXISTS "Principals can manage all progress tracking" ON public.student_progress_tracking;
 CREATE POLICY "Principals can manage all progress tracking" ON public.student_progress_tracking
   FOR ALL USING (is_principal());
 
+DROP POLICY IF EXISTS "Students can view their own progress tracking" ON public.student_progress_tracking;
 CREATE POLICY "Students can view their own progress tracking" ON public.student_progress_tracking
   FOR SELECT USING (
     student_id IN (
@@ -192,14 +201,17 @@ CREATE POLICY "Students can view their own progress tracking" ON public.student_
   );
 
 -- Add triggers for updated_at columns
+DROP TRIGGER IF EXISTS update_student_accommodations_updated_at ON student_accommodations;
 CREATE TRIGGER update_student_accommodations_updated_at
   BEFORE UPDATE ON public.student_accommodations
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_student_support_services_updated_at ON student_support_services;
 CREATE TRIGGER update_student_support_services_updated_at
   BEFORE UPDATE ON public.student_support_services
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_student_progress_tracking_updated_at ON student_progress_tracking;
 CREATE TRIGGER update_student_progress_tracking_updated_at
   BEFORE UPDATE ON public.student_progress_tracking
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();

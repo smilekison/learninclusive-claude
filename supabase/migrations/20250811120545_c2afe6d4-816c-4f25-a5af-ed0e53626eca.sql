@@ -1,4 +1,6 @@
 -- Fix the subject invitation code function that's causing ON CONFLICT errors
+-- (drop the differently-named trigger that actually depends on it first)
+DROP TRIGGER IF EXISTS trg_after_subject_insert_create_inv_code ON public.subjects;
 DROP FUNCTION IF EXISTS public.after_subject_insert_create_inv_code();
 
 -- Recreate the function without ON CONFLICT clause since there's no unique constraint
@@ -19,6 +21,7 @@ END;
 $function$;
 
 -- Recreate the trigger
+DROP TRIGGER IF EXISTS trigger_after_subject_insert_create_inv_code ON subjects;
 CREATE TRIGGER trigger_after_subject_insert_create_inv_code
   AFTER INSERT ON public.subjects
   FOR EACH ROW

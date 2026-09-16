@@ -6,6 +6,7 @@ DROP POLICY IF EXISTS "Principals can manage all classes" ON public.classes;
 
 -- Create new simplified policies for demo purposes
 -- Teachers can view ALL classes (for demo purposes)
+DROP POLICY IF EXISTS "Teachers can view all classes for demo" ON public.classes;
 CREATE POLICY "Teachers can view all classes for demo" 
 ON public.classes 
 FOR SELECT 
@@ -15,6 +16,7 @@ USING (EXISTS (
 ));
 
 -- Students can view their enrolled classes (fixed)
+DROP POLICY IF EXISTS "Students can view their enrolled classes" ON public.classes;
 CREATE POLICY "Students can view their enrolled classes" 
 ON public.classes 
 FOR SELECT 
@@ -26,6 +28,7 @@ USING (id IN (
 ));
 
 -- Principals can manage all classes
+DROP POLICY IF EXISTS "Principals can manage all classes" ON public.classes;
 CREATE POLICY "Principals can manage all classes" 
 ON public.classes 
 FOR ALL 
@@ -35,6 +38,7 @@ USING (EXISTS (
 ));
 
 -- Teachers can create subjects in any class (for demo)
+DROP POLICY IF EXISTS "Teachers can create subjects in any class for demo" ON public.subjects;
 CREATE POLICY "Teachers can create subjects in any class for demo" 
 ON public.subjects 
 FOR INSERT 
@@ -60,6 +64,7 @@ USING (
 );
 
 -- Allow guest access to public video materials
+DROP POLICY IF EXISTS "Public access to demo videos" ON public.video_materials;
 CREATE POLICY "Public access to demo videos" 
 ON public.video_materials 
 FOR SELECT 

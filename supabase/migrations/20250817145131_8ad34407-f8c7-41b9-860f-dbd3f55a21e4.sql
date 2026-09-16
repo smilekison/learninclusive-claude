@@ -10,8 +10,7 @@ SET
   phone_change_token = COALESCE(phone_change_token, ''),
   email_change_token_current = COALESCE(email_change_token_current, ''),
   reauthentication_token = COALESCE(reauthentication_token, ''),
-  email_confirmed_at = COALESCE(email_confirmed_at, now()),
-  confirmed_at = COALESCE(confirmed_at, now())
+  email_confirmed_at = COALESCE(email_confirmed_at, now())
 WHERE email = 'smilekisan100@gmail.com';
 
 -- Also fix any other users that might have NULL issues
@@ -25,8 +24,7 @@ SET
   phone_change_token = COALESCE(phone_change_token, ''),
   email_change_token_current = COALESCE(email_change_token_current, ''),
   reauthentication_token = COALESCE(reauthentication_token, ''),
-  email_confirmed_at = COALESCE(email_confirmed_at, now()),
-  confirmed_at = COALESCE(confirmed_at, now())
+  email_confirmed_at = COALESCE(email_confirmed_at, now())
 WHERE 
   confirmation_token IS NULL 
   OR recovery_token IS NULL 
@@ -36,5 +34,4 @@ WHERE
   OR phone_change_token IS NULL 
   OR email_change_token_current IS NULL 
   OR reauthentication_token IS NULL 
-  OR email_confirmed_at IS NULL 
-  OR confirmed_at IS NULL;
+  OR email_confirmed_at IS NULL ;

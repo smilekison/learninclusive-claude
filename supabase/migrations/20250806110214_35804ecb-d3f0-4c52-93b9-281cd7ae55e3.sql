@@ -11,22 +11,26 @@ DROP POLICY IF EXISTS "Teachers can view students in their classes" ON public.pr
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 -- Create new, simple RLS policies without recursion
+DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
 CREATE POLICY "Users can view their own profile" 
 ON public.profiles 
 FOR SELECT 
 USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
 CREATE POLICY "Users can update their own profile" 
 ON public.profiles 
 FOR UPDATE 
 USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
 CREATE POLICY "Users can insert their own profile" 
 ON public.profiles 
 FOR INSERT 
 WITH CHECK (user_id = auth.uid());
 
 -- Create a simple policy for principals to view all profiles
+DROP POLICY IF EXISTS "Principals can view all profiles" ON public.profiles;
 CREATE POLICY "Principals can view all profiles" 
 ON public.profiles 
 FOR SELECT 

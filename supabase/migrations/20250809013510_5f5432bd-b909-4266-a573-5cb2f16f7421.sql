@@ -1,5 +1,5 @@
 -- Create table for pending enrollment requests
-CREATE TABLE public.enrollment_requests (
+CREATE TABLE IF NOT EXISTS public.enrollment_requests (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   student_id UUID NOT NULL,
   class_id UUID NOT NULL,
@@ -17,6 +17,7 @@ CREATE TABLE public.enrollment_requests (
 ALTER TABLE public.enrollment_requests ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for enrollment requests
+DROP POLICY IF EXISTS "Students can view their own enrollment requests" ON public.enrollment_requests;
 CREATE POLICY "Students can view their own enrollment requests" 
 ON public.enrollment_requests 
 FOR SELECT 
@@ -24,6 +25,7 @@ USING (student_id IN (
   SELECT id FROM profiles WHERE user_id = auth.uid()
 ));
 
+DROP POLICY IF EXISTS "Students can create enrollment requests" ON public.enrollment_requests;
 CREATE POLICY "Students can create enrollment requests" 
 ON public.enrollment_requests 
 FOR INSERT 
@@ -31,6 +33,7 @@ WITH CHECK (student_id IN (
   SELECT id FROM profiles WHERE user_id = auth.uid() AND role = 'student'
 ));
 
+DROP POLICY IF EXISTS "Teachers can view requests for their classes" ON public.enrollment_requests;
 CREATE POLICY "Teachers can view requests for their classes" 
 ON public.enrollment_requests 
 FOR SELECT 
@@ -40,6 +43,7 @@ USING (class_id IN (
   WHERE p.user_id = auth.uid()
 ));
 
+DROP POLICY IF EXISTS "Teachers can update requests for their classes" ON public.enrollment_requests;
 CREATE POLICY "Teachers can update requests for their classes" 
 ON public.enrollment_requests 
 FOR UPDATE 
@@ -49,12 +53,14 @@ USING (class_id IN (
   WHERE p.user_id = auth.uid()
 ));
 
+DROP POLICY IF EXISTS "Principals can manage all enrollment requests" ON public.enrollment_requests;
 CREATE POLICY "Principals can manage all enrollment requests" 
 ON public.enrollment_requests 
 FOR ALL 
 USING (is_principal());
 
 -- Create trigger for updated_at
+DROP TRIGGER IF EXISTS update_enrollment_requests_updated_at ON enrollment_requests;
 CREATE TRIGGER update_enrollment_requests_updated_at
 BEFORE UPDATE ON public.enrollment_requests
 FOR EACH ROW

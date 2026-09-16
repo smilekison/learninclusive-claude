@@ -1,4 +1,5 @@
 -- Create function to check if current user is a teacher of a specific student
+DROP FUNCTION IF EXISTS is_teacher_of_student(UUID) CASCADE;
 CREATE OR REPLACE FUNCTION is_teacher_of_student(student_profile_id UUID)
 RETURNS BOOLEAN
 LANGUAGE plpgsql
@@ -18,6 +19,7 @@ $$;
 
 -- Update RLS policy for teachers to view all students (for demo)
 DROP POLICY IF EXISTS "Teachers can view their students' profiles" ON profiles;
+DROP POLICY IF EXISTS "Teachers can view all students for demo" ON profiles;
 CREATE POLICY "Teachers can view all students for demo" ON profiles
   FOR SELECT
   USING (

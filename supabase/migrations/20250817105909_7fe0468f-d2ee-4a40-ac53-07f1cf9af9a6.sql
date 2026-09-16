@@ -10,6 +10,7 @@ VALUES ('assignment-submissions','assignment-submissions', false)
 ON CONFLICT (id) DO NOTHING;
 
 -- Policy: allow authenticated users to upload to their own folder (auth.uid as top-level folder)
+DROP POLICY IF EXISTS "Users can INSERT into their own folder - assignment-submissions" ON storage.objects;
 CREATE POLICY "Users can INSERT into their own folder - assignment-submissions"
   ON storage.objects
   FOR INSERT
@@ -20,6 +21,7 @@ CREATE POLICY "Users can INSERT into their own folder - assignment-submissions"
   );
 
 -- Policy: allow authenticated users to SELECT their own files
+DROP POLICY IF EXISTS "Users can SELECT their own files - assignment-submissions" ON storage.objects;
 CREATE POLICY "Users can SELECT their own files - assignment-submissions"
   ON storage.objects
   FOR SELECT
@@ -30,6 +32,7 @@ CREATE POLICY "Users can SELECT their own files - assignment-submissions"
   );
 
 -- Policy: allow authenticated users to UPDATE their own files
+DROP POLICY IF EXISTS "Users can UPDATE their own files - assignment-submissions" ON storage.objects;
 CREATE POLICY "Users can UPDATE their own files - assignment-submissions"
   ON storage.objects
   FOR UPDATE
@@ -44,6 +47,7 @@ CREATE POLICY "Users can UPDATE their own files - assignment-submissions"
   );
 
 -- Policy: allow authenticated users to DELETE their own files
+DROP POLICY IF EXISTS "Users can DELETE their own files - assignment-submissions" ON storage.objects;
 CREATE POLICY "Users can DELETE their own files - assignment-submissions"
   ON storage.objects
   FOR DELETE

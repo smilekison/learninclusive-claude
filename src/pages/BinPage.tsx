@@ -11,10 +11,16 @@ export const BinPage: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  // Use teacher-specific hook for teachers, regular hook for principals
-  const { data: deletedItems = [], isLoading } = user?.role === 'teacher' 
-    ? useTeacherDeletedItems() 
-    : useDeletedItems();
+  // Use teacher-specific data for teachers, all-deleted-items for principals.
+  // Both hooks are called unconditionally on every render — calling only one
+  // of them based on user.role violates React's rules of hooks (the set of
+  // hooks called must be identical across renders), which becomes a real bug
+  // the moment `user` changes role or resolves from null after login.
+  const teacherDeletedItems = useTeacherDeletedItems();
+  const allDeletedItems = useDeletedItems();
+  const { data: deletedItems = [], isLoading } = user?.role === 'teacher'
+    ? teacherDeletedItems
+    : allDeletedItems;
     
   const restoreItemMutation = useRestoreItem();
 

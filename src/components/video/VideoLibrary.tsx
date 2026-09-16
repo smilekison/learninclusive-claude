@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { AccessibleVideoPlayer } from './AccessibleVideoPlayer';
 import AccessibleYouTubePlayer from '@/components/video/AccessibleYouTubePlayer';
 import { VideoEngagementBar } from './VideoEngagementBar';
+import { extractYouTubeId } from '@/lib/youtube';
 interface VideoMaterial {
   id: string;
   title: string;
@@ -26,23 +27,6 @@ interface VideoMaterial {
   likes?: number;
   dislikes?: number;
 }
-
-// Extract YouTube ID from various URL formats
-const extractYouTubeId = (url?: string | null): string | null => {
-  if (!url) return null;
-  try {
-    const u = new URL(url);
-    if (u.hostname.includes('youtu.be')) return u.pathname.replace('/', '');
-    if (u.hostname.includes('youtube.com')) {
-      const v = u.searchParams.get('v');
-      if (v) return v;
-      const parts = u.pathname.split('/');
-      const idx = parts.indexOf('embed');
-      if (idx >= 0 && parts[idx + 1]) return parts[idx + 1];
-    }
-  } catch {}
-  return null;
-};
 
 interface VideoLibraryProps {
   showPublicOnly?: boolean;

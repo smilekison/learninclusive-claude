@@ -286,7 +286,7 @@ useEffect(() => {
             // Best-effort captions config
             e.target.loadModule?.('captions');
             e.target.setOption?.('captions', 'track', { languageCode: captionLang });
-          } catch { }
+          } catch { /* YouTube IFrame API call best-effort — player may not be ready */ }
         },
         onStateChange: (e: any) => {
           const YT = window.YT;
@@ -309,7 +309,7 @@ useEffect(() => {
     playerRef.current = p;
 
     return () => {
-      try { p.destroy?.(); } catch { }
+      try { p.destroy?.(); } catch { /* YouTube IFrame API call best-effort — player may not be ready */ }
       playerRef.current = null;
     };
   }, [apiReady, containerId, videoId, captionLang]);
@@ -325,7 +325,7 @@ useEffect(() => {
         setCurrentTime(ct);
         setDuration(dur);
         tracker.reportProgress(ct, dur);
-      } catch { }
+      } catch { /* YouTube IFrame API call best-effort — player may not be ready */ }
     };
     update();
     const id = window.setInterval(update, 500);
@@ -346,7 +346,7 @@ useEffect(() => {
     const val = v[0];
     setVolume(val);
     const p = playerRef.current; if (!p) return;
-    try { p.setVolume?.(val); } catch { }
+    try { p.setVolume?.(val); } catch { /* YouTube IFrame API call best-effort — player may not be ready */ }
   }, []);
 
   const toggleMute = useCallback(() => {
@@ -354,16 +354,16 @@ useEffect(() => {
     try {
       if (p.isMuted?.()) { p.unMute?.(); setVolume(p.getVolume?.() ?? 100); }
       else { p.mute?.(); }
-    } catch { }
+    } catch { /* YouTube IFrame API call best-effort — player may not be ready */ }
   }, []);
 
   const changeSpeed = useCallback((value: string) => {
     const rate = parseFloat(value);
     setSpeed(rate);
     const p = playerRef.current; if (!p) return;
-    try { p.setPlaybackRate?.(rate); } catch { }
+    try { p.setPlaybackRate?.(rate); } catch { /* YouTube IFrame API call best-effort — player may not be ready */ }
     // mirror to mini if open
-    const m = miniRef.current; if (m) { try { m.setPlaybackRate?.(rate); } catch { } }
+    const m = miniRef.current; if (m) { try { m.setPlaybackRate?.(rate); } catch { /* YouTube IFrame API call best-effort — player may not be ready */ } }
   }, []);
 
   const seekBy = useCallback((delta: number) => {
@@ -373,14 +373,14 @@ useEffect(() => {
       const d = p.getDuration?.() ?? 0;
       const nt = Math.max(0, Math.min(t + delta, d || t + delta));
       p.seekTo?.(nt, true);
-    } catch { }
+    } catch { /* YouTube IFrame API call best-effort — player may not be ready */ }
   }, []);
 
   const seekTo = useCallback((time: number) => {
     const p = playerRef.current; if (!p) return;
     try {
       p.seekTo?.(time, true);
-    } catch { }
+    } catch { /* YouTube IFrame API call best-effort — player may not be ready */ }
   }, []);
 
   const formatTime = useCallback((s: number) => {
@@ -406,7 +406,7 @@ useEffect(() => {
         // There is no official toggle off; attempt to set an empty track and hide
         p.setOption?.('captions', 'track', {});
       }
-    } catch { }
+    } catch { /* YouTube IFrame API call best-effort — player may not be ready */ }
   }, [captionsOn, captionLang]);
 
   // Sign language popup: create muted mirrored player and keep in sync
@@ -414,7 +414,7 @@ useEffect(() => {
     if (!apiReady) return;
     if (!openSign) {
       if (miniRef.current) {
-        try { miniRef.current.destroy?.(); } catch { }
+        try { miniRef.current.destroy?.(); } catch { /* YouTube IFrame API call best-effort — player may not be ready */ }
         miniRef.current = null;
       }
       return;
@@ -429,7 +429,7 @@ useEffect(() => {
           try {
             e.target.mute?.();
             e.target.setPlaybackRate?.(speed);
-          } catch { }
+          } catch { /* YouTube IFrame API call best-effort — player may not be ready */ }
         },
       },
     });
@@ -451,7 +451,7 @@ useEffect(() => {
           const isMiniPlaying = m.getPlayerState?.() === window.YT?.PlayerState?.PLAYING;
           if (isMainPlaying && !isMiniPlaying) m.playVideo?.();
           if (!isMainPlaying && isMiniPlaying) m.pauseVideo?.();
-        } catch { }
+        } catch { /* YouTube IFrame API call best-effort — player may not be ready */ }
       }, 500);
     };
     const stopSync = () => { if (syncTimer) { window.clearInterval(syncTimer); syncTimer = undefined; } };
@@ -460,7 +460,7 @@ useEffect(() => {
 
     return () => {
       stopSync();
-      try { m.destroy?.(); } catch { }
+      try { m.destroy?.(); } catch { /* YouTube IFrame API call best-effort — player may not be ready */ }
       miniRef.current = null;
     };
   }, [apiReady, openSign, miniContainerId, videoId, speed]);

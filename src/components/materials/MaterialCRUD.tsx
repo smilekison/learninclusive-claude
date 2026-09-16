@@ -87,11 +87,15 @@ export const MaterialCRUD: React.FC<MaterialCRUDProps> = ({ subjectId, lessonId,
     mutationFn: async (materialData: typeof newMaterial) => {
       if (!materialData.file) throw new Error('No file selected');
       
-      // Upload file first
+      // Upload file first. The 'assignment-submissions' bucket's RLS
+      // policies all require the first path segment to be the uploader's
+      // auth user id — a flat 'materials/' prefix has no policy allowing it
+      // and was rejected by every upload before this fix.
+      if (!user?.authUserId) throw new Error('You must be signed in to upload materials');
       const fileExt = materialData.file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `materials/${fileName}`;
-      
+      const filePath = `${user.authUserId}/materials/${fileName}`;
+
       const { error: uploadError } = await supabase.storage
         .from('assignment-submissions')
         .upload(filePath, materialData.file);

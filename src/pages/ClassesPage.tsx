@@ -30,10 +30,13 @@ export const ClassesPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   
-  // Use teacher-specific hook for teachers, regular hook for principals
-  const { data: classes = [], isLoading, refetch } = user?.role === 'teacher' 
-    ? useTeacherClasses() 
-    : useClasses();
+  // Both hooks are called unconditionally on every render — calling only one
+  // of them based on user.role violates React's rules of hooks (see BinPage.tsx).
+  const teacherClasses = useTeacherClasses();
+  const allClasses = useClasses();
+  const { data: classes = [], isLoading, refetch } = user?.role === 'teacher'
+    ? teacherClasses
+    : allClasses;
   
   const { data: teachers = [] } = useProfiles('teacher');
   const softDeleteMutation = useSoftDelete();

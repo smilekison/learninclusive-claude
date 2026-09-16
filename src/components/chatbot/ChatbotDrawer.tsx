@@ -32,7 +32,9 @@ export const ChatbotDrawer: React.FC = () => {
         setOpen(true);
         localStorage.setItem(key, '1');
       }
-    } catch {}
+    } catch {
+      // localStorage unavailable (private browsing, etc.) — first-open nudge is non-critical
+    }
   }, []);
 
   React.useEffect(() => {

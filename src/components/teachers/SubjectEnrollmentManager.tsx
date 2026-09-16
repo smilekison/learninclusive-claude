@@ -34,7 +34,7 @@ export const SubjectEnrollmentManager: React.FC<SubjectEnrollmentManagerProps> =
         const { data: profile } = await supabase
           .from('profiles')
           .select('id')
-          .eq('user_id', user.id)
+          .eq('user_id', user.authUserId)
           .single();
 
         if (!profile) return;
@@ -78,7 +78,7 @@ export const SubjectEnrollmentManager: React.FC<SubjectEnrollmentManagerProps> =
       const { data: teacherProfile } = await supabase
         .from('profiles')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('user_id', user.authUserId)
         .single();
 
       if (!teacherProfile) throw new Error('Teacher profile not found');
@@ -151,7 +151,7 @@ export const SubjectEnrollmentManager: React.FC<SubjectEnrollmentManagerProps> =
       const { data: teacherProfile } = await supabase
         .from('profiles')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('user_id', user.authUserId)
         .single();
 
       if (!teacherProfile) throw new Error('Teacher profile not found');

@@ -16,6 +16,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { AccessibleVideoPlayer } from './AccessibleVideoPlayer';
 import AccessibleYouTubePlayer from '@/components/video/AccessibleYouTubePlayer';
+import { extractYouTubeId } from '@/lib/youtube';
 
 interface FeaturedVideo {
   id: string;
@@ -106,23 +107,7 @@ export const FeaturedVideosSection: React.FC<FeaturedVideosSectionProps> = ({
     }
   };
 
-  const extractYouTubeId = (url?: string | null): string | null => {
-    if (!url) return null;
-    try {
-      const u = new URL(url);
-      if (u.hostname.includes('youtu.be')) return u.pathname.replace('/', '');
-      if (u.hostname.includes('youtube.com')) {
-        const v = u.searchParams.get('v');
-        if (v) return v;
-        const parts = u.pathname.split('/');
-        const idx = parts.indexOf('embed');
-        if (idx >= 0 && parts[idx + 1]) return parts[idx + 1];
-      }
-    } catch {}
-    return null;
-  };
-
-  const formatDuration = (seconds?: number) => {
+const formatDuration = (seconds?: number) => {
     if (!seconds) return 'Unknown';
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;

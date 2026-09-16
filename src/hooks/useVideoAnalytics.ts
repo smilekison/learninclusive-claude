@@ -63,7 +63,9 @@ export const useVideoViewTracker = (videoId?: string, source: VideoSource = 'you
         if (user?.id) payload.user_id = user.id; // profiles.id
         const { data, error } = await supabase.from('video_views').insert(payload).select('id').single();
         if (!error && data) viewIdRef.current = data.id as string;
-      } catch {}
+      } catch {
+        // best-effort analytics — a failed view-start insert shouldn't block video playback
+      }
     }
     // start periodic flush
     if (!flushTimerRef.current) {

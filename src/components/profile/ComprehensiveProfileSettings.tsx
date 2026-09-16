@@ -207,7 +207,7 @@ export const ComprehensiveProfileSettings = () => {
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', user.authUserId)
           .maybeSingle();
 
         // Don't throw error if profile doesn't exist, just use empty form
@@ -346,7 +346,7 @@ export const ComprehensiveProfileSettings = () => {
       const { error } = await supabase
         .from('profiles')
         .update(updateData)
-        .eq('user_id', user.id);
+        .eq('user_id', user.authUserId);
 
       if (error) throw error;
 

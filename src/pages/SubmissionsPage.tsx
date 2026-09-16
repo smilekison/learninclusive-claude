@@ -104,7 +104,7 @@ export const SubmissionsPage: React.FC = () => {
     const { data: profile } = await supabase
       .from('profiles')
       .select('id')
-      .eq('user_id', user?.id)
+      .eq('user_id', user?.authUserId)
       .single();
 
     const gradedBy = profile?.id || user?.id;

@@ -23,6 +23,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { AccessibleVideoPlayer } from '@/components/video/AccessibleVideoPlayer';
+import { extractYouTubeId } from '@/lib/youtube';
 import AccessibleYouTubePlayer from '@/components/video/AccessibleYouTubePlayer';
 
 interface TeacherVideo {
@@ -141,19 +142,6 @@ export const TeacherVideoSection: React.FC = () => {
       case 'school': return 'School members only';
       default: return 'Unknown access';
     }
-  };
-
-  const extractYouTubeId = (url?: string | null): string | null => {
-    if (!url) return null;
-    try {
-      const u = new URL(url);
-      if (u.hostname.includes('youtu.be')) return u.pathname.replace('/', '');
-      if (u.hostname.includes('youtube.com')) {
-        const v = u.searchParams.get('v');
-        if (v) return v;
-      }
-    } catch {}
-    return null;
   };
 
   const calculateStats = () => {

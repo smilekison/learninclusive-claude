@@ -18,23 +18,7 @@ import { VideoAnalyticsOverview } from '@/components/video/VideoAnalyticsOvervie
 import { VideoAnalyticsTable } from '@/components/video/VideoAnalyticsTable';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-
-// Helper to get YouTube ID from various URL formats
-function extractYouTubeId(url: string): string | null {
-  if (!url) return null;
-  try {
-    const u = new URL(url);
-    if (u.hostname.includes('youtu.be')) return u.pathname.replace('/', '');
-    if (u.hostname.includes('youtube.com')) {
-      const v = u.searchParams.get('v');
-      if (v) return v;
-      const parts = u.pathname.split('/');
-      const idx = parts.indexOf('embed');
-      if (idx >= 0 && parts[idx + 1]) return parts[idx + 1];
-    }
-  } catch {}
-  return null;
-}
+import { extractYouTubeId } from '@/lib/youtube';
 
 interface VideoFormState {
   id?: string;

@@ -333,8 +333,8 @@ const LandingPage: React.FC = () => {
                   <div className="text-sm text-muted-foreground">{t('landing.about.wcagCompliant')}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-primary">50k+</div>
-                  <div className="text-sm text-muted-foreground">{t('landing.about.studentsServed')}</div>
+                  <div className="text-3xl font-bold text-primary">2+</div>
+                  <div className="text-sm text-muted-foreground">{t('landing.about.languagesSupported')}</div>
                 </div>
               </div>
             </div>
@@ -780,10 +780,11 @@ const LandingPage: React.FC = () => {
             >
               {t('landing.cta.getStarted')}
             </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
+            <Button
+              size="lg"
+              variant="outline"
               className="text-lg px-8 py-4 h-auto border-white text-white hover:bg-white hover:text-primary bg-transparent"
+              onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
             >
               {t('landing.cta.requestDemo')}
             </Button>

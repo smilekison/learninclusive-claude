@@ -1,73 +1,46 @@
-# Welcome to your Lovable project
+# LearnInclusive
 
-## Project info
+An accessibility-first Learning Management System for K-12 schools, built toward WCAG 2.1 AA compliance for students with disabilities (blind/low vision, deaf/hard of hearing, mute/non-verbal, cognitive, motor impairment). Four roles — **principal**, **teacher**, **student**, **parent** — each with a dedicated dashboard.
 
-**URL**: https://lovable.dev/projects/25dac2cb-1044-4c6b-8592-655b4cc9c980
+## Tech stack
 
-## How can I edit this code?
+- **Frontend**: React 18 + TypeScript + Vite, shadcn/ui (Radix UI) + Tailwind CSS
+- **State/data**: TanStack React Query, React Context for cross-cutting concerns (auth, accessibility, TTS, language)
+- **Backend**: Supabase — Postgres (with Row Level Security), Auth, Storage, Edge Functions
 
-There are several ways of editing your application.
+This project was originally scaffolded and is still synced with **[Lovable](https://lovable.dev/projects/25dac2cb-1044-4c6b-8592-655b4cc9c980)** — pushes here sync back to Lovable and vice versa.
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/25dac2cb-1044-4c6b-8592-655b4cc9c980) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Getting started
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
 npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+npm run dev          # starts at http://localhost:8080
 ```
 
-**Edit a file directly in GitHub**
+By default the app points at the hosted Supabase project (`.env`). To run entirely locally instead:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```sh
+npx supabase start   # first run pulls Docker images and applies all migrations
+```
 
-**Use GitHub Codespaces**
+This spins up the full stack (Postgres + Auth + REST + Storage + Edge Functions + Studio) via Docker Desktop. `.env.local` (git-ignored) points the app at it — delete that file to go back to the hosted project. Full instructions, including seeded demo accounts, are in [`CLAUDE.md`](./CLAUDE.md).
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Other commands
 
-## What technologies are used for this project?
+```sh
+npm run build         # production build
+npm run build:dev     # development-mode build
+npm run preview        # preview a production build locally
+npm run lint            # ESLint over the whole repo
+npx supabase db reset   # rebuild the local database from migrations + seed data
+```
 
-This project is built with:
+## Project docs
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- [`CLAUDE.md`](./CLAUDE.md) — architecture, local dev setup, and conventions, written for anyone (human or AI) picking up this codebase
+- [`UPGRADE.md`](./UPGRADE.md) — gap analysis: what's solid today and what's missing to run this as a real product for real schools
+- [`ALSM-User-Manual.md`](./ALSM-User-Manual.md) — end-user manual
 
-## How can I deploy this project?
+## Deployment
 
-Simply open [Lovable](https://lovable.dev/projects/25dac2cb-1044-4c6b-8592-655b4cc9c980) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Open [Lovable](https://lovable.dev/projects/25dac2cb-1044-4c6b-8592-655b4cc9c980) and use Share → Publish. Custom domains are supported under Project → Settings → Domains — see [Lovable's guide](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide).

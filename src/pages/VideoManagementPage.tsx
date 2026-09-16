@@ -17,6 +17,7 @@ import { Plus, Filter, Pencil, Trash2, Clapperboard, Globe2, LockKeyhole, Shield
 import { VideoAnalyticsOverview } from '@/components/video/VideoAnalyticsOverview';
 import { VideoAnalyticsTable } from '@/components/video/VideoAnalyticsTable';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
 
 // Helper to get YouTube ID from various URL formats
 function extractYouTubeId(url: string): string | null {
@@ -63,6 +64,7 @@ const defaultForm: VideoFormState = {
 export const VideoManagementPage: React.FC = () => {
   const { user } = useAuth();
   const { data: schools = [] } = useSchools();
+  const { toast } = useToast();
 
   // SEO basics
   useEffect(() => {
@@ -263,25 +265,34 @@ export const VideoManagementPage: React.FC = () => {
     let payload = { ...form } as VideoFormState;
 
     // If a file is selected, upload to Supabase Storage first
-    if (selectedFile && user?.id) {
+    if (selectedFile && user?.authUserId) {
+      // Storage RLS ("Users can upload videos to their own folder") requires
+      // the first path segment to equal auth.uid() — the auth user id, not
+      // the profile id (user.id here is the profile id and would always be
+      // rejected by RLS with no visible error, since this call wasn't
+      // wrapped in try/catch below).
       const timestamp = Date.now();
       const sanitizedFileName = selectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const path = `${user.id}/${timestamp}-${sanitizedFileName}`;
-      
-      console.log('🎬 VIDEO UPLOAD: Starting upload to path:', path);
-      const { error: uploadError } = await supabase.storage
-        .from('videos')
-        .upload(path, selectedFile, { 
-          contentType: selectedFile.type,
-          cacheControl: '3600'
-        });
-      
-      if (uploadError) {
-        console.error('🎬 VIDEO UPLOAD: Error:', uploadError);
-        throw new Error(`Failed to upload video: ${uploadError.message}`);
-      } else {
-        console.log('🎬 VIDEO UPLOAD: Success!');
+      const path = `${user.authUserId}/${timestamp}-${sanitizedFileName}`;
+
+      try {
+        const { error: uploadError } = await supabase.storage
+          .from('videos')
+          .upload(path, selectedFile, {
+            contentType: selectedFile.type,
+            cacheControl: '3600'
+          });
+
+        if (uploadError) throw uploadError;
+
         payload = { ...payload, file_path: path, external_url: '' };
+      } catch (err: any) {
+        toast({
+          title: 'Upload failed',
+          description: err?.message || 'Could not upload the video file. Please try again.',
+          variant: 'destructive',
+        });
+        return;
       }
     }
 

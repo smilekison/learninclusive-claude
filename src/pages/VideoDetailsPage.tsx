@@ -12,6 +12,7 @@ import { AccessibleVideoPlayer } from '@/components/video/AccessibleVideoPlayer'
 import { VideoEngagementBar } from '@/components/video/VideoEngagementBar';
 import { RelatedVideos } from '@/components/video/RelatedVideos';
 import { supabase } from '@/integrations/supabase/client';
+import { extractYouTubeId } from '@/lib/youtube';
 
 interface VideoDetails {
   id: string;
@@ -29,22 +30,6 @@ interface VideoDetails {
   transcript?: string;
 }
 
-// DB helper: extract YouTube video ID from URL
-const extractYouTubeId = (url?: string | null): string | null => {
-  if (!url) return null;
-  try {
-    const u = new URL(url);
-    if (u.hostname.includes('youtu.be')) return u.pathname.replace('/', '');
-    if (u.hostname.includes('youtube.com')) {
-      const v = u.searchParams.get('v');
-      if (v) return v;
-      const parts = u.pathname.split('/');
-      const idx = parts.indexOf('embed');
-      if (idx >= 0 && parts[idx + 1]) return parts[idx + 1];
-    }
-  } catch {}
-  return null;
-};
 
 export const VideoDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();

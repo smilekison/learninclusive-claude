@@ -24,6 +24,13 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
       "@typescript-eslint/no-unused-vars": "off",
+      // Downgraded from the recommended-config default of "error": there are
+      // ~400 pre-existing `any` usages across the codebase (mostly Supabase
+      // query results and edge function payloads), and nobody had been
+      // running `npm run lint` as a gate — turning this into a hard error
+      // now would make CI permanently red on day one instead of catching
+      // new problems. Still flagged as a warning so new `any`s are visible.
+      "@typescript-eslint/no-explicit-any": "warn",
     },
   }
 );

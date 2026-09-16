@@ -23,6 +23,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { AccessibleVideoPlayer } from '@/components/video/AccessibleVideoPlayer';
 import AccessibleYouTubePlayer from '@/components/video/AccessibleYouTubePlayer';
+import { extractYouTubeId } from '@/lib/youtube';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface StudentVideo {
@@ -118,19 +119,6 @@ export const StudentVideoSection: React.FC = () => {
       case 'school': return 'bg-purple-500';
       default: return 'bg-gray-500';
     }
-  };
-
-  const extractYouTubeId = (url?: string | null): string | null => {
-    if (!url) return null;
-    try {
-      const u = new URL(url);
-      if (u.hostname.includes('youtu.be')) return u.pathname.replace('/', '');
-      if (u.hostname.includes('youtube.com')) {
-        const v = u.searchParams.get('v');
-        if (v) return v;
-      }
-    } catch {}
-    return null;
   };
 
   const formatDuration = (seconds?: number) => {

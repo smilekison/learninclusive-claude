@@ -122,7 +122,7 @@ export const usePrincipalAssignmentAnalytics = (filters: PrincipalAssignmentFilt
 
       if (schoolIds.length > 0) {
         // Restrict to classes within the principal's schools when linkage exists
-        // @ts-ignore - PostgREST nested filter
+        // @ts-expect-error - PostgREST nested filter
         query = query.in('subjects.classes.school_id', schoolIds);
       }
 

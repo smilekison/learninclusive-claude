@@ -315,7 +315,7 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
                                 type="number"
                                 min="1"
                                 value={assignmentForm.max_score}
-                                onChange={(e) => setAssignmentForm(prev => ({ ...prev, max_score: parseInt(e.target.value) || 100 }))}
+                                onChange={(e) => setAssignmentForm(prev => ({ ...prev, max_score: Math.max(1, parseInt(e.target.value) || 100) }))}
                               />
                             </div>
                             <div>
@@ -325,7 +325,7 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
                                 type="number"
                                 min="1"
                                 value={assignmentForm.max_attempts}
-                                onChange={(e) => setAssignmentForm(prev => ({ ...prev, max_attempts: parseInt(e.target.value) || 3 }))}
+                                onChange={(e) => setAssignmentForm(prev => ({ ...prev, max_attempts: Math.max(1, parseInt(e.target.value) || 3) }))}
                               />
                             </div>
                           </div>

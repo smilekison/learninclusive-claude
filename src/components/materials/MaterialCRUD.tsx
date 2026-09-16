@@ -86,7 +86,12 @@ export const MaterialCRUD: React.FC<MaterialCRUDProps> = ({ subjectId, lessonId,
   const createMaterialMutation = useMutation({
     mutationFn: async (materialData: typeof newMaterial) => {
       if (!materialData.file) throw new Error('No file selected');
-      
+
+      const MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024; // 100MB
+      if (materialData.file.size > MAX_FILE_SIZE_BYTES) {
+        throw new Error('File is too large. Maximum size is 100MB.');
+      }
+
       // Upload file first. The 'assignment-submissions' bucket's RLS
       // policies all require the first path segment to be the uploader's
       // auth user id — a flat 'materials/' prefix has no policy allowing it

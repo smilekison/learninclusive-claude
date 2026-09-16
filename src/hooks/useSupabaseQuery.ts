@@ -232,6 +232,26 @@ export const useRestoreItem = () => {
   );
 };
 
+export const usePermanentDelete = () => {
+  return useSupabaseMutation(
+    async (deletedItemId: string) => {
+      const { data, error } = await supabase.rpc('permanently_delete_item', {
+        deleted_item_id: deletedItemId
+      });
+
+      if (error) throw error;
+      return { data, error: null };
+    },
+    {
+      invalidateKeys: [
+        ['profiles'], ['classes'], ['subjects'], ['assignments'], ['deleted_items'],
+        ['teacher-classes'], ['teacher-subjects'], ['teacher-assignments'], ['teacher-students'], ['teacher-deleted-items']
+      ],
+      successMessage: "Item permanently deleted"
+    }
+  );
+};
+
 export const useToggleStatus = () => {
   return useSupabaseMutation(
     async ({ tableName, itemId, isActive }: { tableName: string; itemId: string; isActive: boolean }) => {

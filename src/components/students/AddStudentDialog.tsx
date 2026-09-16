@@ -380,6 +380,7 @@ export const AddStudentDialog: React.FC = () => {
                       <Input
                         id="dateOfBirth"
                         type="date"
+                        max={new Date().toISOString().split('T')[0]}
                         value={formData.dateOfBirth}
                         onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
                       />
@@ -587,6 +588,7 @@ export const AddStudentDialog: React.FC = () => {
                           <div className="flex-1">
                             <Label>Email</Label>
                             <Input
+                              type="email"
                               value={contact.email}
                               onChange={(e) => {
                                 const newContacts = [...formData.emergencyContacts];
@@ -700,6 +702,7 @@ export const AddStudentDialog: React.FC = () => {
                         <Input
                           id="diagnosisDate"
                           type="date"
+                          max={new Date().toISOString().split('T')[0]}
                           value={formData.disabilityDetails.diagnosisDate}
                           onChange={(e) => setFormData({
                             ...formData,

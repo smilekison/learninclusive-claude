@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Archive, RotateCcw, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useTeacherDeletedItems, useDeletedItems, useRestoreItem } from '@/hooks/useSupabaseQuery';
+import { useTeacherDeletedItems, useDeletedItems, useRestoreItem, usePermanentDelete } from '@/hooks/useSupabaseQuery';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const BinPage: React.FC = () => {
@@ -23,6 +23,7 @@ export const BinPage: React.FC = () => {
     : allDeletedItems;
     
   const restoreItemMutation = useRestoreItem();
+  const permanentDeleteMutation = usePermanentDelete();
 
   const [filterType, setFilterType] = useState<string>('all');
 
@@ -58,21 +59,27 @@ export const BinPage: React.FC = () => {
 
   const handlePermanentDelete = (itemId: string) => {
     if (confirm('Are you sure you want to permanently delete this item? This action cannot be undone.')) {
-      // TODO: Implement permanent delete
-      toast({
-        title: "Permanent Delete",
-        description: "Permanent delete functionality will be implemented soon.",
-        variant: "destructive"
-      });
+      permanentDeleteMutation.mutate(itemId);
     }
   };
 
-  const handleEmptyBin = () => {
-    if (confirm('Are you sure you want to empty the entire bin? This will permanently delete all items and cannot be undone.')) {
-      // TODO: Implement empty bin
+  const handleEmptyBin = async () => {
+    if (!confirm('Are you sure you want to empty the entire bin? This will permanently delete all items and cannot be undone.')) {
+      return;
+    }
+    const idsToDelete = deletedItems.map(item => item.id);
+    let failures = 0;
+    for (const id of idsToDelete) {
+      try {
+        await permanentDeleteMutation.mutateAsync(id);
+      } catch {
+        failures++;
+      }
+    }
+    if (failures > 0) {
       toast({
         title: "Empty Bin",
-        description: "Empty bin functionality will be implemented soon.",
+        description: `${idsToDelete.length - failures} of ${idsToDelete.length} items deleted; ${failures} failed.`,
         variant: "destructive"
       });
     }

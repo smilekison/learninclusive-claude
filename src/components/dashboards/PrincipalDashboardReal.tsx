@@ -154,6 +154,14 @@ export const PrincipalDashboardReal: React.FC = () => {
         </p>
       </div>
 
+      {statsError && (
+        <Card className="border-destructive bg-destructive/5">
+          <CardContent className="pt-6 text-sm text-destructive">
+            Failed to load school statistics. The numbers below may be missing or out of date.
+          </CardContent>
+        </Card>
+      )}
+
       {/* Statistics Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card 

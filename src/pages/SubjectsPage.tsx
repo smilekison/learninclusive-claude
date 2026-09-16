@@ -274,7 +274,7 @@ export const SubjectsPage: React.FC = () => {
                 </div>
                 <Button 
                   className="mt-4" 
-                  onClick={() => navigate('/video-management')}
+                  onClick={() => navigate('/videos/manage')}
                 >
                   Manage Videos
                   <ArrowRight className="ml-2 h-4 w-4" />

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 
 interface AccessibilitySettings {
   // Visual accessibility
@@ -81,7 +81,7 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
     return stored ? { ...defaultSettings, ...JSON.parse(stored) } : defaultSettings;
   });
 
-  const updateSetting = <K extends keyof AccessibilitySettings>(
+  const updateSetting = useCallback(<K extends keyof AccessibilitySettings>(
     key: K,
     value: AccessibilitySettings[K]
   ) => {
@@ -90,14 +90,14 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
       localStorage.setItem('accessibility-settings', JSON.stringify(newSettings));
       return newSettings;
     });
-  };
+  }, []);
 
-  const resetSettings = () => {
+  const resetSettings = useCallback(() => {
     setSettings(defaultSettings);
     localStorage.removeItem('accessibility-settings');
-  };
+  }, []);
 
-  const applySettings = () => {
+  const applySettings = useCallback(() => {
     const root = document.documentElement;
     
     // Import accessibility utilities
@@ -174,7 +174,7 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
     } else {
       root.classList.remove('screen-reader-optimized');
     }
-  };
+  }, [settings]);
 
   useEffect(() => {
     applySettings();
@@ -210,8 +210,13 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, []);
 
+  const value = useMemo(
+    () => ({ settings, updateSetting, resetSettings, applySettings }),
+    [settings, updateSetting, resetSettings, applySettings]
+  );
+
   return (
-    <AccessibilityContext.Provider value={{ settings, updateSetting, resetSettings, applySettings }}>
+    <AccessibilityContext.Provider value={value}>
       {children}
     </AccessibilityContext.Provider>
   );

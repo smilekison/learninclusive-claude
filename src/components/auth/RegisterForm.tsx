@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import type { UserRole } from '@/types/auth';
+import { isValidEmail, validatePassword } from '@/lib/validation';
 
 interface RegisterFormProps {
   onToggleMode: () => void;
@@ -39,12 +40,17 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode }) => {
       return 'Please fill in all required fields';
     }
 
+    if (!isValidEmail(formData.email)) {
+      return 'Please enter a valid email address';
+    }
+
     if (formData.password !== formData.confirmPassword) {
       return 'Passwords do not match';
     }
 
-    if (formData.password.length < 6) {
-      return 'Password must be at least 6 characters long';
+    const passwordError = validatePassword(formData.password);
+    if (passwordError) {
+      return passwordError;
     }
 
     if (formData.role === 'principal' && !formData.schoolName) {

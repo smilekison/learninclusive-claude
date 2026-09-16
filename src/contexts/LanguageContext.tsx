@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 
 export type Language = 'en' | 'lt';
 
@@ -79,21 +79,21 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     loadTranslations(savedLanguage);
   }, []);
 
-  const setLanguage = (lang: Language) => {
+  const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
     setLanguageCookie(lang);
     loadTranslations(lang);
-  };
+  }, []);
 
-  const t = (key: string): string => {
+  const t = useCallback((key: string): string => {
     return translations[key] || key;
-  };
+  }, [translations]);
 
-  const value: LanguageContextType = {
+  const value: LanguageContextType = useMemo(() => ({
     language,
     setLanguage,
     t,
-  };
+  }), [language, setLanguage, t]);
 
   return (
     <LanguageContext.Provider value={value}>

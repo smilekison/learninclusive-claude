@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { AuthContextType, User, RegisterData } from '@/types/auth';
 import { useToast } from '@/hooks/use-toast';
@@ -291,13 +291,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const value: AuthContextType = {
+  const value: AuthContextType = useMemo(() => ({
     user,
     login,
     register,
     logout,
     loading,
-  };
+  }), [user, login, register, logout, loading]);
 
   return (
     <AuthContext.Provider value={value}>

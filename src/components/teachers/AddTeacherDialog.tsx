@@ -28,6 +28,7 @@ import {
 import { useSupabaseMutation } from '@/hooks/useSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { validatePassword } from '@/lib/validation';
 
 interface TeacherFormData {
   // Basic Information
@@ -176,6 +177,11 @@ export const AddTeacherDialog: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const passwordError = validatePassword(formData.tempPassword);
+    if (passwordError) {
+      toast({ title: 'Invalid password', description: passwordError, variant: 'destructive' });
+      return;
+    }
     try {
       await createTeacherMutation.mutateAsync(formData);
     } catch (error) {

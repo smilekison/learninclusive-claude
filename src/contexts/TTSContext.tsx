@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const TTS_LOCALE_PREFIX: Record<string, string> = { en: 'en', lt: 'lt' };
@@ -170,7 +170,7 @@ export const TTSProvider: React.FC<TTSProviderProps> = ({ children }) => {
     };
   }, []);
 
-  const value: TTSContextType = {
+  const value: TTSContextType = useMemo(() => ({
     settings,
     speak,
     stop,
@@ -180,7 +180,7 @@ export const TTSProvider: React.FC<TTSProviderProps> = ({ children }) => {
     isPaused,
     updateSettings,
     availableVoices,
-  };
+  }), [settings, speak, stop, pause, resume, isSpeaking, isPaused, updateSettings, availableVoices]);
 
   return (
     <TTSContext.Provider value={value}>

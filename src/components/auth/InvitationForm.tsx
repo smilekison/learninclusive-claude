@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { validatePassword } from '@/lib/validation';
 
 interface InvitationFormProps {
   token: string;
@@ -79,8 +80,9 @@ export const InvitationForm: React.FC<InvitationFormProps> = ({ token, onSuccess
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
+    const passwordError = validatePassword(formData.password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
 
@@ -98,11 +100,15 @@ export const InvitationForm: React.FC<InvitationFormProps> = ({ token, onSuccess
         role: invitation.role as any,
       });
 
-      // Mark invitation as used
-      await supabase
+      // Mark invitation as used so the token can't be redeemed again
+      const { error: markUsedError } = await supabase
         .from('email_invitations')
         .update({ used: true })
         .eq('token', token);
+
+      if (markUsedError) {
+        console.error('Failed to mark invitation as used:', markUsedError);
+      }
 
       // If it's a student with a parent email, send parent invitation
       if (invitation.role === 'student' && invitation.additional_data.parentEmail) {

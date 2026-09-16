@@ -201,12 +201,15 @@ export const TeacherDashboardReal: React.FC = () => {
     markNotificationReadMutation.mutate(notificationId);
   };
 
-  const handleViewSubmission = (assignmentId: string) => {
-    navigate(`/assignments/${assignmentId}`);
+  const handleViewSubmission = () => {
+    // No per-assignment detail route exists yet; the assignments list is the
+    // working destination for now.
+    navigate('/assignments');
   };
 
-  const handleGradeSubmission = (submissionId: string) => {
-    navigate(`/submissions/${submissionId}/grade`);
+  const handleGradeSubmission = () => {
+    // Grading happens inline on the submissions list, not a dedicated route.
+    navigate('/submissions');
   };
 
   const calculateEngagementData = () => {
@@ -849,7 +852,7 @@ export const TeacherDashboardReal: React.FC = () => {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => navigate(`/classes/${cls.id}`)}
+                      onClick={() => navigate('/classes')}
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
@@ -1012,7 +1015,7 @@ export const TeacherDashboardReal: React.FC = () => {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => navigate(`/subjects/${subject.id}?tab=lessons`)}
+                      onClick={() => navigate('/subjects')}
                     >
                       <Plus className="h-4 w-4 mr-1" />
                       Add Lesson
@@ -1020,7 +1023,7 @@ export const TeacherDashboardReal: React.FC = () => {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => navigate(`/subjects/${subject.id}`)}
+                      onClick={() => navigate('/subjects')}
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
@@ -1088,7 +1091,7 @@ export const TeacherDashboardReal: React.FC = () => {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => handleViewSubmission(submission.assignment_id)}
+                      onClick={handleViewSubmission}
                       className="hover:bg-primary/10"
                     >
                       <Eye className="h-4 w-4" />
@@ -1097,7 +1100,7 @@ export const TeacherDashboardReal: React.FC = () => {
                       <Button 
                         variant="ghost" 
                         size="sm"
-                        onClick={() => handleGradeSubmission(submission.id)}
+                        onClick={handleGradeSubmission}
                         className="hover:bg-success/10 text-success"
                       >
                         <Edit className="h-4 w-4" />

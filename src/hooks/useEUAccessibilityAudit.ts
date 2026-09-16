@@ -17,7 +17,7 @@ interface EUAccessibilityResults {
   passes: number;
   score: number;
   enCompliant: boolean; // EN 301 549 compliance
-  fiCompliant: boolean; // Finnish accessibility law compliance
+  ltCompliant: boolean; // Lithuanian accessibility law compliance
   timestamp: Date;
   url: string;
 }
@@ -47,7 +47,7 @@ export const useEUAccessibilityAudit = () => {
         }
       });
 
-      // Minimal, error-free configuration for EU/Finnish standards
+      // Minimal, error-free configuration for EU/Lithuanian standards
       const axeConfig = {
         tags: ['wcag2a', 'wcag2aa'],
         exclude: [
@@ -70,7 +70,7 @@ export const useEUAccessibilityAudit = () => {
         }
       };
 
-      console.log('🇪🇺 Running EU/Finnish accessibility audit...');
+      console.log('🇪🇺 Running EU/Lithuanian accessibility audit...');
       
       // Run audit with timeout
       const auditPromise = axe.default.run(document, axeConfig);
@@ -90,8 +90,8 @@ export const useEUAccessibilityAudit = () => {
       // EN 301 549 compliance (EU standard)
       const enCompliant = criticalViolations.length === 0 && seriousViolations.length <= 1 && baseScore >= 85;
       
-      // Finnish accessibility law compliance (stricter)
-      const fiCompliant = criticalViolations.length === 0 && axeResults.violations.length <= 2 && baseScore >= 90;
+      // Lithuanian accessibility law compliance (stricter)
+      const ltCompliant = criticalViolations.length === 0 && axeResults.violations.length <= 2 && baseScore >= 90;
 
       const results: EUAccessibilityResults = {
         violations: axeResults.violations.map((violation: any) => ({
@@ -107,7 +107,7 @@ export const useEUAccessibilityAudit = () => {
         passes: axeResults.passes.length,
         score: baseScore,
         enCompliant,
-        fiCompliant,
+        ltCompliant,
         timestamp: new Date(),
         url: window.location.href
       };
@@ -116,10 +116,10 @@ export const useEUAccessibilityAudit = () => {
       
       // Enhanced logging
       if (process.env.NODE_ENV === 'development') {
-        console.group('🇪🇺 EU/Finnish Accessibility Audit Results');
+        console.group('🇪🇺 EU/Lithuanian Accessibility Audit Results');
         console.log(`📊 Score: ${results.score}%`);
         console.log(`🇪🇺 EN 301 549 Compliant: ${results.enCompliant ? '✅' : '❌'}`);
-        console.log(`🇫🇮 Finnish Law Compliant: ${results.fiCompliant ? '✅' : '❌'}`);
+        console.log(`🇱🇹 Lithuanian Law Compliant: ${results.ltCompliant ? '✅' : '❌'}`);
         console.log(`✅ Passes: ${results.passes}`);
         console.log(`❌ Violations: ${results.violations.length}`);
         
@@ -145,7 +145,7 @@ export const useEUAccessibilityAudit = () => {
         passes: 0,
         score: 0,
         enCompliant: false,
-        fiCompliant: false,
+        ltCompliant: false,
         timestamp: new Date(),
         url: window.location.href
       };
@@ -174,8 +174,8 @@ export const useEUAccessibilityAudit = () => {
       recommendations.push('Address critical accessibility violations for EN 301 549 compliance');
     }
     
-    if (!results.fiCompliant) {
-      recommendations.push('Improve accessibility score to meet Finnish accessibility law requirements');
+    if (!results.ltCompliant) {
+      recommendations.push('Improve accessibility score to meet Lithuanian accessibility law requirements');
     }
     
     if (results.score < 85) {

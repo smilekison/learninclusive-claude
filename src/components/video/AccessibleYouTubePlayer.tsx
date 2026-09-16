@@ -43,7 +43,7 @@ const useYouTubeAPI = () => {
 interface AccessibleYouTubePlayerProps {
   videoId: string;
   title?: string;
-  captionLang?: string; // e.g., 'en', 'fi'
+  captionLang?: string; // e.g., 'en', 'lt'
   className?: string;
   videoDbId?: string; // database id of video_materials row for analytics
 }

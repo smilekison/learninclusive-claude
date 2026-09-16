@@ -54,7 +54,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchUserProfile = async (userId: string, retryCount = 0) => {
     console.log(`Fetching user profile for userId: ${userId}, attempt: ${retryCount + 1}`);
-    
+    // Tracks whether this attempt scheduled a retry and returned early — in
+    // that case `loading` must stay true until the retry actually resolves,
+    // not flip to false in between (that was causing ProtectedRoute to
+    // redirect to /auth mid-retry, i.e. the login-flashes-then-dashboard bug).
+    let willRetry = false;
+
     try {
       // Small delay to ensure session is fully established
       if (retryCount === 0) {
@@ -75,6 +80,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // If it's an RLS error and we haven't retried, try again
         if (error.code === '42P17' && retryCount < 2) {
           console.log('RLS recursion detected, retrying...');
+          willRetry = true;
           setTimeout(() => {
             fetchUserProfile(userId, retryCount + 1);
           }, 500 * (retryCount + 1));
@@ -113,6 +119,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // If no profile found and we haven't retried, try again
         if (retryCount < 2) {
           console.log('No profile found, retrying...');
+          willRetry = true;
           setTimeout(() => {
             fetchUserProfile(userId, retryCount + 1);
           }, 1000 * (retryCount + 1));
@@ -132,6 +139,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // If we haven't retried and it's not a permanent error, try again
       if (retryCount < 2 && error?.code !== 'PGRST116') {
         console.log('Retrying profile fetch due to error...');
+        willRetry = true;
         setTimeout(() => {
           fetchUserProfile(userId, retryCount + 1);
         }, 1000 * (retryCount + 1));
@@ -151,8 +159,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         supabase.auth.signOut();
       }
     } finally {
-      // Only set loading to false on the final attempt or if we succeeded
-      if (retryCount === 0) {
+      // Only stop loading once this call chain is actually done — not on an
+      // attempt that just scheduled a retry and returned early.
+      if (!willRetry) {
         setLoading(false);
       }
     }

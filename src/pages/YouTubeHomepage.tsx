@@ -101,7 +101,7 @@ export const YouTubeHomepage: React.FC = () => {
       metaDesc.setAttribute('name', 'description');
       document.head.appendChild(metaDesc);
     }
-    metaDesc.setAttribute('content', 'Curated free British and Finnish Sign Language lessons with accessible controls and captions.');
+    metaDesc.setAttribute('content', 'Curated free British Sign Language lessons with accessible controls and captions.');
 
     // Canonical URL
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;

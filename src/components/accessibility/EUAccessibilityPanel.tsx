@@ -52,7 +52,7 @@ export const EUAccessibilityPanel: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Flag className="h-5 w-5" />
-            <CardTitle className="text-lg">EU & Finnish Accessibility Audit</CardTitle>
+            <CardTitle className="text-lg">EU & Lithuanian Accessibility Audit</CardTitle>
             {results && (
               <div className="flex items-center gap-2">
                 <Badge 
@@ -62,10 +62,10 @@ export const EUAccessibilityPanel: React.FC = () => {
                   🇪🇺 {results.enCompliant ? "EN 301 549" : "Non-compliant"}
                 </Badge>
                 <Badge 
-                  variant={results.fiCompliant ? "default" : "destructive"}
-                  className={results.fiCompliant ? "bg-success text-success-foreground" : ""}
+                  variant={results.ltCompliant ? "default" : "destructive"}
+                  className={results.ltCompliant ? "bg-success text-success-foreground" : ""}
                 >
-                  🇫🇮 {results.fiCompliant ? "Finnish Law" : "Non-compliant"}
+                  🇱🇹 {results.ltCompliant ? "Lithuanian Law" : "Non-compliant"}
                 </Badge>
               </div>
             )}
@@ -85,7 +85,7 @@ export const EUAccessibilityPanel: React.FC = () => {
           </Button>
         </div>
         <CardDescription>
-          Compliance check for EN 301 549 (EU) and Finnish accessibility law standards
+          Compliance check for EN 301 549 (EU) and Lithuanian accessibility law standards
         </CardDescription>
       </CardHeader>
 
@@ -125,18 +125,18 @@ export const EUAccessibilityPanel: React.FC = () => {
                 </p>
               </div>
               
-              <div className={`p-3 rounded-lg border ${results.fiCompliant ? 'bg-success/10 border-success/20' : 'bg-destructive/10 border-destructive/20'}`}>
+              <div className={`p-3 rounded-lg border ${results.ltCompliant ? 'bg-success/10 border-success/20' : 'bg-destructive/10 border-destructive/20'}`}>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">🇫🇮</span>
-                  <span className="font-semibold text-sm">Finnish Law</span>
-                  {results.fiCompliant ? (
+                  <span className="text-lg">🇱🇹</span>
+                  <span className="font-semibold text-sm">Lithuanian Law</span>
+                  {results.ltCompliant ? (
                     <CheckCircle className="h-4 w-4 text-success" />
                   ) : (
                     <AlertTriangle className="h-4 w-4 text-destructive" />
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Finnish accessibility legislation
+                  Lithuanian accessibility legislation
                 </p>
               </div>
             </div>
@@ -285,7 +285,7 @@ export const EUAccessibilityPanel: React.FC = () => {
                 <Info className="h-3 w-3" />
                 <span>Audit completed at {results.timestamp.toLocaleTimeString()}</span>
               </div>
-              <p>Focused on EU directive 2016/2102 and Finnish accessibility law compliance.</p>
+              <p>Focused on EU directive 2016/2102 and Lithuanian accessibility law compliance.</p>
             </div>
           </>
         )}
@@ -294,7 +294,7 @@ export const EUAccessibilityPanel: React.FC = () => {
           <div className="text-center py-6 text-muted-foreground">
             <Flag className="h-12 w-12 mx-auto mb-2 opacity-50" />
             <p className="text-sm">Click "Run EU Audit" to check compliance</p>
-            <p className="text-xs mt-1">Tests against EN 301 549 and Finnish accessibility standards</p>
+            <p className="text-xs mt-1">Tests against EN 301 549 and Lithuanian accessibility standards</p>
           </div>
         )}
       </CardContent>

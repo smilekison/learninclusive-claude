@@ -33,7 +33,7 @@ export const JoinSubjectPage: React.FC = () => {
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('user_id', user?.id)
+        .eq('user_id', user?.authUserId)
         .single();
 
       if (profileError || !profile) {

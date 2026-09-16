@@ -182,25 +182,24 @@ export const LessonManager: React.FC<LessonManagerProps> = ({ subjectId }) => {
   const addMaterialMutation = useMutation({
     mutationFn: async ({ lessonId, materialData }: { lessonId: string; materialData: any }) => {
       if (!user) throw new Error('User not authenticated');
-
-      // Get user profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (profileError || !profile) throw new Error('Profile not found');
+      // user.id is already the profile id (see src/types/auth.ts) — the
+      // separate profiles lookup this used to do filtered on
+      // profiles.user_id = user.id, but user.id is never an auth user id,
+      // so that query matched nothing and this mutation always threw
+      // "Profile not found" for real accounts.
 
       let filePath = '';
-      
-      // Upload file to storage if provided
+
+      // Upload file to storage if provided. The 'videos' bucket's RLS
+      // policies require the first path segment to be the uploader's auth
+      // user id — a flat 'materials/' prefix had no policy allowing it.
       if (materialData.file) {
+        if (!user.authUserId) throw new Error('You must be signed in to upload materials');
         const fileExt = materialData.file.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('videos') // Using existing videos bucket
-          .upload(`materials/${fileName}`, materialData.file);
+          .upload(`${user.authUserId}/materials/${fileName}`, materialData.file);
 
         if (uploadError) throw uploadError;
         filePath = uploadData.path;
@@ -214,7 +213,7 @@ export const LessonManager: React.FC<LessonManagerProps> = ({ subjectId }) => {
           file_path: filePath,
           file_type: materialData.file?.type || 'unknown',
           lesson_id: lessonId,
-          uploaded_by: profile.id
+          uploaded_by: user.id
         })
         .select()
         .single();

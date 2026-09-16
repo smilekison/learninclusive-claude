@@ -16,7 +16,7 @@ export const useEnhancedStudentProfile = () => {
         event: 'UPDATE',
         schema: 'public',
         table: 'profiles',
-        filter: `user_id=eq.${user.id}`,
+        filter: `user_id=eq.${user.authUserId}`,
       }, () => {
         queryClient.invalidateQueries({ queryKey: ['enhanced-student-profile', user.id] });
       })
@@ -46,7 +46,7 @@ export const useEnhancedStudentProfile = () => {
           student_support_services(*),
           student_progress_tracking(*)
         `)
-        .eq('user_id', user.id)
+        .eq('user_id', user.authUserId)
         .eq('role', 'student')
         .single();
 

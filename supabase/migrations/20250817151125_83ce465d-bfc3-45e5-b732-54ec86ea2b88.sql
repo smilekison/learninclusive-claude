@@ -23,6 +23,7 @@ END;
 $$;
 
 -- Create new RLS policy for teachers to view all students (for demo)
+DROP POLICY IF EXISTS "Teachers can view all students for demo" ON profiles;
 CREATE POLICY "Teachers can view all students for demo" ON profiles
   FOR SELECT
   USING (

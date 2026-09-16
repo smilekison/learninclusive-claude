@@ -29,11 +29,13 @@ DROP POLICY IF EXISTS "Principals can view all profiles" ON public.profiles;
 DROP POLICY IF EXISTS "Teachers can view students in their classes" ON public.profiles;
 
 -- Create new safe policies using security definer functions
+DROP POLICY IF EXISTS "Principals can view all profiles" ON public.profiles;
 CREATE POLICY "Principals can view all profiles" 
 ON public.profiles 
 FOR SELECT 
 USING (public.is_principal());
 
+DROP POLICY IF EXISTS "Teachers can view students in their classes" ON public.profiles;
 CREATE POLICY "Teachers can view students in their classes" 
 ON public.profiles 
 FOR SELECT 

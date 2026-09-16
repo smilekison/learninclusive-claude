@@ -22,6 +22,7 @@ VALUES (
 ) ON CONFLICT (id) DO NOTHING;
 
 -- Re-create the storage policies
+DROP POLICY IF EXISTS "Students can view their own assignment files" ON storage.objects;
 CREATE POLICY "Students can view their own assignment files" 
 ON storage.objects 
 FOR SELECT 
@@ -30,6 +31,7 @@ USING (
   AND (storage.foldername(name))[1] = auth.uid()::text
 );
 
+DROP POLICY IF EXISTS "Students can upload assignment files" ON storage.objects;
 CREATE POLICY "Students can upload assignment files" 
 ON storage.objects 
 FOR INSERT 
@@ -39,6 +41,7 @@ WITH CHECK (
 );
 
 -- Video storage policies
+DROP POLICY IF EXISTS "Users can upload videos to their folder" ON storage.objects;
 CREATE POLICY "Users can upload videos to their folder" 
 ON storage.objects 
 FOR INSERT 
@@ -47,6 +50,7 @@ WITH CHECK (
   AND (storage.foldername(name))[1] = auth.uid()::text
 );
 
+DROP POLICY IF EXISTS "Users can view videos based on visibility" ON storage.objects;
 CREATE POLICY "Users can view videos based on visibility" 
 ON storage.objects 
 FOR SELECT 
@@ -81,16 +85,19 @@ CREATE TABLE IF NOT EXISTS accessibility_audits (
 ALTER TABLE accessibility_audits ENABLE ROW LEVEL SECURITY;
 
 -- Users can view and manage their own audits
+DROP POLICY IF EXISTS "Users can view their own accessibility audits" ON accessibility_audits;
 CREATE POLICY "Users can view their own accessibility audits" 
 ON accessibility_audits 
 FOR SELECT 
 USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can create their own accessibility audits" ON accessibility_audits;
 CREATE POLICY "Users can create their own accessibility audits" 
 ON accessibility_audits 
 FOR INSERT 
 WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update their own accessibility audits" ON accessibility_audits;
 CREATE POLICY "Users can update their own accessibility audits" 
 ON accessibility_audits 
 FOR UPDATE 

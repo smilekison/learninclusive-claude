@@ -9,79 +9,72 @@ SET name = CASE
 END;
 
 -- Update teacher profiles with realistic names
-UPDATE public.profiles 
-SET 
-  first_name = CASE 
-    WHEN role = 'teacher' AND email LIKE '%teacher1%' THEN 'Sarah'
-    WHEN role = 'teacher' AND email LIKE '%teacher2%' THEN 'Michael'
-    WHEN role = 'teacher' AND email LIKE '%teacher3%' THEN 'Emily'
-    WHEN role = 'teacher' AND email LIKE '%teacher4%' THEN 'David'
-    WHEN role = 'teacher' AND email LIKE '%teacher5%' THEN 'Jennifer'
-    WHEN role = 'teacher' THEN 'John'
-    ELSE first_name
+-- (public.profiles has no email column — join auth.users for it instead)
+UPDATE public.profiles
+SET
+  first_name = CASE
+    WHEN u.email LIKE '%teacher1%' THEN 'Sarah'
+    WHEN u.email LIKE '%teacher2%' THEN 'Michael'
+    WHEN u.email LIKE '%teacher3%' THEN 'Emily'
+    WHEN u.email LIKE '%teacher4%' THEN 'David'
+    WHEN u.email LIKE '%teacher5%' THEN 'Jennifer'
+    ELSE 'John'
   END,
-  last_name = CASE 
-    WHEN role = 'teacher' AND email LIKE '%teacher1%' THEN 'Johnson'
-    WHEN role = 'teacher' AND email LIKE '%teacher2%' THEN 'Williams'
-    WHEN role = 'teacher' AND email LIKE '%teacher3%' THEN 'Brown'
-    WHEN role = 'teacher' AND email LIKE '%teacher4%' THEN 'Davis'
-    WHEN role = 'teacher' AND email LIKE '%teacher5%' THEN 'Miller'
-    WHEN role = 'teacher' THEN 'Anderson'
-    ELSE last_name
+  last_name = CASE
+    WHEN u.email LIKE '%teacher1%' THEN 'Johnson'
+    WHEN u.email LIKE '%teacher2%' THEN 'Williams'
+    WHEN u.email LIKE '%teacher3%' THEN 'Brown'
+    WHEN u.email LIKE '%teacher4%' THEN 'Davis'
+    WHEN u.email LIKE '%teacher5%' THEN 'Miller'
+    ELSE 'Anderson'
   END
-WHERE role = 'teacher';
+FROM auth.users u
+WHERE public.profiles.user_id = u.id AND public.profiles.role = 'teacher';
 
 -- Update student profiles with realistic names
-UPDATE public.profiles 
-SET 
-  first_name = CASE 
-    WHEN role = 'student' AND email LIKE '%student1%' THEN 'Emma'
-    WHEN role = 'student' AND email LIKE '%student2%' THEN 'Liam'
-    WHEN role = 'student' AND email LIKE '%student3%' THEN 'Olivia'
-    WHEN role = 'student' AND email LIKE '%student4%' THEN 'Noah'
-    WHEN role = 'student' AND email LIKE '%student5%' THEN 'Ava'
-    WHEN role = 'student' AND email LIKE '%student6%' THEN 'Mason'
-    WHEN role = 'student' AND email LIKE '%student7%' THEN 'Sophia'
-    WHEN role = 'student' AND email LIKE '%student8%' THEN 'Logan'
-    WHEN role = 'student' AND email LIKE '%student9%' THEN 'Isabella'
-    WHEN role = 'student' AND email LIKE '%student10%' THEN 'Lucas'
-    WHEN role = 'student' THEN 'Alex'
-    ELSE first_name
+UPDATE public.profiles
+SET
+  first_name = CASE
+    WHEN u.email LIKE '%student1%' THEN 'Emma'
+    WHEN u.email LIKE '%student2%' THEN 'Liam'
+    WHEN u.email LIKE '%student3%' THEN 'Olivia'
+    WHEN u.email LIKE '%student4%' THEN 'Noah'
+    WHEN u.email LIKE '%student5%' THEN 'Ava'
+    WHEN u.email LIKE '%student6%' THEN 'Mason'
+    WHEN u.email LIKE '%student7%' THEN 'Sophia'
+    WHEN u.email LIKE '%student8%' THEN 'Logan'
+    WHEN u.email LIKE '%student9%' THEN 'Isabella'
+    WHEN u.email LIKE '%student10%' THEN 'Lucas'
+    ELSE public.profiles.first_name
   END,
-  last_name = CASE 
-    WHEN role = 'student' AND email LIKE '%student1%' THEN 'Thompson'
-    WHEN role = 'student' AND email LIKE '%student2%' THEN 'Garcia'
-    WHEN role = 'student' AND email LIKE '%student3%' THEN 'Martinez'
-    WHEN role = 'student' AND email LIKE '%student4%' THEN 'Rodriguez'
-    WHEN role = 'student' AND email LIKE '%student5%' THEN 'Lopez'
-    WHEN role = 'student' AND email LIKE '%student6%' THEN 'Wilson'
-    WHEN role = 'student' AND email LIKE '%student7%' THEN 'Clark'
-    WHEN role = 'student' AND email LIKE '%student8%' THEN 'Lewis'
-    WHEN role = 'student' AND email LIKE '%student9%' THEN 'Walker'
-    WHEN role = 'student' AND email LIKE '%student10%' THEN 'Hall'
-    WHEN role = 'student' THEN 'Smith'
-    ELSE last_name
+  last_name = CASE
+    WHEN u.email LIKE '%student1%' THEN 'Thompson'
+    WHEN u.email LIKE '%student2%' THEN 'Garcia'
+    WHEN u.email LIKE '%student3%' THEN 'Martinez'
+    WHEN u.email LIKE '%student4%' THEN 'Rodriguez'
+    WHEN u.email LIKE '%student5%' THEN 'Lopez'
+    WHEN u.email LIKE '%student6%' THEN 'Wilson'
+    WHEN u.email LIKE '%student7%' THEN 'Clark'
+    WHEN u.email LIKE '%student8%' THEN 'Lewis'
+    WHEN u.email LIKE '%student9%' THEN 'Walker'
+    WHEN u.email LIKE '%student10%' THEN 'Hall'
+    ELSE public.profiles.last_name
   END
-WHERE role = 'student';
+FROM auth.users u
+WHERE public.profiles.user_id = u.id AND public.profiles.role = 'student';
 
 -- Update principal profiles
-UPDATE public.profiles 
-SET 
+UPDATE public.profiles
+SET
   first_name = 'Robert',
   last_name = 'Henderson'
 WHERE role = 'principal';
 
 -- Update parent profiles
-UPDATE public.profiles 
-SET 
-  first_name = CASE 
-    WHEN email LIKE '%parent%' THEN 'Margaret'
-    ELSE first_name
-  END,
-  last_name = CASE 
-    WHEN email LIKE '%parent%' THEN 'Thompson'
-    ELSE last_name
-  END
+UPDATE public.profiles
+SET
+  first_name = 'Margaret',
+  last_name = 'Thompson'
 WHERE role = 'parent';
 
 -- Update class names with realistic naming convention

@@ -46,11 +46,13 @@ $$;
 -- Replace old public policy with visibility-based access
 DROP POLICY IF EXISTS "Public access to demo videos" ON public.video_materials;
 
+DROP POLICY IF EXISTS "Public can view public and unlisted videos" ON public.video_materials;
 CREATE POLICY "Public can view public and unlisted videos"
 ON public.video_materials
 FOR SELECT
 USING (visibility IN ('public','unlisted'));
 
+DROP POLICY IF EXISTS "Users can view school videos in their school" ON public.video_materials;
 CREATE POLICY "Users can view school videos in their school"
 ON public.video_materials
 FOR SELECT
@@ -58,6 +60,7 @@ USING (
   visibility = 'school' AND school_id IS NOT NULL AND public.is_user_in_school(school_id)
 );
 
+DROP POLICY IF EXISTS "Uploader can view their private videos" ON public.video_materials;
 CREATE POLICY "Uploader can view their private videos"
 ON public.video_materials
 FOR SELECT

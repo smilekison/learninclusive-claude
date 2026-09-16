@@ -57,7 +57,8 @@ BEGIN
         
         -- Create the profile
         INSERT INTO profiles (user_id, first_name, last_name, role)
-        VALUES (parent_user_id, 'Sarah', 'Smith', 'parent');
+        VALUES (parent_user_id, 'Sarah', 'Smith', 'parent')
+        ON CONFLICT (user_id) DO NOTHING;
     END IF;
     
 END $$;

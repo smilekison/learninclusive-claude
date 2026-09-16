@@ -31,7 +31,7 @@ BEGIN
         NOW(), '{"provider": "email", "providers": ["email"]}'::jsonb,
         jsonb_build_object('first_name', 'Sarah', 'last_name', 'Johnson', 'role', 'principal', 'school_name', 'Demo Elementary School'),
         FALSE, NOW(), NOW()
-    ) ON CONFLICT (email) DO NOTHING;
+    ) ON CONFLICT DO NOTHING;
 
     -- Insert Principal profile
     INSERT INTO profiles (user_id, first_name, last_name, role, school_name)
@@ -70,7 +70,7 @@ BEGIN
             NOW(), '{"provider": "email", "providers": ["email"]}'::jsonb,
             jsonb_build_object('first_name', 'Teacher', 'last_name', 'Name' || i, 'role', 'teacher'),
             FALSE, NOW(), NOW()
-        ) ON CONFLICT (email) DO NOTHING;
+        ) ON CONFLICT DO NOTHING;
 
         INSERT INTO profiles (user_id, first_name, last_name, role)
         VALUES (teacher_user_id, 'Teacher', 'Name' || i, 'teacher')

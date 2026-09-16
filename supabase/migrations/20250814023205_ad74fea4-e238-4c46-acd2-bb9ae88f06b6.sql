@@ -3,6 +3,7 @@
 DROP POLICY IF EXISTS "Parents can view their children profiles" ON public.profiles;
 
 -- Create a simpler, non-recursive policy for parents to view their children
+DROP POLICY IF EXISTS "Parents can view their children profiles" ON public.profiles;
 CREATE POLICY "Parents can view their children profiles" 
 ON public.profiles 
 FOR SELECT 

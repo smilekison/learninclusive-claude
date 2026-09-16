@@ -24,9 +24,11 @@ VALUES (
     'video/mp4',
     'video/quicktime'
   ]
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 -- Create RLS policies for assignment submissions bucket
+DROP POLICY IF EXISTS "Students can upload assignment files" ON storage.objects;
 CREATE POLICY "Students can upload assignment files"
 ON storage.objects
 FOR INSERT
@@ -39,6 +41,7 @@ WITH CHECK (
   )
 );
 
+DROP POLICY IF EXISTS "Students can view their own uploaded files" ON storage.objects;
 CREATE POLICY "Students can view their own uploaded files"
 ON storage.objects
 FOR SELECT
@@ -51,6 +54,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Teachers can view assignment files from their students" ON storage.objects;
 CREATE POLICY "Teachers can view assignment files from their students"
 ON storage.objects
 FOR SELECT
@@ -74,6 +78,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Students can update their own assignment files" ON storage.objects;
 CREATE POLICY "Students can update their own assignment files"
 ON storage.objects
 FOR UPDATE
@@ -86,6 +91,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Students can delete their own assignment files" ON storage.objects;
 CREATE POLICY "Students can delete their own assignment files"
 ON storage.objects
 FOR DELETE
@@ -98,5 +104,4 @@ USING (
   )
 );
 
--- Add comment documenting the bucket purpose
-COMMENT ON TABLE storage.objects IS 'Assignment submission storage with role-based access controls';
+-- (Skipped: COMMENT ON storage.objects requires ownership the local migration role lacks. Cosmetic only.)

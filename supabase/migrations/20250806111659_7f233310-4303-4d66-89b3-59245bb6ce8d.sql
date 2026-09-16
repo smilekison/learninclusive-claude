@@ -17,16 +17,19 @@ RETURNS TEXT AS $$
 $$ LANGUAGE SQL SECURITY DEFINER STABLE;
 
 -- Recreate classes policies without recursion
+DROP POLICY IF EXISTS "Principals can manage all classes" ON public.classes;
 CREATE POLICY "Principals can manage all classes" 
 ON public.classes 
 FOR ALL 
 USING (get_user_role() = 'principal');
 
+DROP POLICY IF EXISTS "Teachers can view their assigned classes" ON public.classes;
 CREATE POLICY "Teachers can view their assigned classes" 
 ON public.classes 
 FOR SELECT 
 USING (teacher_id = get_user_profile_id());
 
+DROP POLICY IF EXISTS "Students can view their enrolled classes" ON public.classes;
 CREATE POLICY "Students can view their enrolled classes" 
 ON public.classes 
 FOR SELECT 

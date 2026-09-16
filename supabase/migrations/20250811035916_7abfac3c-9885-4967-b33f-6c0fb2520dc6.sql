@@ -25,7 +25,8 @@ CREATE INDEX IF NOT EXISTS idx_video_views_created_at ON public.video_views(crea
 
 -- Update timestamp trigger
 DO $$ BEGIN
-  CREATE TRIGGER trg_video_views_updated_at
+  DROP TRIGGER IF EXISTS trg_video_views_updated_at ON video_views;
+CREATE TRIGGER trg_video_views_updated_at
   BEFORE UPDATE ON public.video_views
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;

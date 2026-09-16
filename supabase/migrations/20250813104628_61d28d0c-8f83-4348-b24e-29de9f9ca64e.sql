@@ -60,12 +60,14 @@ BEGIN
     DROP TRIGGER IF EXISTS notify_student_graded ON assignment_submissions;
 
     -- Create triggers
-    CREATE TRIGGER notify_teacher_submission
+    DROP TRIGGER IF EXISTS notify_teacher_submission ON assignment_submissions;
+CREATE TRIGGER notify_teacher_submission
       AFTER INSERT ON assignment_submissions
       FOR EACH ROW
       EXECUTE FUNCTION notify_teacher_assignment_submission();
 
-    CREATE TRIGGER notify_student_graded
+    DROP TRIGGER IF EXISTS notify_student_graded ON assignment_submissions;
+CREATE TRIGGER notify_student_graded
       AFTER UPDATE ON assignment_submissions
       FOR EACH ROW
       EXECUTE FUNCTION notify_student_assignment_graded();

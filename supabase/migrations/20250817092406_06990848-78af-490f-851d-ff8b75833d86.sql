@@ -6,7 +6,8 @@ VALUES ('assignment-submissions', 'assignment-submissions', false)
 ON CONFLICT (id) DO NOTHING;
 
 -- Create comprehensive RLS policies for assignment submissions storage
-CREATE POLICY IF NOT EXISTS "Students can upload to their own folder" 
+DROP POLICY IF EXISTS "Students can upload to their own folder" ON storage.objects;
+CREATE POLICY "Students can upload to their own folder" 
 ON storage.objects 
 FOR INSERT 
 WITH CHECK (
@@ -14,7 +15,8 @@ WITH CHECK (
   AND auth.uid()::text = (storage.foldername(name))[1]
 );
 
-CREATE POLICY IF NOT EXISTS "Students can view their own files" 
+DROP POLICY IF EXISTS "Students can view their own files" ON storage.objects;
+CREATE POLICY "Students can view their own files" 
 ON storage.objects 
 FOR SELECT 
 USING (
@@ -22,7 +24,8 @@ USING (
   AND auth.uid()::text = (storage.foldername(name))[1]
 );
 
-CREATE POLICY IF NOT EXISTS "Teachers can view files for their assignments" 
+DROP POLICY IF EXISTS "Teachers can view files for their assignments" ON storage.objects;
+CREATE POLICY "Teachers can view files for their assignments" 
 ON storage.objects 
 FOR SELECT 
 USING (
@@ -34,11 +37,12 @@ USING (
     JOIN classes c ON s.class_id = c.id
     JOIN profiles p ON c.teacher_id = p.id
     WHERE p.user_id = auth.uid()
-    AND storage.foldername(name)[2] = a.id::text
+    AND (storage.foldername(storage.objects.name))[2] = a.id::text
   )
 );
 
-CREATE POLICY IF NOT EXISTS "Principals can access all assignment files" 
+DROP POLICY IF EXISTS "Principals can access all assignment files" ON storage.objects;
+CREATE POLICY "Principals can access all assignment files" 
 ON storage.objects 
 FOR ALL 
 USING (

@@ -125,6 +125,7 @@ ALTER TABLE plagiarism_reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE assignment_analytics ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for assignment_groups
+DROP POLICY IF EXISTS "Students can view groups for their assignments" ON assignment_groups;
 CREATE POLICY "Students can view groups for their assignments" ON assignment_groups
   FOR SELECT USING (
     assignment_id IN (
@@ -137,6 +138,7 @@ CREATE POLICY "Students can view groups for their assignments" ON assignment_gro
     )
   );
 
+DROP POLICY IF EXISTS "Students can create groups for assignments they can access" ON assignment_groups;
 CREATE POLICY "Students can create groups for assignments they can access" ON assignment_groups
   FOR INSERT WITH CHECK (
     assignment_id IN (
@@ -149,6 +151,7 @@ CREATE POLICY "Students can create groups for assignments they can access" ON as
     )
   );
 
+DROP POLICY IF EXISTS "Teachers can manage groups for their assignments" ON assignment_groups;
 CREATE POLICY "Teachers can manage groups for their assignments" ON assignment_groups
   FOR ALL USING (
     assignment_id IN (
@@ -160,10 +163,12 @@ CREATE POLICY "Teachers can manage groups for their assignments" ON assignment_g
     )
   );
 
+DROP POLICY IF EXISTS "Principals can manage all assignment groups" ON assignment_groups;
 CREATE POLICY "Principals can manage all assignment groups" ON assignment_groups
   FOR ALL USING (is_principal());
 
 -- RLS Policies for assignment_group_memberships
+DROP POLICY IF EXISTS "Users can view memberships for accessible groups" ON assignment_group_memberships;
 CREATE POLICY "Users can view memberships for accessible groups" ON assignment_group_memberships
   FOR SELECT USING (
     group_id IN (
@@ -184,6 +189,7 @@ CREATE POLICY "Users can view memberships for accessible groups" ON assignment_g
     ) OR is_principal()
   );
 
+DROP POLICY IF EXISTS "Students can join/leave groups" ON assignment_group_memberships;
 CREATE POLICY "Students can join/leave groups" ON assignment_group_memberships
   FOR ALL USING (
     student_id IN (
@@ -191,6 +197,7 @@ CREATE POLICY "Students can join/leave groups" ON assignment_group_memberships
     )
   );
 
+DROP POLICY IF EXISTS "Teachers can manage group memberships" ON assignment_group_memberships;
 CREATE POLICY "Teachers can manage group memberships" ON assignment_group_memberships
   FOR ALL USING (
     group_id IN (
@@ -204,6 +211,7 @@ CREATE POLICY "Teachers can manage group memberships" ON assignment_group_member
   );
 
 -- RLS Policies for assignment_rubrics
+DROP POLICY IF EXISTS "Users can view rubrics for accessible assignments" ON assignment_rubrics;
 CREATE POLICY "Users can view rubrics for accessible assignments" ON assignment_rubrics
   FOR SELECT USING (
     assignment_id IN (
@@ -222,6 +230,7 @@ CREATE POLICY "Users can view rubrics for accessible assignments" ON assignment_
     ) OR is_principal()
   );
 
+DROP POLICY IF EXISTS "Teachers can manage rubrics for their assignments" ON assignment_rubrics;
 CREATE POLICY "Teachers can manage rubrics for their assignments" ON assignment_rubrics
   FOR ALL USING (
     assignment_id IN (
@@ -234,6 +243,7 @@ CREATE POLICY "Teachers can manage rubrics for their assignments" ON assignment_
   );
 
 -- RLS Policies for submission_feedback
+DROP POLICY IF EXISTS "Users can view feedback for their submissions" ON submission_feedback;
 CREATE POLICY "Users can view feedback for their submissions" ON submission_feedback
   FOR SELECT USING (
     submission_id IN (
@@ -251,6 +261,7 @@ CREATE POLICY "Users can view feedback for their submissions" ON submission_feed
     ) OR is_principal()
   );
 
+DROP POLICY IF EXISTS "Teachers can provide feedback" ON submission_feedback;
 CREATE POLICY "Teachers can provide feedback" ON submission_feedback
   FOR INSERT WITH CHECK (
     submission_id IN (
@@ -264,6 +275,7 @@ CREATE POLICY "Teachers can provide feedback" ON submission_feedback
   );
 
 -- RLS Policies for assignment_resources
+DROP POLICY IF EXISTS "Users can view resources for accessible assignments" ON assignment_resources;
 CREATE POLICY "Users can view resources for accessible assignments" ON assignment_resources
   FOR SELECT USING (
     assignment_id IN (
@@ -282,6 +294,7 @@ CREATE POLICY "Users can view resources for accessible assignments" ON assignmen
     ) OR is_principal()
   );
 
+DROP POLICY IF EXISTS "Teachers can manage assignment resources" ON assignment_resources;
 CREATE POLICY "Teachers can manage assignment resources" ON assignment_resources
   FOR ALL USING (
     assignment_id IN (
@@ -294,6 +307,7 @@ CREATE POLICY "Teachers can manage assignment resources" ON assignment_resources
   );
 
 -- RLS Policies for plagiarism_reports
+DROP POLICY IF EXISTS "Teachers can view plagiarism reports" ON plagiarism_reports;
 CREATE POLICY "Teachers can view plagiarism reports" ON plagiarism_reports
   FOR SELECT USING (
     submission_id IN (
@@ -306,10 +320,12 @@ CREATE POLICY "Teachers can view plagiarism reports" ON plagiarism_reports
     ) OR is_principal()
   );
 
+DROP POLICY IF EXISTS "System can create plagiarism reports" ON plagiarism_reports;
 CREATE POLICY "System can create plagiarism reports" ON plagiarism_reports
   FOR INSERT WITH CHECK (true);
 
 -- RLS Policies for assignment_analytics
+DROP POLICY IF EXISTS "Teachers can view analytics for their assignments" ON assignment_analytics;
 CREATE POLICY "Teachers can view analytics for their assignments" ON assignment_analytics
   FOR SELECT USING (
     assignment_id IN (
@@ -321,6 +337,7 @@ CREATE POLICY "Teachers can view analytics for their assignments" ON assignment_
     ) OR is_principal()
   );
 
+DROP POLICY IF EXISTS "System can insert analytics" ON assignment_analytics;
 CREATE POLICY "System can insert analytics" ON assignment_analytics
   FOR INSERT WITH CHECK (true);
 
@@ -343,6 +360,9 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+DROP TRIGGER IF EXISTS update_assignment_groups_updated_at ON assignment_groups;
 CREATE TRIGGER update_assignment_groups_updated_at BEFORE UPDATE ON assignment_groups FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS update_assignment_rubrics_updated_at ON assignment_rubrics;
 CREATE TRIGGER update_assignment_rubrics_updated_at BEFORE UPDATE ON assignment_rubrics FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS update_submission_feedback_updated_at ON submission_feedback;
 CREATE TRIGGER update_submission_feedback_updated_at BEFORE UPDATE ON submission_feedback FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

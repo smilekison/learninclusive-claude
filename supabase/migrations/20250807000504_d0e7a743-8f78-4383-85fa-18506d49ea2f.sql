@@ -2,6 +2,7 @@
 
 -- Allow students to view subjects in their enrolled classes
 DROP POLICY IF EXISTS "Students can view subjects in their classes" ON public.subjects;
+DROP POLICY IF EXISTS "Students can view subjects in their enrolled classes" ON public.subjects;
 CREATE POLICY "Students can view subjects in their enrolled classes" 
 ON public.subjects 
 FOR SELECT 
@@ -18,6 +19,7 @@ USING (
 
 -- Allow students to view assignments in their subjects
 DROP POLICY IF EXISTS "Students can view assignments in their subjects" ON public.assignments;
+DROP POLICY IF EXISTS "Students can view assignments in their enrolled subjects" ON public.assignments;
 CREATE POLICY "Students can view assignments in their enrolled subjects" 
 ON public.assignments 
 FOR SELECT 
@@ -35,6 +37,7 @@ USING (
 
 -- Allow students to manage their own assignment submissions
 DROP POLICY IF EXISTS "Students can manage their own submissions" ON public.assignment_submissions;
+DROP POLICY IF EXISTS "Students can manage their own assignment submissions" ON public.assignment_submissions;
 CREATE POLICY "Students can manage their own assignment submissions" 
 ON public.assignment_submissions 
 FOR ALL 

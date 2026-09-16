@@ -19,6 +19,7 @@ VALUES (
 ) ON CONFLICT (id) DO NOTHING;
 
 -- Video storage policies
+DROP POLICY IF EXISTS "Users can upload videos to their own folder" ON storage.objects;
 CREATE POLICY "Users can upload videos to their own folder" 
 ON storage.objects 
 FOR INSERT 
@@ -27,6 +28,7 @@ WITH CHECK (
   AND (storage.foldername(name))[1] = auth.uid()::text
 );
 
+DROP POLICY IF EXISTS "Users can view videos based on visibility" ON storage.objects;
 CREATE POLICY "Users can view videos based on visibility" 
 ON storage.objects 
 FOR SELECT 
@@ -62,6 +64,7 @@ USING (
 );
 
 -- Assignment submissions storage policies
+DROP POLICY IF EXISTS "Students can upload assignment files to their folder" ON storage.objects;
 CREATE POLICY "Students can upload assignment files to their folder" 
 ON storage.objects 
 FOR INSERT 
@@ -70,6 +73,7 @@ WITH CHECK (
   AND (storage.foldername(name))[1] = auth.uid()::text
 );
 
+DROP POLICY IF EXISTS "Students can view their own uploaded files" ON storage.objects;
 CREATE POLICY "Students can view their own uploaded files" 
 ON storage.objects 
 FOR SELECT 
@@ -78,6 +82,7 @@ USING (
   AND (storage.foldername(name))[1] = auth.uid()::text
 );
 
+DROP POLICY IF EXISTS "Teachers can view assignment files from their students" ON storage.objects;
 CREATE POLICY "Teachers can view assignment files from their students" 
 ON storage.objects 
 FOR SELECT 
@@ -90,10 +95,10 @@ USING (
       FROM assignment_submissions asub
       JOIN assignments a ON asub.assignment_id = a.id
       JOIN subjects s ON a.subject_id = s.id
-      JOIN classes c ON s.id = c.subject_id
+      JOIN classes c ON s.class_id = c.id
       JOIN profiles p ON c.teacher_id = p.id
       WHERE p.user_id = auth.uid()
-      AND (storage.foldername(name))[2] = a.id::text
+      AND (storage.foldername(storage.objects.name))[2] = a.id::text
     )
     OR
     -- Principals can view all assignment files
@@ -122,16 +127,19 @@ CREATE TABLE IF NOT EXISTS accessibility_audits (
 ALTER TABLE accessibility_audits ENABLE ROW LEVEL SECURITY;
 
 -- Users can view and manage their own audits
+DROP POLICY IF EXISTS "Users can view their own accessibility audits" ON accessibility_audits;
 CREATE POLICY "Users can view their own accessibility audits" 
 ON accessibility_audits 
 FOR SELECT 
 USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can create their own accessibility audits" ON accessibility_audits;
 CREATE POLICY "Users can create their own accessibility audits" 
 ON accessibility_audits 
 FOR INSERT 
 WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update their own accessibility audits" ON accessibility_audits;
 CREATE POLICY "Users can update their own accessibility audits" 
 ON accessibility_audits 
 FOR UPDATE 
@@ -146,6 +154,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_accessibility_audits_updated_at ON accessibility_audits;
 CREATE TRIGGER update_accessibility_audits_updated_at
   BEFORE UPDATE ON accessibility_audits
   FOR EACH ROW

@@ -109,6 +109,7 @@ DROP POLICY IF EXISTS "Students can view their enrolled classes" ON public.class
 DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
 
 -- Create better RLS policies for classes
+DROP POLICY IF EXISTS "Teachers can view their assigned classes" ON public.classes;
 CREATE POLICY "Teachers can view their assigned classes" 
 ON public.classes 
 FOR SELECT 
@@ -118,6 +119,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Students can view their enrolled classes" ON public.classes;
 CREATE POLICY "Students can view their enrolled classes" 
 ON public.classes 
 FOR SELECT 
@@ -131,6 +133,7 @@ USING (
 );
 
 -- Fix profile update policy
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
 CREATE POLICY "Users can update their own profile" 
 ON public.profiles 
 FOR UPDATE 
@@ -168,4 +171,4 @@ INSERT INTO auth.users (
    '{"provider": "email", "providers": ["email"]}'::jsonb,
    '{"first_name": "Lisa", "last_name": "Garcia", "role": "teacher"}'::jsonb,
    FALSE, NOW(), NOW())
-ON CONFLICT (email) DO NOTHING;
+ON CONFLICT DO NOTHING;

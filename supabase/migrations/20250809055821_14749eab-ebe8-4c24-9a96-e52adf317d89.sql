@@ -59,7 +59,8 @@ BEGIN
 
     -- Create principal profile
     INSERT INTO public.profiles (user_id, first_name, last_name, role, school_name)
-    VALUES (principal_id, 'Dr. Sarah', 'Johnson', 'principal', 'Riverside Elementary');
+    VALUES (principal_id, 'Dr. Sarah', 'Johnson', 'principal', 'Riverside Elementary')
+        ON CONFLICT (user_id) DO NOTHING;
 
     -- Create 5 teacher users
     FOR i IN 1..5 LOOP
@@ -108,6 +109,7 @@ BEGIN
 
         -- Create teacher profile
         INSERT INTO public.profiles (user_id, first_name, last_name, role)
-        VALUES (teacher_id, 'Teacher', 'User ' || i, 'teacher');
+        VALUES (teacher_id, 'Teacher', 'User ' || i, 'teacher')
+        ON CONFLICT (user_id) DO NOTHING;
     END LOOP;
 END $$;

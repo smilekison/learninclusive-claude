@@ -5,6 +5,7 @@
 DROP POLICY IF EXISTS "Teachers can manage video materials in their subjects" ON public.video_materials;
 
 -- Create a new policy that allows teachers to insert videos (they'll set subject later)
+DROP POLICY IF EXISTS "Teachers can insert video materials" ON public.video_materials;
 CREATE POLICY "Teachers can insert video materials" 
 ON public.video_materials 
 FOR INSERT 
@@ -15,6 +16,7 @@ WITH CHECK (uploaded_by IN (
 ));
 
 -- Allow teachers to update videos they uploaded
+DROP POLICY IF EXISTS "Teachers can update their uploaded videos" ON public.video_materials;
 CREATE POLICY "Teachers can update their uploaded videos" 
 ON public.video_materials 
 FOR UPDATE 
@@ -29,6 +31,7 @@ WITH CHECK (uploaded_by IN (
 ));
 
 -- Allow teachers to delete videos they uploaded
+DROP POLICY IF EXISTS "Teachers can delete their uploaded videos" ON public.video_materials;
 CREATE POLICY "Teachers can delete their uploaded videos" 
 ON public.video_materials 
 FOR DELETE 
@@ -39,6 +42,7 @@ USING (uploaded_by IN (
 ));
 
 -- Allow teachers to view videos they uploaded or videos in their subjects
+DROP POLICY IF EXISTS "Teachers can view their videos and subject videos" ON public.video_materials;
 CREATE POLICY "Teachers can view their videos and subject videos" 
 ON public.video_materials 
 FOR SELECT 

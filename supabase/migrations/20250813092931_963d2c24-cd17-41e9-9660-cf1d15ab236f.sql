@@ -6,7 +6,7 @@ ALTER TABLE public.profiles ADD CONSTRAINT profiles_role_check
 CHECK (role IN ('principal', 'teacher', 'student', 'parent'));
 
 -- Create parent-student relationships table
-CREATE TABLE public.parent_student_relationships (
+CREATE TABLE IF NOT EXISTS public.parent_student_relationships (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   parent_id UUID NOT NULL,
   student_id UUID NOT NULL,
@@ -20,18 +20,20 @@ CREATE TABLE public.parent_student_relationships (
 ALTER TABLE public.parent_student_relationships ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for parent-student relationships
+DROP POLICY IF EXISTS "Parents can view their relationships" ON public.parent_student_relationships;
 CREATE POLICY "Parents can view their relationships" 
 ON public.parent_student_relationships 
 FOR SELECT 
 USING (parent_id IN (SELECT profiles.id FROM profiles WHERE profiles.user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "Principals can manage all relationships" ON public.parent_student_relationships;
 CREATE POLICY "Principals can manage all relationships" 
 ON public.parent_student_relationships 
 FOR ALL 
 USING (is_principal());
 
 -- Create enhanced grading rubrics table
-CREATE TABLE public.grading_rubrics (
+CREATE TABLE IF NOT EXISTS public.grading_rubrics (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   assignment_id UUID NOT NULL,
   name TEXT NOT NULL,
@@ -46,6 +48,7 @@ CREATE TABLE public.grading_rubrics (
 ALTER TABLE public.grading_rubrics ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for grading rubrics
+DROP POLICY IF EXISTS "Teachers can manage rubrics for their assignments" ON public.grading_rubrics;
 CREATE POLICY "Teachers can manage rubrics for their assignments" 
 ON public.grading_rubrics 
 FOR ALL 
@@ -57,6 +60,7 @@ USING (assignment_id IN (
   WHERE p.user_id = auth.uid()
 ));
 
+DROP POLICY IF EXISTS "Principals can manage all rubrics" ON public.grading_rubrics;
 CREATE POLICY "Principals can manage all rubrics" 
 ON public.grading_rubrics 
 FOR ALL 
@@ -71,11 +75,13 @@ ADD COLUMN IF NOT EXISTS late_submission BOOLEAN DEFAULT false,
 ADD COLUMN IF NOT EXISTS submission_quality TEXT CHECK (submission_quality IN ('excellent', 'good', 'satisfactory', 'needs_improvement'));
 
 -- Create triggers for updated_at
+DROP TRIGGER IF EXISTS update_parent_student_relationships_updated_at ON parent_student_relationships;
 CREATE TRIGGER update_parent_student_relationships_updated_at
 BEFORE UPDATE ON public.parent_student_relationships
 FOR EACH ROW
 EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_grading_rubrics_updated_at ON grading_rubrics;
 CREATE TRIGGER update_grading_rubrics_updated_at
 BEFORE UPDATE ON public.grading_rubrics
 FOR EACH ROW

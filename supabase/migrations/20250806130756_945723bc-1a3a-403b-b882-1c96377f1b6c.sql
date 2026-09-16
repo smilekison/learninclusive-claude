@@ -7,6 +7,7 @@ DROP POLICY IF EXISTS "Teachers can view their assigned classes" ON public.class
 DROP POLICY IF EXISTS "Students can view their enrolled classes" ON public.classes;
 
 -- Create new policies without infinite recursion
+DROP POLICY IF EXISTS "Principals can manage all classes" ON public.classes;
 CREATE POLICY "Principals can manage all classes" 
 ON public.classes 
 FOR ALL 
@@ -17,6 +18,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Teachers can view their assigned classes" ON public.classes;
 CREATE POLICY "Teachers can view their assigned classes" 
 ON public.classes 
 FOR SELECT 
@@ -27,6 +29,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Students can view their enrolled classes" ON public.classes;
 CREATE POLICY "Students can view their enrolled classes" 
 ON public.classes 
 FOR SELECT 
@@ -44,6 +47,7 @@ DROP POLICY IF EXISTS "Principals can manage all video materials" ON public.vide
 DROP POLICY IF EXISTS "Teachers can manage video materials in their subjects" ON public.video_materials;
 DROP POLICY IF EXISTS "Students can view video materials in their subjects" ON public.video_materials;
 
+DROP POLICY IF EXISTS "Principals can manage all video materials" ON public.video_materials;
 CREATE POLICY "Principals can manage all video materials" 
 ON public.video_materials 
 FOR ALL 
@@ -54,6 +58,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Teachers can manage video materials in their subjects" ON public.video_materials;
 CREATE POLICY "Teachers can manage video materials in their subjects" 
 ON public.video_materials 
 FOR ALL 
@@ -67,6 +72,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Students can view video materials in their subjects" ON public.video_materials;
 CREATE POLICY "Students can view video materials in their subjects" 
 ON public.video_materials 
 FOR SELECT 
@@ -85,6 +91,7 @@ DROP POLICY IF EXISTS "Principals can view all video progress" ON public.video_p
 DROP POLICY IF EXISTS "Teachers can view video progress for their students" ON public.video_progress;
 DROP POLICY IF EXISTS "Students can manage their own video progress" ON public.video_progress;
 
+DROP POLICY IF EXISTS "Principals can view all video progress" ON public.video_progress;
 CREATE POLICY "Principals can view all video progress" 
 ON public.video_progress 
 FOR SELECT 
@@ -95,6 +102,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Students can manage their own video progress" ON public.video_progress;
 CREATE POLICY "Students can manage their own video progress" 
 ON public.video_progress 
 FOR ALL 
@@ -105,6 +113,7 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "Teachers can view video progress for their students" ON public.video_progress;
 CREATE POLICY "Teachers can view video progress for their students" 
 ON public.video_progress 
 FOR SELECT 

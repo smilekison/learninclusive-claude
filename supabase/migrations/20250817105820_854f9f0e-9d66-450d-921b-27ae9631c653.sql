@@ -4,7 +4,8 @@ values ('assignment-submissions','assignment-submissions', false)
 on conflict (id) do nothing;
 
 -- Policy: allow authenticated users to upload to their own folder (auth.uid as top-level folder)
-create policy if not exists "Users can INSERT into their own folder - assignment-submissions"
+drop policy if exists "Users can INSERT into their own folder - assignment-submissions" on storage.objects;
+create policy "Users can INSERT into their own folder - assignment-submissions"
   on storage.objects
   for insert
   to authenticated
@@ -14,7 +15,8 @@ create policy if not exists "Users can INSERT into their own folder - assignment
   );
 
 -- Policy: allow authenticated users to SELECT their own files
-create policy if not exists "Users can SELECT their own files - assignment-submissions"
+drop policy if exists "Users can SELECT their own files - assignment-submissions" on storage.objects;
+create policy "Users can SELECT their own files - assignment-submissions"
   on storage.objects
   for select
   to authenticated
@@ -24,7 +26,8 @@ create policy if not exists "Users can SELECT their own files - assignment-submi
   );
 
 -- Policy: allow authenticated users to UPDATE their own files
-create policy if not exists "Users can UPDATE their own files - assignment-submissions"
+drop policy if exists "Users can UPDATE their own files - assignment-submissions" on storage.objects;
+create policy "Users can UPDATE their own files - assignment-submissions"
   on storage.objects
   for update
   to authenticated
@@ -38,7 +41,8 @@ create policy if not exists "Users can UPDATE their own files - assignment-submi
   );
 
 -- Policy: allow authenticated users to DELETE their own files
-create policy if not exists "Users can DELETE their own files - assignment-submissions"
+drop policy if exists "Users can DELETE their own files - assignment-submissions" on storage.objects;
+create policy "Users can DELETE their own files - assignment-submissions"
   on storage.objects
   for delete
   to authenticated

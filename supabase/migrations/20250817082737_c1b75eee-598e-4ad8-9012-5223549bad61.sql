@@ -46,7 +46,7 @@ BEGIN
     NEW.id,
     COALESCE(NEW.raw_user_meta_data ->> 'first_name', 'User'),
     COALESCE(NEW.raw_user_meta_data ->> 'last_name', 'Name'),
-    COALESCE(NEW.raw_user_meta_data ->> 'role', 'student')
+    COALESCE(NEW.raw_user_meta_data ->> 'role', 'student')::app_role
   );
   RETURN NEW;
 END;
@@ -142,10 +142,10 @@ AS $function$
 BEGIN
   -- Insert notifications for all students enrolled in this class
   INSERT INTO notifications (user_id, title, message, type)
-  SELECT 
+  SELECT
     p.id,
     'New Subject: ' || NEW.name,
-    'A new subject has been added to your class: ' || NEW.description,
+    'A new subject has been added to your class: ' || COALESCE(NEW.description, NEW.name),
     'info'
   FROM profiles p
   JOIN student_enrollments se ON p.id = se.student_id

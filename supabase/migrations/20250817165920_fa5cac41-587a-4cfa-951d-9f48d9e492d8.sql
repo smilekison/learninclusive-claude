@@ -14,15 +14,14 @@ INSERT INTO auth.users (
   raw_user_meta_data,
   is_super_admin,
   created_at,
-  updated_at,
-  confirmed_at
+  updated_at
 ) VALUES (
   '00000000-0000-0000-0000-000000000000'::uuid,
   gen_random_uuid(),
   'authenticated',
   'authenticated',
   'sarah.smith@parent.com',
-  '$2a$10$demo.password.hash.for.testing.purposes.only',
+  crypt('demo123', gen_salt('bf')),
   NOW(),
   '',
   NOW(),
@@ -35,10 +34,9 @@ INSERT INTO auth.users (
   ),
   FALSE,
   NOW(),
-  NOW(),
   NOW()
-) 
-ON CONFLICT (email) DO NOTHING;
+)
+ON CONFLICT DO NOTHING;
 
 -- 2. Get the user ID we just created (or existing one)
 WITH new_user AS (
@@ -55,11 +53,16 @@ parent_profile AS (
     role = EXCLUDED.role
   RETURNING id, user_id
 )
--- 4. Create parent-student relationship with Alex Smith (who has the most analytics data)
+-- 4. Create parent-student relationship. The original hardcoded student id
+-- ('Alex Smith') only exists on the hosted project; link to an existing
+-- local demo student instead so this relationship is usable locally.
 INSERT INTO parent_student_relationships (parent_id, student_id, relationship_type)
-SELECT 
+SELECT
   pp.id,
-  '2930cd5c-69c2-4e0d-9d43-82a9887ac39e'::uuid,
+  s.id,
   'parent'
 FROM parent_profile pp
+CROSS JOIN LATERAL (
+  SELECT id FROM public.profiles WHERE role = 'student' ORDER BY created_at LIMIT 1
+) s
 ON CONFLICT (parent_id, student_id) DO NOTHING;

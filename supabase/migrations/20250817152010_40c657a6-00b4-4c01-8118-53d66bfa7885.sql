@@ -26,11 +26,13 @@ AS $$
 $$;
 
 -- Create new simplified policies
+DROP POLICY IF EXISTS "Users can view their own profile" ON profiles;
 CREATE POLICY "Users can view their own profile" ON profiles
   FOR SELECT
   TO authenticated
   USING (user_id = auth.uid() AND is_active = true);
 
+DROP POLICY IF EXISTS "Teachers can view student profiles" ON profiles;
 CREATE POLICY "Teachers can view student profiles" ON profiles
   FOR SELECT
   TO authenticated
@@ -40,6 +42,7 @@ CREATE POLICY "Teachers can view student profiles" ON profiles
     get_user_role() = 'teacher'
   );
 
+DROP POLICY IF EXISTS "Principals can view all profiles" ON profiles;
 CREATE POLICY "Principals can view all profiles" ON profiles
   FOR SELECT
   TO authenticated

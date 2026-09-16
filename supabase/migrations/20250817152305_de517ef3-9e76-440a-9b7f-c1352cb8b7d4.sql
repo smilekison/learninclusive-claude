@@ -1,4 +1,5 @@
 -- Add RLS policy for students to view lessons in their enrolled subjects
+DROP POLICY IF EXISTS "Students can view lessons in enrolled subjects" ON lessons;
 CREATE POLICY "Students can view lessons in enrolled subjects" ON lessons
   FOR SELECT
   TO authenticated

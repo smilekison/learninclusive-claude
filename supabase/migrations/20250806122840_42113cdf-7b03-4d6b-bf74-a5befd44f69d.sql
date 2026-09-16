@@ -27,7 +27,8 @@ BEGIN
     COALESCE(NEW.raw_user_meta_data ->> 'first_name', 'User'),
     COALESCE(NEW.raw_user_meta_data ->> 'last_name', 'Name'),
     COALESCE(NEW.raw_user_meta_data ->> 'role', 'student')
-  );
+  )
+        ON CONFLICT (user_id) DO NOTHING;
   RETURN NEW;
 END;
 $function$;
@@ -129,11 +130,13 @@ DROP POLICY IF EXISTS "Teachers can view their assigned classes" ON public.class
 DROP POLICY IF EXISTS "Principals can manage all classes" ON public.classes;
 
 -- Recreate fixed policies for classes
+DROP POLICY IF EXISTS "Teachers can view their assigned classes" ON public.classes;
 CREATE POLICY "Teachers can view their assigned classes"
 ON public.classes
 FOR SELECT
 USING (teacher_id = get_user_profile_id());
 
+DROP POLICY IF EXISTS "Principals can manage all classes" ON public.classes;
 CREATE POLICY "Principals can manage all classes"
 ON public.classes
 FOR ALL
@@ -143,12 +146,14 @@ USING (get_user_role() = 'principal');
 DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
 
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
 CREATE POLICY "Users can update their own profile"
 ON public.profiles
 FOR UPDATE
 USING (user_id = auth.uid())
 WITH CHECK (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
 CREATE POLICY "Users can view their own profile"
 ON public.profiles
 FOR SELECT

@@ -26,15 +26,16 @@ CREATE TABLE IF NOT EXISTS lesson_videos (
 );
 
 -- Create indexes for better performance
-CREATE INDEX idx_lesson_videos_lesson_id ON lesson_videos(lesson_id);
-CREATE INDEX idx_lesson_videos_visibility ON lesson_videos(visibility);
-CREATE INDEX idx_lesson_videos_created_by ON lesson_videos(created_by);
-CREATE INDEX idx_lesson_videos_created_at ON lesson_videos(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_lesson_videos_lesson_id ON lesson_videos(lesson_id);
+CREATE INDEX IF NOT EXISTS idx_lesson_videos_visibility ON lesson_videos(visibility);
+CREATE INDEX IF NOT EXISTS idx_lesson_videos_created_by ON lesson_videos(created_by);
+CREATE INDEX IF NOT EXISTS idx_lesson_videos_created_at ON lesson_videos(created_at DESC);
 
 -- Enable RLS
 ALTER TABLE lesson_videos ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for lesson_videos
+DROP POLICY IF EXISTS "Students can view videos in their enrolled classes" ON lesson_videos;
 CREATE POLICY "Students can view videos in their enrolled classes"
 ON lesson_videos FOR SELECT
 USING (
@@ -55,6 +56,7 @@ USING (
   ))
 );
 
+DROP POLICY IF EXISTS "Teachers can manage videos for their lessons" ON lesson_videos;
 CREATE POLICY "Teachers can manage videos for their lessons"
 ON lesson_videos FOR ALL
 USING (
@@ -76,6 +78,7 @@ WITH CHECK (
   ) OR is_principal()
 );
 
+DROP POLICY IF EXISTS "Public videos viewable by everyone" ON lesson_videos;
 CREATE POLICY "Public videos viewable by everyone"
 ON lesson_videos FOR SELECT
 USING (visibility = 'public');
@@ -91,19 +94,21 @@ CREATE TABLE IF NOT EXISTS video_interactions (
 );
 
 -- Create indexes for video_interactions
-CREATE INDEX idx_video_interactions_lesson_video_id ON video_interactions(lesson_video_id);
-CREATE INDEX idx_video_interactions_user_id ON video_interactions(user_id);
-CREATE INDEX idx_video_interactions_type ON video_interactions(interaction_type);
+CREATE INDEX IF NOT EXISTS idx_video_interactions_lesson_video_id ON video_interactions(lesson_video_id);
+CREATE INDEX IF NOT EXISTS idx_video_interactions_user_id ON video_interactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_video_interactions_type ON video_interactions(interaction_type);
 
 -- Enable RLS for video_interactions
 ALTER TABLE video_interactions ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for video_interactions
+DROP POLICY IF EXISTS "Users can manage their own interactions" ON video_interactions;
 CREATE POLICY "Users can manage their own interactions"
 ON video_interactions FOR ALL
 USING (user_id IN (SELECT id FROM profiles WHERE user_id = auth.uid()))
 WITH CHECK (user_id IN (SELECT id FROM profiles WHERE user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "Teachers can view interactions for their lesson videos" ON video_interactions;
 CREATE POLICY "Teachers can view interactions for their lesson videos"
 ON video_interactions FOR SELECT
 USING (
@@ -126,6 +131,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_lesson_videos_updated_at_trigger ON lesson_videos;
 CREATE TRIGGER update_lesson_videos_updated_at_trigger
   BEFORE UPDATE ON lesson_videos
   FOR EACH ROW

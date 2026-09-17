@@ -605,11 +605,6 @@ export const StudentAssignmentsPage: React.FC = () => {
           </TabsList>
 
           <TabsContent value={activeTab} className="mt-6">
-            <div>
-              <p className="text-sm text-muted-foreground mb-4">
-                Debug: Total assignments: {studentAssignments.length}, Filtered: {filteredAssignments.length}, Active tab: {activeTab}
-              </p>
-            </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredAssignments.map((assignment: any) => {
                 console.log('🎨 Rendering assignment:', assignment.id, assignment.title);
@@ -663,7 +658,11 @@ export const StudentAssignmentsPage: React.FC = () => {
                             <div className="flex items-center gap-2 mb-2">
                               {getUrgencyIcon(assignment)}
                               <CardTitle className="text-lg line-clamp-2">{assignment.title}</CardTitle>
-                              <Badge className={getPriorityColor()}>{priorityLevel.toUpperCase()}</Badge>
+                              {/* The status badge below already covers "completed"/"overdue" —
+                                  showing both duplicated the same information in two colors. */}
+                              {priorityLevel !== 'completed' && priorityLevel !== 'overdue' && (
+                                <Badge className={getPriorityColor()}>{priorityLevel.toUpperCase()}</Badge>
+                              )}
                             </div>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
                               <span className="flex items-center gap-1">

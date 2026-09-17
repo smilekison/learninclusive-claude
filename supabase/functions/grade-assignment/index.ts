@@ -18,7 +18,6 @@ interface GradeAssignmentRequest {
     score: number;
     criteria: string;
   }>;
-  gradedBy: string;
 }
 
 serve(async (req) => {
@@ -32,6 +31,36 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // This writes an arbitrary score/feedback to any submission — restrict
+    // to authenticated teachers/principals, and derive the grader's own
+    // identity from their session rather than trusting a client-supplied id.
+    const authHeader = req.headers.get('Authorization') || req.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
+    }
+    const jwt = authHeader.replace('Bearer ', '');
+    const { data: userRes, error: userErr } = await supabase.auth.getUser(jwt);
+    if (userErr || !userRes?.user) {
+      return new Response(JSON.stringify({ error: 'Invalid token' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
+    }
+    const { data: callerProfile } = await supabase
+      .from('profiles')
+      .select('id, role')
+      .eq('user_id', userRes.user.id)
+      .single();
+    if (!callerProfile || !['teacher', 'principal'].includes(callerProfile.role)) {
+      return new Response(JSON.stringify({ error: 'Forbidden: Only teachers or principals can grade assignments' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
+    }
 
     const gradeData: GradeAssignmentRequest = await req.json();
     console.log('Grading assignment with data:', gradeData);
@@ -78,7 +107,7 @@ serve(async (req) => {
         time_spent_minutes: gradeData.timeSpentMinutes,
         rubric_scores: gradeData.rubricScores || [],
         graded_at: new Date().toISOString(),
-        graded_by: gradeData.gradedBy
+        graded_by: callerProfile.id
       })
       .eq('id', gradeData.submissionId);
 

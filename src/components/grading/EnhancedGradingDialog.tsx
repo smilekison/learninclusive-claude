@@ -452,10 +452,6 @@ export const EnhancedGradingDialog: React.FC<EnhancedGradingDialogProps> = ({
               </>
             )}
           </Button>
-          {/* Debug info */}
-          <div className="text-xs text-muted-foreground mt-2">
-            Debug: Score = "{score}", Disabled = {(isLoading || !score).toString()}
-          </div>
         </div>
       </DialogContent>
     </Dialog>

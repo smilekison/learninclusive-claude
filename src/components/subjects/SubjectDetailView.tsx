@@ -350,6 +350,7 @@ export const SubjectDetailView: React.FC<SubjectDetailViewProps> = ({
                                   mode="single"
                                   selected={assignmentForm.due_date}
                                   onSelect={(date) => setAssignmentForm(prev => ({ ...prev, due_date: date }))}
+                                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                                   initialFocus
                                 />
                               </PopoverContent>

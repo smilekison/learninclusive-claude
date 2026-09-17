@@ -42,16 +42,65 @@ const handler = async (req: Request): Promise<Response> => {
     let emailResponse;
 
     if (inviteType === 'subject_enrollment') {
-      // Get subject details
+      // This branch had no auth check at all — anyone could make it send
+      // an email to an arbitrary address (spam relay / mail-bombing), and
+      // there was no verification that the caller has any right to invite
+      // people into the given subject.
+      const authHeader = req.headers.get('Authorization') || req.headers.get('authorization');
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+      const jwt = authHeader.replace('Bearer ', '');
+      const { data: userRes, error: userErr } = await supabase.auth.getUser(jwt);
+      if (userErr || !userRes?.user) {
+        return new Response(JSON.stringify({ error: 'Invalid token' }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+
+      // Get subject details, plus enough of the class to check the caller's
+      // right to invite (its teacher_id and school_id).
       const { data: subject } = await supabase
         .from('subjects')
         .select(`
           name,
           description,
-          class:classes(name, teacher:profiles!teacher_id(first_name, last_name))
+          class:classes(name, teacher_id, school_id, teacher:profiles!teacher_id(first_name, last_name))
         `)
         .eq('id', subjectId)
         .single();
+
+      const { data: callerProfile } = await supabase
+        .from('profiles')
+        .select('id, role')
+        .eq('user_id', userRes.user.id)
+        .single();
+
+      const isOwningTeacher = callerProfile?.role === 'teacher' && callerProfile.id === subject?.class?.teacher_id;
+      const isPrincipal = callerProfile?.role === 'principal';
+      if (!isOwningTeacher && !isPrincipal) {
+        return new Response(JSON.stringify({ error: 'Forbidden: not authorized to invite to this subject' }), {
+          status: 403,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+
+      const { data: rateOk } = await supabase.rpc('check_and_record_rate_limit', {
+        p_event_type: 'subject_enrollment_invite',
+        p_identifier: callerProfile.id,
+        p_max_count: 30,
+        p_window_seconds: 3600,
+      });
+      if (!rateOk) {
+        return new Response(JSON.stringify({ error: 'Too many invitations sent. Please try again later.' }), {
+          status: 429,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
 
       emailResponse = await resend.emails.send({
         from: "LMS System <onboarding@resend.dev>",

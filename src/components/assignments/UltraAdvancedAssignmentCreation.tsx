@@ -481,6 +481,7 @@ export const UltraAdvancedAssignmentCreation: React.FC<UltraAdvancedAssignmentCr
                                 mode="single"
                                 selected={assignmentData.dueDate}
                                 onSelect={(date) => setAssignmentData(prev => ({ ...prev, dueDate: date }))}
+                                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                                 initialFocus
                               />
                             </PopoverContent>

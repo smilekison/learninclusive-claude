@@ -26,6 +26,36 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
 
+    // This resets every user's password in the system — restrict to
+    // authenticated principals only. It was previously callable by anyone,
+    // including unauthenticated visitors on the login page.
+    const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    const jwt = authHeader.replace("Bearer ", "");
+    const { data: userRes, error: userErr } = await supabaseAdmin.auth.getUser(jwt);
+    if (userErr || !userRes?.user) {
+      return new Response(JSON.stringify({ error: "Invalid token" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    const { data: callerProfile } = await supabaseAdmin
+      .from("profiles")
+      .select("role")
+      .eq("user_id", userRes.user.id)
+      .single();
+    if (!callerProfile || callerProfile.role !== "principal") {
+      return new Response(JSON.stringify({ error: "Forbidden: Only principals can reset demo passwords" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     // Get all users
     const { data: users, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
     

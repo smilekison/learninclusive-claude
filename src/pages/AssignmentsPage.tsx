@@ -198,17 +198,13 @@ export const AssignmentsPage: React.FC = () => {
                 <Plus className="w-4 h-4 mr-2" />
                 Create Assignment
               </Button>
-              <EnhancedAssignmentCreation 
+              <EnhancedAssignmentCreation
                 open={isDialogOpen}
                 onOpenChange={setIsDialogOpen}
                 onSubmit={handleCreateAssignment}
                 subjects={subjects}
                 classes={classes}
               />
-              {/* Debug info */}
-              <div className="text-xs text-gray-500 mt-2">
-                Debug: {subjects?.length || 0} subjects, {classes?.length || 0} classes
-              </div>
             </>
           )}
         </div>

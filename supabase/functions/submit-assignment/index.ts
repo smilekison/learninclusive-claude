@@ -8,7 +8,6 @@ const corsHeaders = {
 
 interface SubmitAssignmentRequest {
   assignmentId: string;
-  studentId: string;
   submissionText?: string;
   filePath?: string;
   files?: Array<{
@@ -47,6 +46,37 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // studentId was previously taken from the request body with no check
+    // against the caller's own session — anyone could submit/overwrite an
+    // assignment as an arbitrary student. Derive it from the caller's JWT.
+    const authHeader = req.headers.get('Authorization') || req.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
+    }
+    const jwt = authHeader.replace('Bearer ', '');
+    const { data: userRes, error: userErr } = await supabase.auth.getUser(jwt);
+    if (userErr || !userRes?.user) {
+      return new Response(JSON.stringify({ error: 'Invalid token' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
+    }
+    const { data: callerProfile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', userRes.user.id)
+      .single();
+    if (!callerProfile) {
+      return new Response(JSON.stringify({ error: 'Profile not found' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
+    }
+    const studentId = callerProfile.id;
+
     console.log('📖 Reading request body...');
     const submissionData: SubmitAssignmentRequest = await req.json();
     console.log('📝 Submission data received:', JSON.stringify(submissionData, null, 2));
@@ -68,7 +98,7 @@ serve(async (req) => {
       .from('assignment_submissions')
       .select('*')
       .eq('assignment_id', submissionData.assignmentId)
-      .eq('student_id', submissionData.studentId)
+      .eq('student_id', studentId)
       .order('attempt_number', { ascending: false });
 
     if (existingError) {
@@ -134,7 +164,7 @@ serve(async (req) => {
         .from('assignment_submissions')
         .insert({
           assignment_id: submissionData.assignmentId,
-          student_id: submissionData.studentId,
+          student_id: studentId,
           submission_text: submissionData.submissionText,
           file_path: filePathsJson,
           submitted_at: new Date().toISOString(),

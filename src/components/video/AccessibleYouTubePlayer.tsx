@@ -42,9 +42,14 @@ const useYouTubeAPI = () => {
 
 interface AccessibleYouTubePlayerProps {
   videoId: string;
-  /** A distinct sign-language interpretation video shown in the popup.
-   * Falls back to mirroring `videoId` when not provided. */
+  /** A distinct sign-language interpretation video shown in the popup —
+   * either a YouTube video id, or (with signLanguageVideoUrl set instead)
+   * a direct file URL. Falls back to mirroring `videoId` when neither is
+   * provided. */
   signLanguageVideoId?: string;
+  /** A direct playable URL (e.g. a signed storage URL) for an uploaded
+   * sign-language video file. Takes priority over signLanguageVideoId. */
+  signLanguageVideoUrl?: string;
   title?: string;
   captionLang?: string; // e.g., 'en', 'lt'
   className?: string;
@@ -54,6 +59,7 @@ interface AccessibleYouTubePlayerProps {
 const AccessibleYouTubePlayer: React.FC<AccessibleYouTubePlayerProps> = ({
   videoId,
   signLanguageVideoId,
+  signLanguageVideoUrl,
   title,
   captionLang = 'en',
   className,
@@ -414,9 +420,11 @@ useEffect(() => {
     } catch { /* YouTube IFrame API call best-effort — player may not be ready */ }
   }, [captionsOn, captionLang]);
 
-  // Sign language popup: create muted mirrored player and keep in sync
+  // Sign language popup: create muted mirrored player and keep in sync.
+  // Skipped entirely when the sign-language slot is an uploaded file — that
+  // case renders a plain <video> tag in the JSX below instead, no YT.Player.
   useEffect(() => {
-    if (!apiReady) return;
+    if (!apiReady || signLanguageVideoUrl) return;
     if (!openSign) {
       if (miniRef.current) {
         try { miniRef.current.destroy?.(); } catch { /* YouTube IFrame API call best-effort — player may not be ready */ }
@@ -604,7 +612,18 @@ useEffect(() => {
             </div>
           </div>
           <div className="flex-1 bg-black relative overflow-hidden">
-            <div id={miniContainerId} className="w-full h-full" />
+            {signLanguageVideoUrl ? (
+              <video
+                src={signLanguageVideoUrl}
+                className="w-full h-full object-contain"
+                muted
+                autoPlay={isPlaying}
+                loop
+                playsInline
+              />
+            ) : (
+              <div id={miniContainerId} className="w-full h-full" />
+            )}
             <div className="absolute inset-0 bg-black/20 pointer-events-none flex items-center justify-center opacity-70">
               <div className="bg-black/70 text-white text-xs px-2 py-1 rounded">
                 Sign Language Video

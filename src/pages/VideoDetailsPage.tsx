@@ -213,6 +213,8 @@ export const VideoDetailsPage: React.FC = () => {
             videoUrl={fileUrl}
             transcript={video.transcript}
             videoDbId={video.id}
+            signLanguageVideoId={video.signLanguageVideoId || undefined}
+            signLanguageVideoUrl={signLanguageFileUrl || undefined}
           />
         </div>
       );

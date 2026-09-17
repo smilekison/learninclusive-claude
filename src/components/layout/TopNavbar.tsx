@@ -94,7 +94,11 @@ export const TopNavbar: React.FC = () => {
         {/* Left side - Logo, Title and Quick Stats */}
         <div className="flex items-center space-x-6">
           <div className="flex items-center space-x-3">
-            <SidebarTrigger className="p-2" />
+            <SidebarTrigger
+              className="p-2"
+              title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            />
             <Button 
               variant="ghost" 
               size="icon" 

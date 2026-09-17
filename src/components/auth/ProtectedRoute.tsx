@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
@@ -21,11 +21,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (!loading && !user) {
-      // User not authenticated, redirect to auth page
-      navigate('/auth');
+      // User not authenticated, redirect to auth page but remember where
+      // they were headed so a successful login can send them back there.
+      navigate('/auth', { state: { from: location.pathname + location.search } });
       return;
     }
 
@@ -43,7 +45,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         return;
       }
     }
-  }, [user, loading, navigate, allowedRoles, requiredRole, redirectTo]);
+  }, [user, loading, navigate, allowedRoles, requiredRole, redirectTo, location]);
 
   if (loading) {
     return <LoadingScreen />;

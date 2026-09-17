@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { YouTubeNavbar } from '@/components/layout/YouTubeNavbar';
+import { SiteFooter } from '@/components/layout/SiteFooter';
 import { YouTubeVideoCard } from '@/components/video/YouTubeVideoCard';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -133,10 +136,12 @@ export const YouTubeHomepage: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <YouTubeNavbar onSearch={setSearchTerm} searchTerm={searchTerm} />
-      
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Navigation — the authenticated shell (Layout) already renders a
+          top navbar + sidebar, so skip this second nav bar to avoid
+          duplicate/inconsistent chrome once logged in. */}
+      {!user && <YouTubeNavbar onSearch={setSearchTerm} searchTerm={searchTerm} />}
+
       {/* Hero */}
       <header className="bg-gradient-to-b from-primary/10 to-transparent border-b border-border">
         <div className="max-w-screen-2xl mx-auto px-4 py-10">
@@ -146,6 +151,18 @@ export const YouTubeHomepage: React.FC = () => {
           <p className="mt-2 text-muted-foreground max-w-2xl">
             {t('homepage.subtitle')}
           </p>
+          {user && (
+            <div className="relative mt-4 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder={t('videos.searchPlaceholder')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          )}
           {categories.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
               <Button
@@ -174,7 +191,7 @@ export const YouTubeHomepage: React.FC = () => {
       </header>
       
       {/* Main Content */}
-      <main className="max-w-screen-2xl mx-auto px-4 py-6">
+      <main className="max-w-screen-2xl mx-auto px-4 py-6 flex-1 w-full">
         {/* Search Results Header */}
         {searchTerm && (
           <div className="mb-6">
@@ -186,7 +203,7 @@ export const YouTubeHomepage: React.FC = () => {
             </p>
           </div>
         )}
-        
+
         {/* Video Grid */}
         {filteredVideos.length === 0 ? (
           <div className="text-center py-16">
@@ -207,6 +224,7 @@ export const YouTubeHomepage: React.FC = () => {
           </div>
         )}
       </main>
+      {!user && <SiteFooter />}
     </div>
   );
 };

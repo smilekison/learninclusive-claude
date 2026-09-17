@@ -42,6 +42,9 @@ const useYouTubeAPI = () => {
 
 interface AccessibleYouTubePlayerProps {
   videoId: string;
+  /** A distinct sign-language interpretation video shown in the popup.
+   * Falls back to mirroring `videoId` when not provided. */
+  signLanguageVideoId?: string;
   title?: string;
   captionLang?: string; // e.g., 'en', 'lt'
   className?: string;
@@ -50,6 +53,7 @@ interface AccessibleYouTubePlayerProps {
 
 const AccessibleYouTubePlayer: React.FC<AccessibleYouTubePlayerProps> = ({
   videoId,
+  signLanguageVideoId,
   title,
   captionLang = 'en',
   className,
@@ -58,6 +62,7 @@ const AccessibleYouTubePlayer: React.FC<AccessibleYouTubePlayerProps> = ({
   const apiReady = useYouTubeAPI();
   const playerRef = useRef<any>(null);
   const miniRef = useRef<any>(null);
+  const miniVideoId = signLanguageVideoId || videoId;
   const containerId = useMemo(() => `ytp_${videoId}_${Math.random().toString(36).slice(2)}`, [videoId]);
   const miniContainerId = useMemo(() => `ytp_mini_${videoId}_${Math.random().toString(36).slice(2)}`, [videoId]);
 
@@ -420,9 +425,13 @@ useEffect(() => {
       return;
     }
 
-    // Create mini player
+    // Create mini player. If a distinct sign-language video was set, it has
+    // its own timeline (an independently paced interpreter recording), so
+    // only play/pause state is mirrored, not the playhead position — unlike
+    // the mirror-same-video fallback, where seeking in lockstep makes sense.
+    const isDistinctSignVideo = miniVideoId !== videoId;
     const m = new window.YT.Player(miniContainerId, {
-      height: '100%', width: '100%', videoId,
+      height: '100%', width: '100%', videoId: miniVideoId,
       playerVars: { autoplay: 0, controls: 0, modestbranding: 1, rel: 0, playsinline: 1 },
       events: {
         onReady: (e: any) => {
@@ -441,11 +450,13 @@ useEffect(() => {
       syncTimer = window.setInterval(() => {
         try {
           const p = playerRef.current; if (!p || !m) return;
-          const mainTime = p.getCurrentTime?.();
-          const miniTime = m.getCurrentTime?.();
-          if (typeof mainTime === 'number' && typeof miniTime === 'number') {
-            const diff = Math.abs(mainTime - miniTime);
-            if (diff > 0.35) m.seekTo?.(mainTime, true);
+          if (!isDistinctSignVideo) {
+            const mainTime = p.getCurrentTime?.();
+            const miniTime = m.getCurrentTime?.();
+            if (typeof mainTime === 'number' && typeof miniTime === 'number') {
+              const diff = Math.abs(mainTime - miniTime);
+              if (diff > 0.35) m.seekTo?.(mainTime, true);
+            }
           }
           const isMainPlaying = p.getPlayerState?.() === window.YT?.PlayerState?.PLAYING;
           const isMiniPlaying = m.getPlayerState?.() === window.YT?.PlayerState?.PLAYING;
@@ -463,7 +474,7 @@ useEffect(() => {
       try { m.destroy?.(); } catch { /* YouTube IFrame API call best-effort — player may not be ready */ }
       miniRef.current = null;
     };
-  }, [apiReady, openSign, miniContainerId, videoId, speed]);
+  }, [apiReady, openSign, miniContainerId, videoId, miniVideoId, speed]);
 
   return (
     <Card className={cn('overflow-hidden', className)}>

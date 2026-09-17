@@ -13,6 +13,7 @@ import { VideoEngagementBar } from '@/components/video/VideoEngagementBar';
 import { RelatedVideos } from '@/components/video/RelatedVideos';
 import { supabase } from '@/integrations/supabase/client';
 import { extractYouTubeId } from '@/lib/youtube';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface VideoDetails {
   id: string;
@@ -28,12 +29,14 @@ interface VideoDetails {
   tags?: string[];
   difficulty?: string;
   transcript?: string;
+  signLanguageVideoId?: string | null;
 }
 
 
 export const VideoDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [video, setVideo] = useState<VideoDetails | null>(null);
   const [ytId, setYtId] = useState<string | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
@@ -83,7 +86,10 @@ export const VideoDetailsPage: React.FC = () => {
         videoFormat: data.video_format === 'youtube' ? 'youtube' : 'mp4',
         tags: data.tags || [],
         difficulty: data.difficulty_level,
-        transcript: data.transcript_text
+        transcript: data.transcript_text,
+        signLanguageVideoId: data.sign_language_video_path?.startsWith('youtube:')
+          ? data.sign_language_video_path.slice('youtube:'.length)
+          : extractYouTubeId(data.sign_language_video_path || '')
       };
       setVideo(vd);
       document.title = `${vd.title} - learninclusive`;
@@ -141,7 +147,7 @@ export const VideoDetailsPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <YouTubeNavbar onSearch={setSearchTerm} searchTerm={searchTerm} />
+        {!user && <YouTubeNavbar onSearch={setSearchTerm} searchTerm={searchTerm} />}
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -155,7 +161,7 @@ export const VideoDetailsPage: React.FC = () => {
   if (!video) {
     return (
       <div className="min-h-screen bg-background">
-        <YouTubeNavbar onSearch={setSearchTerm} searchTerm={searchTerm} />
+        {!user && <YouTubeNavbar onSearch={setSearchTerm} searchTerm={searchTerm} />}
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-foreground mb-4">Video Not Found</h1>
@@ -178,6 +184,7 @@ export const VideoDetailsPage: React.FC = () => {
       return (
         <AccessibleYouTubePlayer
           videoId={ytId}
+          signLanguageVideoId={video.signLanguageVideoId || undefined}
           title={video.title}
           captionLang={video.category === 'LGK' ? 'lt' : 'en'}
           className="overflow-hidden rounded-lg"
@@ -208,7 +215,7 @@ export const VideoDetailsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <YouTubeNavbar onSearch={setSearchTerm} searchTerm={searchTerm} />
+      {!user && <YouTubeNavbar onSearch={setSearchTerm} searchTerm={searchTerm} />}
       
       <main className="max-w-screen-xl mx-auto px-4 py-6" role="main" aria-label="Video details page">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

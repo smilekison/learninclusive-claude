@@ -31,6 +31,7 @@ interface VideoFormState {
   school_id?: string | null;
   external_url: string;
   file_path?: string | null;
+  sign_language_video_url: string;
 }
 
 const defaultForm: VideoFormState = {
@@ -42,8 +43,26 @@ const defaultForm: VideoFormState = {
   visibility: 'private',
   school_id: null,
   external_url: '',
-  file_path: null
+  file_path: null,
+  sign_language_video_url: ''
 };
+
+/** Mirrors how the primary video's URL is normalized into a storable path:
+ * a YouTube URL becomes "youtube:<id>", anything else is stored as-is. */
+function normalizeVideoPath(url: string): string | null {
+  if (!url) return null;
+  const ytId = extractYouTubeId(url);
+  return ytId ? `youtube:${ytId}` : url;
+}
+
+/** Reverses normalizeVideoPath for display in the edit form. */
+function denormalizeVideoPath(path: string | null | undefined): string {
+  if (!path) return '';
+  if (path.startsWith('youtube:')) {
+    return `https://www.youtube.com/watch?v=${path.slice('youtube:'.length)}`;
+  }
+  return path;
+}
 
 export const VideoManagementPage: React.FC = () => {
   const { user } = useAuth();
@@ -138,6 +157,7 @@ export const VideoManagementPage: React.FC = () => {
         uploaded_by: profile.id, // Use profile ID instead of user ID
         video_format: isFile ? 'mp4' : 'youtube',
         thumbnail_path: !isFile && ytId ? getYouTubeThumbnail(ytId) : null,
+        sign_language_video_path: normalizeVideoPath(payload.sign_language_video_url),
       } as any;
       return await supabase.from('video_materials').insert(insert).select().single();
     },
@@ -161,6 +181,7 @@ export const VideoManagementPage: React.FC = () => {
         tags: payload.tags ? payload.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
         visibility: payload.visibility,
         school_id: payload.visibility === 'school' ? payload.school_id || null : null,
+        sign_language_video_path: normalizeVideoPath(payload.sign_language_video_url),
       };
 
       if (isFile) {
@@ -227,7 +248,8 @@ export const VideoManagementPage: React.FC = () => {
       tags: (v.tags || []).join(', '),
       visibility: v.visibility || 'private',
       school_id: v.school_id || null,
-      external_url: v.external_url || ''
+      external_url: v.external_url || '',
+      sign_language_video_url: denormalizeVideoPath(v.sign_language_video_path)
     });
     setForm({
       id: v.id,
@@ -238,7 +260,8 @@ export const VideoManagementPage: React.FC = () => {
       tags: (v.tags || []).join(', '),
       visibility: v.visibility || 'private',
       school_id: v.school_id || null,
-      external_url: v.external_url || ''
+      external_url: v.external_url || '',
+      sign_language_video_url: denormalizeVideoPath(v.sign_language_video_path)
     });
     setOpen(true);
   };
@@ -511,9 +534,9 @@ export const VideoManagementPage: React.FC = () => {
               <Input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="e.g., accessibility, BSL" />
             </div>
             <div>
-              <Label>YouTube URL</Label>
+              <Label>Main Video (YouTube URL)</Label>
               <Input value={form.external_url} onChange={(e) => setForm({ ...form, external_url: e.target.value })} placeholder="https://www.youtube.com/watch?v=..." />
-              <p className="text-xs text-muted-foreground mt-1">Or upload your own video file below.</p>
+              <p className="text-xs text-muted-foreground mt-1">Or upload your own video file below. This is the primary video students watch.</p>
             </div>
             <div>
               <Label>Upload Video File</Label>
@@ -521,6 +544,17 @@ export const VideoManagementPage: React.FC = () => {
               {selectedFile && (
                 <p className="text-xs text-muted-foreground mt-1">Selected: {selectedFile.name}</p>
               )}
+            </div>
+            <div>
+              <Label>Sign Language Video (optional, YouTube URL)</Label>
+              <Input
+                value={form.sign_language_video_url}
+                onChange={(e) => setForm({ ...form, sign_language_video_url: e.target.value })}
+                placeholder="https://www.youtube.com/watch?v=..."
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Shown in the "Sign language" popup on the player, instead of just mirroring the main video. Leave blank to mirror the main video as before.
+              </p>
             </div>
             <div>
               <Label>Description</Label>

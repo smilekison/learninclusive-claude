@@ -18,6 +18,7 @@ import UniversalAssistBar from "@/components/layout/UniversalAssistBar";
 import { LiveAnnouncer, LiveAnnouncerProvider } from "@/components/accessibility/LiveAnnouncer";
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { AuthAwareShell } from "@/components/layout/AuthAwareShell";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { Layout } from "./components/layout/Layout";
 
@@ -80,13 +81,13 @@ const AppContent = () => {
           path="/auth" 
           element={<AuthPage />} 
         />
-        <Route 
-          path="/videos" 
-          element={<YouTubeHomepage />} 
+        <Route
+          path="/videos"
+          element={<AuthAwareShell><YouTubeHomepage /></AuthAwareShell>}
         />
-        <Route 
-          path="/video/:id" 
-          element={<VideoDetailsPage />} 
+        <Route
+          path="/video/:id"
+          element={<AuthAwareShell><VideoDetailsPage /></AuthAwareShell>}
         />
         
         {/* Protected routes with Layout */}

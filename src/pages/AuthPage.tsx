@@ -25,12 +25,14 @@ export const AuthPage: React.FC = () => {
     }
   }, [location]);
 
-  // Redirect to dashboard if user is already authenticated
+  // Redirect away from the login/signup page if already authenticated —
+  // either back to wherever ProtectedRoute sent them from, or /dashboard.
   useEffect(() => {
     if (user) {
-      navigate('/dashboard', { replace: true });
+      const from = (location.state as { from?: string } | null)?.from;
+      navigate(from || '/dashboard', { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, location.state]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-accent/10">

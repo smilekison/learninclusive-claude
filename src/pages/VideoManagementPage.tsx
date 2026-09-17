@@ -120,6 +120,11 @@ export const VideoManagementPage: React.FC = () => {
   const [form, setForm] = useState<VideoFormState>(defaultForm);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [signLanguageFile, setSignLanguageFile] = useState<File | null>(null);
+  // Which source-type tab is active per slot — lets the two independent
+  // "YouTube URL vs. upload a file" choices (primary, sign language) read
+  // as one decision each instead of four stacked, easy-to-confuse fields.
+  const [mainSourceTab, setMainSourceTab] = useState<'youtube' | 'upload'>('youtube');
+  const [signSourceTab, setSignSourceTab] = useState<'youtube' | 'upload'>('youtube');
   // Filters
   const [search, setSearch] = useState('');
   const [visibilityFilter, setVisibilityFilter] = useState<'all'|'public'|'private'|'unlisted'|'school'>('all');
@@ -262,6 +267,8 @@ export const VideoManagementPage: React.FC = () => {
     setForm(defaultForm);
     setSelectedFile(null);
     setSignLanguageFile(null);
+    setMainSourceTab('youtube');
+    setSignSourceTab('youtube');
     setOpen(true);
   };
 
@@ -290,6 +297,10 @@ export const VideoManagementPage: React.FC = () => {
       external_url: v.external_url || '',
       sign_language_video_url: denormalizeSignLanguageValue(v)
     });
+    setSelectedFile(null);
+    setSignLanguageFile(null);
+    setMainSourceTab(v.video_format === 'mp4' ? 'upload' : 'youtube');
+    setSignSourceTab(v.sign_language_video_format === 'mp4' ? 'upload' : 'youtube');
     setOpen(true);
   };
 
@@ -567,46 +578,79 @@ export const VideoManagementPage: React.FC = () => {
               <Label>Tags (comma separated)</Label>
               <Input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="e.g., accessibility, BSL" />
             </div>
-            <div>
-              <Label>Main Video (YouTube URL)</Label>
-              <Input value={form.external_url} onChange={(e) => setForm({ ...form, external_url: e.target.value })} placeholder="https://www.youtube.com/watch?v=..." />
-              <p className="text-xs text-muted-foreground mt-1">Or upload your own video file below. This is the primary video students watch.</p>
-            </div>
-            <div>
-              <Label>Upload Video File</Label>
-              <Input type="file" accept="video/*" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} />
-              {selectedFile && (
-                <p className="text-xs text-muted-foreground mt-1">Selected: {selectedFile.name}</p>
-              )}
-            </div>
-            <div>
-              <Label>Sign Language Video (optional, YouTube URL)</Label>
-              <Input
-                value={form.sign_language_video_url.startsWith('uploaded:') ? '' : form.sign_language_video_url}
-                onChange={(e) => { setSignLanguageFile(null); setForm({ ...form, sign_language_video_url: e.target.value }); }}
-                placeholder="https://www.youtube.com/watch?v=..."
-                disabled={!!signLanguageFile}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Shown in the "Sign language" popup on the player, instead of just mirroring the main video — independently either a YouTube URL or an uploaded file, same as the main video. Leave both blank to mirror the main video as before.
-              </p>
-            </div>
-            <div>
-              <Label>Or Upload a Sign Language Video File</Label>
-              <Input
-                type="file"
-                accept="video/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0] || null;
-                  setSignLanguageFile(file);
-                  if (file) setForm(prev => ({ ...prev, sign_language_video_url: '' }));
-                }}
-              />
-              {signLanguageFile ? (
-                <p className="text-xs text-muted-foreground mt-1">Selected: {signLanguageFile.name}</p>
-              ) : form.sign_language_video_url.startsWith('uploaded:') && (
-                <p className="text-xs text-muted-foreground mt-1">Using previously uploaded file.</p>
-              )}
+            <div className="space-y-4">
+              {/* Primary video — the one students watch by default */}
+              <div className="rounded-lg border p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Badge>Primary</Badge>
+                  <span className="text-sm font-medium">Main video students watch</span>
+                </div>
+                <Tabs value={mainSourceTab} onValueChange={(v) => setMainSourceTab(v as 'youtube' | 'upload')}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="youtube">YouTube URL</TabsTrigger>
+                    <TabsTrigger value="upload">Upload File</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="youtube" className="mt-3">
+                    <Input
+                      value={form.external_url}
+                      onChange={(e) => { setSelectedFile(null); setForm({ ...form, external_url: e.target.value }); }}
+                      placeholder="https://www.youtube.com/watch?v=..."
+                    />
+                  </TabsContent>
+                  <TabsContent value="upload" className="mt-3">
+                    <Input
+                      type="file"
+                      accept="video/*"
+                      onChange={(e) => { setSelectedFile(e.target.files?.[0] || null); setForm(prev => ({ ...prev, external_url: '' })); }}
+                    />
+                    {selectedFile ? (
+                      <p className="text-xs text-muted-foreground mt-1">Selected: {selectedFile.name}</p>
+                    ) : form.file_path && (
+                      <p className="text-xs text-muted-foreground mt-1">Using previously uploaded file.</p>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </div>
+
+              {/* Sign-language video — shown in the accessibility popup */}
+              <div className="rounded-lg border p-4 space-y-3 bg-muted/30">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">Popup</Badge>
+                  <span className="text-sm font-medium">Sign language video (optional)</span>
+                </div>
+                <Tabs value={signSourceTab} onValueChange={(v) => setSignSourceTab(v as 'youtube' | 'upload')}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="youtube">YouTube URL</TabsTrigger>
+                    <TabsTrigger value="upload">Upload File</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="youtube" className="mt-3">
+                    <Input
+                      value={form.sign_language_video_url.startsWith('uploaded:') ? '' : form.sign_language_video_url}
+                      onChange={(e) => { setSignLanguageFile(null); setForm({ ...form, sign_language_video_url: e.target.value }); }}
+                      placeholder="https://www.youtube.com/watch?v=..."
+                    />
+                  </TabsContent>
+                  <TabsContent value="upload" className="mt-3">
+                    <Input
+                      type="file"
+                      accept="video/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        setSignLanguageFile(file);
+                        if (file) setForm(prev => ({ ...prev, sign_language_video_url: '' }));
+                      }}
+                    />
+                    {signLanguageFile ? (
+                      <p className="text-xs text-muted-foreground mt-1">Selected: {signLanguageFile.name}</p>
+                    ) : form.sign_language_video_url.startsWith('uploaded:') && (
+                      <p className="text-xs text-muted-foreground mt-1">Using previously uploaded file.</p>
+                    )}
+                  </TabsContent>
+                </Tabs>
+                <p className="text-xs text-muted-foreground">
+                  Shown in the "Sign language" popup on the player. Leave blank to mirror the main video as before.
+                </p>
+              </div>
             </div>
             <div>
               <Label>Description</Label>

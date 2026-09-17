@@ -19,6 +19,7 @@ import { VideoAnalyticsTable } from '@/components/video/VideoAnalyticsTable';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { extractYouTubeId } from '@/lib/youtube';
+import { captureVideoFrame } from '@/lib/videoThumbnail';
 
 interface VideoFormState {
   id?: string;
@@ -33,6 +34,7 @@ interface VideoFormState {
   file_path?: string | null;
   sign_language_video_url: string;
   transcript_text: string;
+  thumbnail_url?: string | null;
 }
 
 const defaultForm: VideoFormState = {
@@ -122,6 +124,7 @@ export const VideoManagementPage: React.FC = () => {
   const [form, setForm] = useState<VideoFormState>(defaultForm);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [signLanguageFile, setSignLanguageFile] = useState<File | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   // Which source-type tab is active per slot — lets the two independent
   // "YouTube URL vs. upload a file" choices (primary, sign language) read
   // as one decision each instead of four stacked, easy-to-confuse fields.
@@ -188,7 +191,7 @@ export const VideoManagementPage: React.FC = () => {
         file_path: isFile ? payload.file_path : (ytId ? `youtube:${ytId}` : payload.external_url || null),
         uploaded_by: profile.id, // Use profile ID instead of user ID
         video_format: isFile ? 'mp4' : 'youtube',
-        thumbnail_path: !isFile && ytId ? getYouTubeThumbnail(ytId) : null,
+        thumbnail_path: isFile ? (payload.thumbnail_url || null) : (ytId ? getYouTubeThumbnail(ytId) : null),
         transcript_text: payload.transcript_text || null,
         ...resolveSignLanguageFields(payload.sign_language_video_url),
       } as any;
@@ -197,7 +200,7 @@ export const VideoManagementPage: React.FC = () => {
     {
       successMessage: 'Video created',
       invalidateKeys: [['video-materials']],
-      onSuccess: () => { setOpen(false); setForm(defaultForm); setSelectedFile(null); setSignLanguageFile(null); fetchVideos(); }
+      onSuccess: () => { setOpen(false); setForm(defaultForm); setSelectedFile(null); setSignLanguageFile(null); setThumbnailFile(null); fetchVideos(); }
     }
   );
 
@@ -222,7 +225,13 @@ export const VideoManagementPage: React.FC = () => {
         updates.file_path = payload.file_path;
         updates.external_url = null;
         updates.video_format = 'mp4';
-        updates.thumbnail_path = null;
+        // Only overwrite the thumbnail when a new one was actually
+        // resolved this submission — previously this unconditionally set
+        // it to null on every edit, wiping out an uploaded video's
+        // thumbnail even when nothing about the video changed.
+        if (payload.thumbnail_url) {
+          updates.thumbnail_path = payload.thumbnail_url;
+        }
       } else {
         updates.external_url = payload.external_url || null;
         updates.video_format = 'youtube';
@@ -234,7 +243,7 @@ export const VideoManagementPage: React.FC = () => {
     {
       successMessage: 'Video updated',
       invalidateKeys: [['video-materials']],
-      onSuccess: () => { setOpen(false); setEditing(null); setForm(defaultForm); setSelectedFile(null); setSignLanguageFile(null); fetchVideos(); }
+      onSuccess: () => { setOpen(false); setEditing(null); setForm(defaultForm); setSelectedFile(null); setSignLanguageFile(null); setThumbnailFile(null); fetchVideos(); }
     }
   );
 
@@ -271,6 +280,7 @@ export const VideoManagementPage: React.FC = () => {
     setForm(defaultForm);
     setSelectedFile(null);
     setSignLanguageFile(null);
+    setThumbnailFile(null);
     setMainSourceTab('youtube');
     setSignSourceTab('youtube');
     setOpen(true);
@@ -305,6 +315,7 @@ export const VideoManagementPage: React.FC = () => {
     });
     setSelectedFile(null);
     setSignLanguageFile(null);
+    setThumbnailFile(null);
     setMainSourceTab(v.video_format === 'mp4' ? 'upload' : 'youtube');
     setSignSourceTab(v.sign_language_video_format === 'mp4' ? 'upload' : 'youtube');
     setOpen(true);
@@ -337,6 +348,21 @@ export const VideoManagementPage: React.FC = () => {
       if (selectedFile) {
         const path = await uploadVideoFile(selectedFile);
         payload = { ...payload, file_path: path, external_url: '' };
+
+        // Uploaded (non-YouTube) videos previously always ended up with no
+        // thumbnail at all. Use a manually chosen image if given, otherwise
+        // auto-capture a frame from the video itself so it "just works".
+        const thumbBlob = thumbnailFile || (await captureVideoFrame(selectedFile));
+        if (thumbBlob && user?.authUserId) {
+          const thumbPath = `${user.authUserId}/${Date.now()}.jpg`;
+          const { error: thumbErr } = await supabase.storage
+            .from('video-thumbnails')
+            .upload(thumbPath, thumbBlob, { contentType: thumbBlob.type || 'image/jpeg', cacheControl: '3600' });
+          if (!thumbErr) {
+            const { data: pub } = supabase.storage.from('video-thumbnails').getPublicUrl(thumbPath);
+            payload = { ...payload, thumbnail_url: pub.publicUrl };
+          }
+        }
       }
       if (signLanguageFile) {
         const path = await uploadVideoFile(signLanguageFile);
@@ -614,6 +640,21 @@ export const VideoManagementPage: React.FC = () => {
                     ) : form.file_path && (
                       <p className="text-xs text-muted-foreground mt-1">Using previously uploaded file.</p>
                     )}
+                    <div className="mt-3">
+                      <Label className="text-xs">Custom thumbnail (optional)</Label>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setThumbnailFile(e.target.files?.[0] || null)}
+                      />
+                      {thumbnailFile ? (
+                        <p className="text-xs text-muted-foreground mt-1">Selected: {thumbnailFile.name}</p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Leave blank to auto-capture a frame from the video.
+                        </p>
+                      )}
+                    </div>
                   </TabsContent>
                 </Tabs>
               </div>

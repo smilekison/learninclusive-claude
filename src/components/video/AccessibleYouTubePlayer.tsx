@@ -104,6 +104,9 @@ const AccessibleYouTubePlayer: React.FC<AccessibleYouTubePlayerProps> = ({
   const minWidth = 192;
   const maxWidth = 768;
   const [resizing, setResizing] = useState(false);
+  const [popupMinimized, setPopupMinimized] = useState(false);
+  const sizePresets: Record<'sm' | 'md' | 'lg' | 'xl', number> = { sm: 240, md: 320, lg: 480, xl: 640 };
+  const miniFileVideoRef = useRef<HTMLVideoElement>(null);
 
   // Accessibility announcements
   const { settings } = useAccessibility();
@@ -484,6 +487,21 @@ useEffect(() => {
     };
   }, [apiReady, openSign, miniContainerId, videoId, miniVideoId, speed]);
 
+  // The YT.Player-based mini popup above already syncs play/pause via a
+  // polling interval, but that whole effect bails out early when the
+  // sign-language slot is a file (signLanguageVideoUrl) — that case is a
+  // plain <video> tag, so it needs its own, much simpler sync: mirror the
+  // main player's play/pause state directly onto it.
+  useEffect(() => {
+    const el = miniFileVideoRef.current;
+    if (!el || !signLanguageVideoUrl) return;
+    if (isPlaying) {
+      el.play().catch(() => { /* autoplay can be blocked before user interaction */ });
+    } else {
+      el.pause();
+    }
+  }, [isPlaying, signLanguageVideoUrl]);
+
   return (
     <Card className={cn('overflow-hidden', className)}>
       <style>{`.yt-mini-frame iframe{pointer-events:none!important;}`}</style>
@@ -579,15 +597,26 @@ useEffect(() => {
       </div>
 
       {/* Sign Language Overlay - Fixed and Enhanced */}
-      {openSign && (
+      {openSign && popupMinimized && (
+        <button
+          className="fixed z-50 flex items-center gap-2 rounded-full border bg-background/95 backdrop-blur px-3 py-2 shadow-lg hover:bg-muted transition-colors"
+          style={{ left: overlayPos.x, top: overlayPos.y }}
+          onClick={() => setPopupMinimized(false)}
+          aria-label="Restore sign language window"
+        >
+          <Hand className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium">Sign Language</span>
+        </button>
+      )}
+      {openSign && !popupMinimized && (
         <div
           ref={overlayRef}
-          className="fixed border-2 border-primary/20 rounded-lg overflow-hidden shadow-2xl bg-background z-50 min-w-[192px] min-h-[108px] resize-none"
+          className="fixed border-2 border-primary/20 rounded-lg overflow-hidden shadow-2xl bg-background z-50 min-w-[192px] min-h-[108px] resize-none flex flex-col"
           style={{
             left: overlayPos.x,
             top: overlayPos.y,
             width: overlayWidth,
-            height: overlayWidth * aspect,
+            height: overlayWidth * aspect + 40,
             cursor: dragging ? 'grabbing' : 'grab',
           }}
           tabIndex={0}
@@ -604,20 +633,36 @@ useEffect(() => {
             aria-label="Drag to move sign language window"
             tabIndex={-1}
           >
-            <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-foreground">Sign Language Interpreter</span>
-            <Button variant="ghost" size="sm" onClick={() => setOpenSign(false)} aria-label="Close sign language window" className="h-6 w-6 p-0">
-              <X className="h-3 w-3" />
-            </Button>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-sm font-medium text-foreground truncate">Sign Language Interpreter</span>
+              <div className="flex items-center gap-1 shrink-0">
+                <Select value={String(overlayWidth)} onValueChange={(v) => setOverlayWidth(Number(v))}>
+                  <SelectTrigger className="h-6 w-16 text-xs px-2" aria-label="Popup size">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={String(sizePresets.sm)}>Small</SelectItem>
+                    <SelectItem value={String(sizePresets.md)}>Medium</SelectItem>
+                    <SelectItem value={String(sizePresets.lg)}>Large</SelectItem>
+                    <SelectItem value={String(sizePresets.xl)}>X-Large</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant="ghost" size="sm" onClick={() => setPopupMinimized(true)} aria-label="Minimize sign language window" className="h-6 w-6 p-0">
+                  <span className="block h-0.5 w-3 bg-foreground" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => { setOpenSign(false); setPopupMinimized(false); }} aria-label="Turn off sign language" className="h-6 w-6 p-0">
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
             </div>
           </div>
           <div className="flex-1 bg-black relative overflow-hidden">
             {signLanguageVideoUrl ? (
               <video
+                ref={miniFileVideoRef}
                 src={signLanguageVideoUrl}
                 className="w-full h-full object-contain"
                 muted
-                autoPlay={isPlaying}
                 loop
                 playsInline
               />

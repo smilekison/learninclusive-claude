@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useVideoViewTracker } from '@/hooks/useVideoAnalytics';
 import { signLanguageVideos } from '@/data/signLanguageVideos';
 
@@ -59,6 +60,21 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
   const [dragging, setDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [overlaySize, setOverlaySize] = useState({ width: 320, height: 180 });
+  const [popupMinimized, setPopupMinimized] = useState(false);
+  const sizePresets: Record<'sm' | 'md' | 'lg' | 'xl', number> = { sm: 240, md: 320, lg: 480, xl: 640 };
+
+  // Keep the popup's play/pause state locked to the main video — previously
+  // this only synced once, on the popup video's first frame loading, so
+  // pausing the main player afterwards left the popup still playing.
+  useEffect(() => {
+    const signVideo = signVideoRef.current;
+    if (!signVideo || signLanguageVideoId) return; // iframe case has no ref to control here
+    if (isPlaying) {
+      signVideo.play().catch(() => { /* autoplay can be blocked before user interaction */ });
+    } else {
+      signVideo.pause();
+    }
+  }, [isPlaying, signLanguageVideoId]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -275,7 +291,18 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
         {/* Sign Language Overlay — fixed to the viewport (not the video box)
             so it stays reachable and visible regardless of scroll position,
             matching AccessibleYouTubePlayer's popup behavior. */}
-        {showSignLanguage && (
+        {showSignLanguage && popupMinimized && (
+          <button
+            className="fixed z-50 flex items-center gap-2 rounded-full border bg-background/95 backdrop-blur px-3 py-2 shadow-lg hover:bg-muted transition-colors"
+            style={{ left: overlayPos.x, top: overlayPos.y }}
+            onClick={() => setPopupMinimized(false)}
+            aria-label="Restore sign language window"
+          >
+            <Hand className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium">Sign Language</span>
+          </button>
+        )}
+        {showSignLanguage && !popupMinimized && (
           <div
             className="fixed border-2 border-white rounded-lg overflow-hidden shadow-lg bg-black resize z-50"
             style={{
@@ -286,28 +313,55 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
               cursor: dragging ? 'grabbing' : 'grab',
               minWidth: '200px',
               minHeight: '150px',
-              maxWidth: '600px',
-              maxHeight: '400px'
+              maxWidth: '640px',
+              maxHeight: '480px'
             }}
             onMouseDown={handleMouseDown}
           >
-            <div className="absolute top-1 right-1 z-20">
+            <div className="absolute top-1 right-1 z-20 flex items-center gap-1">
+              <Select
+                value={String(overlaySize.width)}
+                onValueChange={(v) => {
+                  const w = Number(v);
+                  setOverlaySize({ width: w, height: Math.round(w * 9 / 16) });
+                }}
+              >
+                <SelectTrigger className="h-6 w-16 text-xs px-2 bg-black/50 text-white border-white/30" aria-label="Popup size">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={String(sizePresets.sm)}>Small</SelectItem>
+                  <SelectItem value={String(sizePresets.md)}>Medium</SelectItem>
+                  <SelectItem value={String(sizePresets.lg)}>Large</SelectItem>
+                  <SelectItem value={String(sizePresets.xl)}>X-Large</SelectItem>
+                </SelectContent>
+              </Select>
               <Button
                 variant="ghost"
                 size="sm"
                 className="h-6 w-6 p-0 bg-black/50 hover:bg-black/70 text-white"
-                onClick={() => setShowSignLanguage(false)}
+                onClick={() => setPopupMinimized(true)}
+                aria-label="Minimize sign language window"
+              >
+                <span className="block h-0.5 w-3 bg-white" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 bg-black/50 hover:bg-black/70 text-white"
+                onClick={() => { setShowSignLanguage(false); setPopupMinimized(false); }}
+                aria-label="Turn off sign language"
               >
                 <X className="h-3 w-3" />
               </Button>
             </div>
-            
+
             <div className="absolute top-1 left-1 z-20">
               <div className="bg-black/70 text-white text-xs px-2 py-1 rounded">
                 Sign Language
               </div>
             </div>
-            
+
             {signLanguageVideoId ? (
               <iframe
                 className="w-full h-full"

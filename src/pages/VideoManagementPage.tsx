@@ -32,6 +32,7 @@ interface VideoFormState {
   external_url: string;
   file_path?: string | null;
   sign_language_video_url: string;
+  transcript_text: string;
 }
 
 const defaultForm: VideoFormState = {
@@ -44,7 +45,8 @@ const defaultForm: VideoFormState = {
   school_id: null,
   external_url: '',
   file_path: null,
-  sign_language_video_url: ''
+  sign_language_video_url: '',
+  transcript_text: ''
 };
 
 /** The sign-language slot form field carries one of three shapes: a
@@ -187,6 +189,7 @@ export const VideoManagementPage: React.FC = () => {
         uploaded_by: profile.id, // Use profile ID instead of user ID
         video_format: isFile ? 'mp4' : 'youtube',
         thumbnail_path: !isFile && ytId ? getYouTubeThumbnail(ytId) : null,
+        transcript_text: payload.transcript_text || null,
         ...resolveSignLanguageFields(payload.sign_language_video_url),
       } as any;
       return await supabase.from('video_materials').insert(insert).select().single();
@@ -211,6 +214,7 @@ export const VideoManagementPage: React.FC = () => {
         tags: payload.tags ? payload.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
         visibility: payload.visibility,
         school_id: payload.visibility === 'school' ? payload.school_id || null : null,
+        transcript_text: payload.transcript_text || null,
         ...resolveSignLanguageFields(payload.sign_language_video_url),
       };
 
@@ -283,7 +287,8 @@ export const VideoManagementPage: React.FC = () => {
       visibility: v.visibility || 'private',
       school_id: v.school_id || null,
       external_url: v.external_url || '',
-      sign_language_video_url: denormalizeSignLanguageValue(v)
+      sign_language_video_url: denormalizeSignLanguageValue(v),
+      transcript_text: v.transcript_text || ''
     });
     setForm({
       id: v.id,
@@ -295,7 +300,8 @@ export const VideoManagementPage: React.FC = () => {
       visibility: v.visibility || 'private',
       school_id: v.school_id || null,
       external_url: v.external_url || '',
-      sign_language_video_url: denormalizeSignLanguageValue(v)
+      sign_language_video_url: denormalizeSignLanguageValue(v),
+      transcript_text: v.transcript_text || ''
     });
     setSelectedFile(null);
     setSignLanguageFile(null);
@@ -655,6 +661,30 @@ export const VideoManagementPage: React.FC = () => {
             <div>
               <Label>Description</Label>
               <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={4} />
+            </div>
+            <div>
+              <Label>Transcript (optional)</Label>
+              <Input
+                type="file"
+                accept=".txt,.vtt,.srt"
+                className="mb-2"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = () => setForm(prev => ({ ...prev, transcript_text: String(reader.result || '') }));
+                  reader.readAsText(file);
+                }}
+              />
+              <Textarea
+                value={form.transcript_text}
+                onChange={(e) => setForm({ ...form, transcript_text: e.target.value })}
+                placeholder="Paste the transcript, or upload a .txt/.vtt/.srt file above to fill this in"
+                rows={6}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Powers the accessible transcript view for deaf/hard-of-hearing and screen reader users.
+              </p>
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => { setOpen(false); setEditing(null); }}>Cancel</Button>

@@ -17,6 +17,13 @@ interface AccessibleVideoPlayerProps {
   onProgress?: (progress: number) => void;
   onComplete?: () => void;
   videoDbId?: string; // database id for analytics tracking
+  /** A distinct sign-language interpretation video's YouTube id, shown in
+   * the popup. Falls back to mirroring the main video when neither this
+   * nor signLanguageVideoUrl is provided. */
+  signLanguageVideoId?: string;
+  /** A direct playable URL for an uploaded sign-language video file. Takes
+   * priority over signLanguageVideoId. */
+  signLanguageVideoUrl?: string;
 }
 
 export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
@@ -29,6 +36,8 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
   onProgress,
   onComplete,
   videoDbId,
+  signLanguageVideoId,
+  signLanguageVideoUrl,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -243,15 +252,6 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
     };
   }, [dragging, dragOffset]);
 
-  const getSignLanguageVideo = () => {
-    // Check if sign language video is available for this content
-    if (videoRef.current?.src) {
-      // For custom videos, check if there's an associated sign language video
-      return videoRef.current.src.replace('.mp4', '_sign.mp4');
-    }
-    return null;
-  };
-
   return (
     <Card className="overflow-hidden">
       <div className="relative bg-black aspect-video">
@@ -272,17 +272,18 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
           Your browser does not support the video tag.
         </video>
 
-        {/* Sign Language Overlay */}
+        {/* Sign Language Overlay — fixed to the viewport (not the video box)
+            so it stays reachable and visible regardless of scroll position,
+            matching AccessibleYouTubePlayer's popup behavior. */}
         {showSignLanguage && (
           <div
-            className="absolute border-2 border-white rounded-lg overflow-hidden shadow-lg bg-black resize"
+            className="fixed border-2 border-white rounded-lg overflow-hidden shadow-lg bg-black resize z-50"
             style={{
               left: overlayPos.x,
               top: overlayPos.y,
               width: overlaySize.width,
               height: overlaySize.height,
               cursor: dragging ? 'grabbing' : 'grab',
-              zIndex: 10,
               minWidth: '200px',
               minHeight: '150px',
               maxWidth: '600px',
@@ -307,27 +308,35 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
               </div>
             </div>
             
-            <video
-              ref={signVideoRef}
-              className="w-full h-full object-cover"
-              muted={isMuted}
-              src={getSignLanguageVideo()}
-              onLoadedData={() => {
-                // Sync with main video when sign language video loads
-                const mainVideo = videoRef.current;
-                const signVideo = signVideoRef.current;
-                if (mainVideo && signVideo) {
-                  signVideo.currentTime = mainVideo.currentTime;
-                  if (!mainVideo.paused) {
-                    signVideo.play();
+            {signLanguageVideoId ? (
+              <iframe
+                className="w-full h-full"
+                src={`https://www.youtube.com/embed/${signLanguageVideoId}?autoplay=${isPlaying ? 1 : 0}&mute=1&playsinline=1`}
+                title="Sign language interpreter"
+                allow="autoplay; encrypted-media; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <video
+                ref={signVideoRef}
+                className="w-full h-full object-cover"
+                muted
+                // No distinct sign-language video was configured — mirror
+                // the main video itself, same fallback AccessibleYouTubePlayer
+                // uses, instead of guessing a filename that never exists.
+                src={signLanguageVideoUrl || videoUrl}
+                onLoadedData={() => {
+                  const mainVideo = videoRef.current;
+                  const signVideo = signVideoRef.current;
+                  if (mainVideo && signVideo) {
+                    signVideo.currentTime = mainVideo.currentTime;
+                    if (!mainVideo.paused) {
+                      signVideo.play();
+                    }
                   }
-                }
-              }}
-            >
-              <div className="flex items-center justify-center h-full text-white">
-                <p className="text-sm">Sign language video not available</p>
-              </div>
-            </video>
+                }}
+              />
+            )}
             
             <div className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize bg-white/20 hover:bg-white/40 transition-colors"></div>
           </div>

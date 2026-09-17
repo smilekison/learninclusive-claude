@@ -30,6 +30,8 @@ interface VideoDetails {
   difficulty?: string;
   transcript?: string;
   signLanguageVideoId?: string | null;
+  signLanguageIsFile?: boolean;
+  signLanguageFilePath?: string | null;
 }
 
 
@@ -40,6 +42,7 @@ export const VideoDetailsPage: React.FC = () => {
   const [video, setVideo] = useState<VideoDetails | null>(null);
   const [ytId, setYtId] = useState<string | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [signLanguageFileUrl, setSignLanguageFileUrl] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLiked, setIsLiked] = useState(false);
   const [isDisliked, setIsDisliked] = useState(false);
@@ -87,9 +90,11 @@ export const VideoDetailsPage: React.FC = () => {
         tags: data.tags || [],
         difficulty: data.difficulty_level,
         transcript: data.transcript_text,
-        signLanguageVideoId: data.sign_language_video_path?.startsWith('youtube:')
-          ? data.sign_language_video_path.slice('youtube:'.length)
-          : extractYouTubeId(data.sign_language_video_path || '')
+        signLanguageVideoId: data.sign_language_video_format === 'youtube'
+          ? extractYouTubeId(data.sign_language_external_url || '')
+          : null,
+        signLanguageIsFile: data.sign_language_video_format === 'mp4' && !!data.sign_language_video_path,
+        signLanguageFilePath: data.sign_language_video_path || null
       };
       setVideo(vd);
       document.title = `${vd.title} - learninclusive`;
@@ -110,6 +115,13 @@ export const VideoDetailsPage: React.FC = () => {
           .from('videos')
           .createSignedUrl(data.file_path, 3600);
         if (!sErr && signed?.signedUrl) setFileUrl(signed.signedUrl);
+      }
+
+      if (data.sign_language_video_format === 'mp4' && data.sign_language_video_path) {
+        const { data: signedSign, error: signErr } = await supabase.storage
+          .from('videos')
+          .createSignedUrl(data.sign_language_video_path, 3600);
+        if (!signErr && signedSign?.signedUrl) setSignLanguageFileUrl(signedSign.signedUrl);
       }
       setLoading(false);
     })();
@@ -185,6 +197,7 @@ export const VideoDetailsPage: React.FC = () => {
         <AccessibleYouTubePlayer
           videoId={ytId}
           signLanguageVideoId={video.signLanguageVideoId || undefined}
+          signLanguageVideoUrl={signLanguageFileUrl || undefined}
           title={video.title}
           captionLang={video.category === 'LGK' ? 'lt' : 'en'}
           className="overflow-hidden rounded-lg"

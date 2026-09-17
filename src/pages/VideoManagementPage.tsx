@@ -47,15 +47,39 @@ const defaultForm: VideoFormState = {
   sign_language_video_url: ''
 };
 
-/** Mirrors how the primary video's URL is normalized into a storable path:
- * a YouTube URL becomes "youtube:<id>", anything else is stored as-is. */
-function normalizeVideoPath(url: string): string | null {
-  if (!url) return null;
-  const ytId = extractYouTubeId(url);
-  return ytId ? `youtube:${ytId}` : url;
+/** The sign-language slot form field carries one of three shapes: a
+ * "uploaded:<storage path>" marker (set after a file upload completes), a
+ * pasted YouTube URL, or empty. Resolves it to the three DB columns that
+ * mirror the primary video's own file_path/external_url/video_format
+ * pattern, so the slot is independently either an uploaded file or YouTube. */
+function resolveSignLanguageFields(value: string) {
+  if (!value) {
+    return { sign_language_video_path: null, sign_language_external_url: null, sign_language_video_format: null };
+  }
+  if (value.startsWith('uploaded:')) {
+    return {
+      sign_language_video_path: value.slice('uploaded:'.length),
+      sign_language_external_url: null,
+      sign_language_video_format: 'mp4',
+    };
+  }
+  const ytId = extractYouTubeId(value);
+  if (ytId) {
+    return { sign_language_video_path: null, sign_language_external_url: value, sign_language_video_format: 'youtube' };
+  }
+  // Not a recognizable YouTube URL and not a fresh upload — leave as-is,
+  // e.g. a direct video file URL pasted in.
+  return { sign_language_video_path: null, sign_language_external_url: value, sign_language_video_format: 'youtube' };
 }
 
-/** Reverses normalizeVideoPath for display in the edit form. */
+/** Reverses resolveSignLanguageFields for display in the edit form. */
+function denormalizeSignLanguageValue(row: any): string {
+  if (row?.sign_language_video_format === 'mp4' && row?.sign_language_video_path) {
+    return `uploaded:${row.sign_language_video_path}`;
+  }
+  return row?.sign_language_external_url || '';
+}
+
 function denormalizeVideoPath(path: string | null | undefined): string {
   if (!path) return '';
   if (path.startsWith('youtube:')) {
@@ -95,6 +119,7 @@ export const VideoManagementPage: React.FC = () => {
   const [editing, setEditing] = useState<VideoFormState | null>(null);
   const [form, setForm] = useState<VideoFormState>(defaultForm);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [signLanguageFile, setSignLanguageFile] = useState<File | null>(null);
   // Filters
   const [search, setSearch] = useState('');
   const [visibilityFilter, setVisibilityFilter] = useState<'all'|'public'|'private'|'unlisted'|'school'>('all');
@@ -157,14 +182,14 @@ export const VideoManagementPage: React.FC = () => {
         uploaded_by: profile.id, // Use profile ID instead of user ID
         video_format: isFile ? 'mp4' : 'youtube',
         thumbnail_path: !isFile && ytId ? getYouTubeThumbnail(ytId) : null,
-        sign_language_video_path: normalizeVideoPath(payload.sign_language_video_url),
+        ...resolveSignLanguageFields(payload.sign_language_video_url),
       } as any;
       return await supabase.from('video_materials').insert(insert).select().single();
     },
     {
       successMessage: 'Video created',
       invalidateKeys: [['video-materials']],
-      onSuccess: () => { setOpen(false); setForm(defaultForm); fetchVideos(); }
+      onSuccess: () => { setOpen(false); setForm(defaultForm); setSelectedFile(null); setSignLanguageFile(null); fetchVideos(); }
     }
   );
 
@@ -181,7 +206,7 @@ export const VideoManagementPage: React.FC = () => {
         tags: payload.tags ? payload.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
         visibility: payload.visibility,
         school_id: payload.visibility === 'school' ? payload.school_id || null : null,
-        sign_language_video_path: normalizeVideoPath(payload.sign_language_video_url),
+        ...resolveSignLanguageFields(payload.sign_language_video_url),
       };
 
       if (isFile) {
@@ -200,7 +225,7 @@ export const VideoManagementPage: React.FC = () => {
     {
       successMessage: 'Video updated',
       invalidateKeys: [['video-materials']],
-      onSuccess: () => { setOpen(false); setEditing(null); setForm(defaultForm); fetchVideos(); }
+      onSuccess: () => { setOpen(false); setEditing(null); setForm(defaultForm); setSelectedFile(null); setSignLanguageFile(null); fetchVideos(); }
     }
   );
 
@@ -235,6 +260,8 @@ export const VideoManagementPage: React.FC = () => {
   const openCreate = () => {
     setEditing(null);
     setForm(defaultForm);
+    setSelectedFile(null);
+    setSignLanguageFile(null);
     setOpen(true);
   };
 
@@ -249,7 +276,7 @@ export const VideoManagementPage: React.FC = () => {
       visibility: v.visibility || 'private',
       school_id: v.school_id || null,
       external_url: v.external_url || '',
-      sign_language_video_url: denormalizeVideoPath(v.sign_language_video_path)
+      sign_language_video_url: denormalizeSignLanguageValue(v)
     });
     setForm({
       id: v.id,
@@ -261,9 +288,27 @@ export const VideoManagementPage: React.FC = () => {
       visibility: v.visibility || 'private',
       school_id: v.school_id || null,
       external_url: v.external_url || '',
-      sign_language_video_url: denormalizeVideoPath(v.sign_language_video_path)
+      sign_language_video_url: denormalizeSignLanguageValue(v)
     });
     setOpen(true);
+  };
+
+  // Shared by both slots (primary + sign language) — each is independently
+  // either an uploaded file or a YouTube URL, so the upload logic itself
+  // doesn't need to know which slot it's for.
+  const uploadVideoFile = async (file: File): Promise<string> => {
+    if (!user?.authUserId) throw new Error('You must be signed in to upload a video');
+    // Storage RLS ("Users can upload videos to their own folder") requires
+    // the first path segment to equal auth.uid() — the auth user id, not
+    // the profile id.
+    const timestamp = Date.now();
+    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const path = `${user.authUserId}/${timestamp}-${sanitizedFileName}`;
+    const { error: uploadError } = await supabase.storage
+      .from('videos')
+      .upload(path, file, { contentType: file.type, cacheControl: '3600' });
+    if (uploadError) throw uploadError;
+    return path;
   };
 
   const onSubmit = async () => {
@@ -271,36 +316,25 @@ export const VideoManagementPage: React.FC = () => {
 
     let payload = { ...form } as VideoFormState;
 
-    // If a file is selected, upload to Supabase Storage first
-    if (selectedFile && user?.authUserId) {
-      // Storage RLS ("Users can upload videos to their own folder") requires
-      // the first path segment to equal auth.uid() — the auth user id, not
-      // the profile id (user.id here is the profile id and would always be
-      // rejected by RLS with no visible error, since this call wasn't
-      // wrapped in try/catch below).
-      const timestamp = Date.now();
-      const sanitizedFileName = selectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const path = `${user.authUserId}/${timestamp}-${sanitizedFileName}`;
-
-      try {
-        const { error: uploadError } = await supabase.storage
-          .from('videos')
-          .upload(path, selectedFile, {
-            contentType: selectedFile.type,
-            cacheControl: '3600'
-          });
-
-        if (uploadError) throw uploadError;
-
+    try {
+      if (selectedFile) {
+        const path = await uploadVideoFile(selectedFile);
         payload = { ...payload, file_path: path, external_url: '' };
-      } catch (err: any) {
-        toast({
-          title: 'Upload failed',
-          description: err?.message || 'Could not upload the video file. Please try again.',
-          variant: 'destructive',
-        });
-        return;
       }
+      if (signLanguageFile) {
+        const path = await uploadVideoFile(signLanguageFile);
+        // A file was uploaded for this slot, so it overrides any URL typed
+        // into the sign-language URL field — the two are mutually exclusive
+        // per slot, same as the primary video's own file-vs-URL behavior.
+        payload = { ...payload, sign_language_video_url: `uploaded:${path}` };
+      }
+    } catch (err: any) {
+      toast({
+        title: 'Upload failed',
+        description: err?.message || 'Could not upload the video file. Please try again.',
+        variant: 'destructive',
+      });
+      return;
     }
 
     if (editing) updateMutation.mutate(payload);
@@ -548,13 +582,31 @@ export const VideoManagementPage: React.FC = () => {
             <div>
               <Label>Sign Language Video (optional, YouTube URL)</Label>
               <Input
-                value={form.sign_language_video_url}
-                onChange={(e) => setForm({ ...form, sign_language_video_url: e.target.value })}
+                value={form.sign_language_video_url.startsWith('uploaded:') ? '' : form.sign_language_video_url}
+                onChange={(e) => { setSignLanguageFile(null); setForm({ ...form, sign_language_video_url: e.target.value }); }}
                 placeholder="https://www.youtube.com/watch?v=..."
+                disabled={!!signLanguageFile}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Shown in the "Sign language" popup on the player, instead of just mirroring the main video. Leave blank to mirror the main video as before.
+                Shown in the "Sign language" popup on the player, instead of just mirroring the main video — independently either a YouTube URL or an uploaded file, same as the main video. Leave both blank to mirror the main video as before.
               </p>
+            </div>
+            <div>
+              <Label>Or Upload a Sign Language Video File</Label>
+              <Input
+                type="file"
+                accept="video/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  setSignLanguageFile(file);
+                  if (file) setForm(prev => ({ ...prev, sign_language_video_url: '' }));
+                }}
+              />
+              {signLanguageFile ? (
+                <p className="text-xs text-muted-foreground mt-1">Selected: {signLanguageFile.name}</p>
+              ) : form.sign_language_video_url.startsWith('uploaded:') && (
+                <p className="text-xs text-muted-foreground mt-1">Using previously uploaded file.</p>
+              )}
             </div>
             <div>
               <Label>Description</Label>

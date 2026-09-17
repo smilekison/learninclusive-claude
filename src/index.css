@@ -391,6 +391,15 @@
     @apply border-border;
   }
 
+  html {
+    /* Radix Dialog/Select/Popover lock body scroll while open, which
+       removes the scrollbar and shifts all page content sideways by its
+       width — the "flicker" when opening a dropdown or filter. Reserving
+       the gutter permanently means removing the scrollbar never changes
+       the available content width. */
+    scrollbar-gutter: stable;
+  }
+
   body {
     @apply bg-background text-foreground font-inter;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';

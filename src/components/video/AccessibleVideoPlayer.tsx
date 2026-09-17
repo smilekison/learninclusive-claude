@@ -56,7 +56,14 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
   const tracker = useVideoViewTracker(videoDbId, 'mp4');
 
   // Sign language overlay state
-  const [overlayPos, setOverlayPos] = useState({ x: 20, y: 20 });
+  const [overlayPos, setOverlayPos] = useState(() => {
+    // Default to the bottom-right corner rather than covering the top-left
+    // controls, using the default popup dimensions (320x180).
+    return {
+      x: Math.max(20, window.innerWidth - 320 - 20),
+      y: Math.max(20, window.innerHeight - 180 - 20),
+    };
+  });
   const [dragging, setDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [overlaySize, setOverlaySize] = useState({ width: 320, height: 180 });
@@ -87,6 +94,16 @@ export const AccessibleVideoPlayer: React.FC<AccessibleVideoPlayerProps> = ({
       tracker.reportProgress(video.currentTime, video.duration);
       if (onProgress && video.duration) {
         onProgress((video.currentTime / video.duration) * 100);
+      }
+      // When the popup is mirroring this same video (no distinct
+      // sign-language source configured), correct drift beyond play/pause
+      // alone — two independent <video> elements playing "the same" file
+      // slowly desync over time even when both are playing.
+      if (!signLanguageVideoId && !signLanguageVideoUrl) {
+        const signVideo = signVideoRef.current;
+        if (signVideo && Math.abs(signVideo.currentTime - video.currentTime) > 0.35) {
+          signVideo.currentTime = video.currentTime;
+        }
       }
     };
 

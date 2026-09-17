@@ -86,10 +86,16 @@ const AccessibleYouTubePlayer: React.FC<AccessibleYouTubePlayerProps> = ({
   const [overlayPos, setOverlayPos] = useState<{ x: number; y: number }>(() => {
     try {
       const saved = localStorage.getItem('sign-overlay-pos');
-      return saved ? JSON.parse(saved) : { x: 20, y: 20 };
-    } catch {
-      return { x: 20, y: 20 };
-    }
+      if (saved) return JSON.parse(saved);
+    } catch { /* localStorage unavailable — fall through to default */ }
+    // Default to the bottom-right corner rather than covering the top-left
+    // controls, using the default popup dimensions (320 wide, 16:9 + header).
+    const defaultWidth = 320;
+    const defaultHeight = defaultWidth * 9 / 16 + 40;
+    return {
+      x: Math.max(20, window.innerWidth - defaultWidth - 20),
+      y: Math.max(20, window.innerHeight - defaultHeight - 20),
+    };
   });
   const [dragging, setDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });

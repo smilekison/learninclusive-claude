@@ -190,8 +190,13 @@ export const VideoDetailsPage: React.FC = () => {
     );
   }
 
-  // Unified Player Component
-  const VideoPlayer = () => {
+  // Builds the player JSX inline rather than as a nested component — a
+  // function *component* defined inside another component's body gets a
+  // new identity every render, so React treats <VideoPlayer /> as a whole
+  // new component type and remounts it (and the YouTube/HTML5 player
+  // inside it, plus the sign-language popup and its play position) on
+  // every single re-render of this page, e.g. every view-count tick.
+  const renderVideoPlayer = () => {
     if (video.videoFormat === 'youtube' && ytId) {
       return (
         <AccessibleYouTubePlayer
@@ -247,7 +252,7 @@ export const VideoDetailsPage: React.FC = () => {
             </Button>
 
             {/* Video Player */}
-            <VideoPlayer />
+            {renderVideoPlayer()}
 
             {/* Video Info Header */}
             <div className="space-y-4">

@@ -20,7 +20,7 @@ command -v curl >/dev/null 2>&1 || die "curl is required."
 if ! command -v docker >/dev/null 2>&1; then
   log "Installing Docker."
   apt-get update
-  apt-get install -y ca-certificates curl git openssl jq
+  apt-get install -y ca-certificates curl git openssl jq python3
   curl -fsSL https://get.docker.com | sh
 fi
 docker compose version >/dev/null 2>&1 || die "Docker Compose plugin is required."
@@ -56,6 +56,10 @@ set_env PROXY_DOMAIN "$SUPABASE_DOMAIN"
 set_env CERTBOT_EMAIL "admin@$SUPABASE_DOMAIN"
 # Keep the gateway private; host Nginx is the public TLS reverse proxy.
 set_env API_GW_HTTP_PORT "127.0.0.1:8000"
+# The application already performs per-function authorization. The upstream
+# self-hosted runtime currently exposes one global verify flag, so keep the
+# gateway from rejecting the intentionally public contact/chat/tts functions.
+set_env FUNCTIONS_VERIFY_JWT "false"
 
 log "Installing LearnInclusive Edge Functions into the self-hosted Supabase volume."
 mkdir -p volumes/functions
@@ -68,10 +72,12 @@ for fn in "$ROOT_DIR"/supabase/functions/*; do
 done
 
 : > .env.functions
-for key in OPENAI_API_KEY ELEVENLABS_API_KEY RESEND_API_KEY; do
-  eval "value=\$$key"
-  if [ -n "$value" ]; then printf "%s=%s\n" "$key" "$value" >> .env.functions; fi
-done
+value="$OPENAI_API_KEY"
+[ -n "$value" ] && printf "OPENAI_API_KEY=%s\n" "$value" >> .env.functions
+value="$ELEVENLABS_API_KEY"
+[ -n "$value" ] && printf "ELEVENLABS_API_KEY=%s\n" "$value" >> .env.functions
+value="$RESEND_API_KEY"
+[ -n "$value" ] && printf "RESEND_API_KEY=%s\n" "$value" >> .env.functions
 chmod 600 .env.functions
 
 # Add application secrets to the official functions service without replacing

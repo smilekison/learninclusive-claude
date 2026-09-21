@@ -40,13 +40,6 @@ supabase db push --db-url "$DB_URL" --dry-run
 printf '%s\n' '==> Applying database migrations'
 supabase db push --db-url "$DB_URL"
 
-printf '%s\n' '==> Updating APP_URL for self-hosted Edge Functions'
-docker exec "$FUNCTIONS_CONTAINER" sh -c "printf '%s\\n' 'APP_URL=$APP_URL' > /tmp/autodeploy-app-url"
-# The production function environment is owned by the self-hosted Supabase
-# deployment. Do not overwrite its existing secret environment here.
-# APP_URL is supplied through the same .env.functions mechanism on the host.
-printf '%s\n' "APP_URL=$APP_URL"
-
 printf '%s\n' '==> Copying Edge Functions into the self-hosted functions volume'
 docker cp /app/supabase/functions/. "$FUNCTIONS_CONTAINER:/home/deno/functions/"
 

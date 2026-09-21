@@ -14,6 +14,9 @@ From the repository root on a machine with Docker Compose v2:
 ```bash
 ./scripts/setup-supabase.sh
 docker compose --env-file .runtime/learninclusive.env up -d --build
+
+# Or do both Supabase + LearnInclusive in one command:
+sh scripts/start-local.sh
 ```
 
 On Windows/PowerShell, run the script from WSL/Git Bash, or execute the equivalent

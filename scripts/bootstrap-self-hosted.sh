@@ -136,9 +136,39 @@ ln -sf "/etc/nginx/sites-available/$SUPABASE_DOMAIN.conf" "/etc/nginx/sites-enab
 nginx -t
 systemctl reload nginx
 
+# If LearnInclusive is already managed by another reverse proxy (for example
+# AutoDeploy), leave that routing untouched. On a fresh server, create it here.
+if ! grep -Rqs "server_name $APP_DOMAIN;" /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null; then
+  cat > "/etc/nginx/sites-available/$APP_DOMAIN.conf" <<EOF
+server {
+    listen 80;
+    server_name $APP_DOMAIN;
+
+    location / {
+        proxy_pass http://127.0.0.1:$APP_PORT;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+}
+EOF
+  ln -sf "/etc/nginx/sites-available/$APP_DOMAIN.conf" "/etc/nginx/sites-enabled/$APP_DOMAIN.conf"
+fi
+nginx -t
+systemctl reload nginx
+
 if ! certbot certificates 2>/dev/null | grep -q "Certificate Name: $SUPABASE_DOMAIN"; then
   log "Requesting the HTTPS certificate for Supabase."
   certbot --nginx --non-interactive --agree-tos --email "admin@$SUPABASE_DOMAIN" -d "$SUPABASE_DOMAIN" --redirect
+fi
+
+if ! certbot certificates 2>/dev/null | grep -q "Certificate Name: $APP_DOMAIN"; then
+  if grep -Rqs "server_name $APP_DOMAIN;" /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null; then
+    log "Requesting the HTTPS certificate for LearnInclusive."
+    certbot --nginx --non-interactive --agree-tos --email "admin@$APP_DOMAIN" -d "$APP_DOMAIN" --redirect
+  fi
 fi
 
 cd "$ROOT_DIR"

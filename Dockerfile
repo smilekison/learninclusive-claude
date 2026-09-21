@@ -26,7 +26,7 @@ RUN npm run build
 # being released rather than from a separate manual process.
 FROM node:20-alpine AS runtime
 
-RUN apk add --no-cache nginx \
+RUN apk add --no-cache nginx docker-cli \
     && npm install --global supabase@2.117.0 \
     && npm cache clean --force \
     && rm -rf /var/cache/apk/*

@@ -1,4 +1,4 @@
-# LearnInclusive - production Docker image for local Windows 11 / Docker Desktop
+# LearnInclusive production image
 # Stage 1: build the Vite React application
 FROM node:20-alpine AS build
 
@@ -22,7 +22,7 @@ ENV VITE_SUPABASE_URL=${VITE_SUPABASE_URL} \
 
 RUN npm run build
 
-# Stage 2: lightweight production web server
+# Stage 2: lightweight production web server. Host Nginx publishes this container.
 FROM nginx:1.27-alpine AS runtime
 
 COPY --from=build /app/dist /usr/share/nginx/html

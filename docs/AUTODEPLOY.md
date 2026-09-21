@@ -4,18 +4,9 @@ LearnInclusive is deployed by the existing AutoDeploy SERVICE target. **Do not r
 
 ## AutoDeploy environment
 
-Set these runtime environment variables on the LearnInclusive target:
+Leave the LearnInclusive target environment empty for the Supabase connection. The repository's `autodeploy.integrations.json` declaration causes AutoDeploy to provision the self-hosted Supabase service and inject the generated client configuration at runtime.
 
-```text
-VITE_SUPABASE_URL=https://supabase.smilekisan.com
-VITE_SUPABASE_PUBLISHABLE_KEY=<self-hosted Supabase publishable key>
-```
-
-That is all the LearnInclusive frontend needs from Supabase.
-
-The values are injected when the container starts, so the same Docker image can be deployed to a new server without rebuilding it for a different Supabase URL/key.
-
-The publishable key is safe for browser use; do not put `SUPABASE_SECRET_KEY`, `SERVICE_ROLE_KEY`, database passwords, or provider API secrets in the frontend environment. Supabase documents the publishable key as the client-side credential and the secret key as server-side only. citeturn1search9
+The same Docker image can therefore be deployed to a new server without baking a Supabase URL or key into the image.
 
 ## Self-hosted Supabase
 
@@ -75,24 +66,25 @@ The LearnInclusive frontend image does not require Docker-socket access and does
 
 ## Fresh server requirement
 
-AutoDeploy can deploy the LearnInclusive application automatically, but a full self-hosted Supabase installation is a separate multi-container infrastructure stack. Supabase officially distributes that stack as Docker Compose and it must exist on the server before the frontend can use it. citeturn1search1
+A fresh server does not require a separate LearnInclusive bootstrap step. When AutoDeploy sees `autodeploy.integrations.json`, its generic integration runner provisions the self-hosted Supabase stack before the application is started. citeturn1search1
 
-Therefore a fresh server needs the Supabase infrastructure provisioned once. After that, normal LearnInclusive deployments are simply:
+Normal deployments are:
 
 ```text
-git push
+GitHub main
    ↓
 AutoDeploy
    ↓
-build LearnInclusive
+detect optional integrations
    ↓
-inject VITE_SUPABASE_URL + VITE_SUPABASE_PUBLISHABLE_KEY
+provision/reuse self-hosted Supabase
    ↓
-start container
+apply migrations + functions
    ↓
-application uses self-hosted Supabase
+inject generated VITE_* runtime configuration
+   ↓
+build/start LearnInclusive
 ```
-
 
 ## Automatic self-hosted Supabase
 

@@ -1,0 +1,4 @@
+window.__LEARNINCLUSIVE_CONFIG__ = {
+  supabaseUrl: "${VITE_SUPABASE_URL}",
+  supabasePublishableKey: "${VITE_SUPABASE_PUBLISHABLE_KEY}"
+};

@@ -72,11 +72,11 @@ for fn in "$ROOT_DIR"/supabase/functions/*; do
 done
 
 : > .env.functions
-value="$OPENAI_API_KEY"
+value="${OPENAI_API_KEY-}"
 [ -n "$value" ] && printf "OPENAI_API_KEY=%s\n" "$value" >> .env.functions
-value="$ELEVENLABS_API_KEY"
+value="${ELEVENLABS_API_KEY-}"
 [ -n "$value" ] && printf "ELEVENLABS_API_KEY=%s\n" "$value" >> .env.functions
-value="$RESEND_API_KEY"
+value="${RESEND_API_KEY-}"
 [ -n "$value" ] && printf "RESEND_API_KEY=%s\n" "$value" >> .env.functions
 chmod 600 .env.functions
 

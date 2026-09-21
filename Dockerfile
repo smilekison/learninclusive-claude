@@ -1,17 +1,14 @@
 # LearnInclusive production image
-# Stage 1: build the Vite React application
+# Stage 1: build the Vite React application.
 FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Keep dependency installation cacheable
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# Copy application source
 COPY . .
 
-# Vite embeds VITE_* variables into the browser bundle at build time.
 ARG VITE_SUPABASE_URL
 ARG VITE_SUPABASE_PUBLISHABLE_KEY
 ARG VITE_SUPABASE_PROJECT_ID
@@ -22,11 +19,28 @@ ENV VITE_SUPABASE_URL=${VITE_SUPABASE_URL} \
 
 RUN npm run build
 
-# Stage 2: lightweight production web server. Host Nginx publishes this container.
-FROM nginx:1.27-alpine AS runtime
+# Stage 2: production runtime.
+# AutoDeploy runs the migration/function deployment gate inside the freshly
+# built image before swapping traffic. Keep the Supabase CLI here so that
+# database migrations and Edge Functions are deployed from the exact commit
+# being released rather than from a separate manual process.
+FROM node:20-alpine AS runtime
+
+RUN apk add --no-cache nginx \
+    && npm install --global supabase@2.117.0 \
+    && npm cache clean --force \
+    && rm -rf /var/cache/apk/*
+
+WORKDIR /app
 
 COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/supabase /app/supabase
+COPY nginx.conf /etc/nginx/http.d/default.conf
+COPY scripts/autodeploy-migrate.sh /usr/local/bin/autodeploy-migrate
+
+RUN chmod 0755 /usr/local/bin/autodeploy-migrate \
+    && mkdir -p /run/nginx \
+    && nginx -t
 
 EXPOSE 80
 

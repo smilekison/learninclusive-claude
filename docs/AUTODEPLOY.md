@@ -92,3 +92,21 @@ start container
    ↓
 application uses self-hosted Supabase
 ```
+
+
+## Automatic self-hosted Supabase
+
+This repository declares its Supabase dependency in `autodeploy.supabase.json`. The AutoDeploy deploy engine uses that declaration to provision the official self-hosted Supabase Docker stack on the same SSH host, configure:
+
+- `https://supabase.smilekisan.com`
+- `https://learn.smilekisan.com` as the Auth site URL
+- generated publishable/secret API keys
+- the repository's Edge Functions
+- database migrations under `supabase/migrations`
+- HTTPS routing through the host's existing Nginx/Certbot
+
+The generated `SUPABASE_PUBLISHABLE_KEY` is injected into the LearnInclusive container at runtime. Server-side Supabase credentials are never placed in the browser bundle.
+
+External function secrets such as `OPENAI_API_KEY`, `ELEVENLABS_API_KEY`, and `RESEND_API_KEY` remain optional AutoDeploy target environment values. If supplied, AutoDeploy writes them to the self-hosted Functions environment on the server.
+
+No Supabase installation script needs to be run manually for this repository. The server must have enough capacity for the full self-hosted stack; Supabase currently documents 4 GB RAM / 2 CPU / 40 GB SSD as minimums and 8 GB+ RAM / 4 CPU / 80 GB+ SSD as recommended for the complete stack.

@@ -1,0 +1,6 @@
+services:
+  learninclusive:
+    container_name: learninclusive-production
+    ports:
+      - "127.0.0.1:8081:80"
+    restart: unless-stopped

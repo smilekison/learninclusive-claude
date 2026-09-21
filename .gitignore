@@ -26,3 +26,8 @@ supabase/.temp
 *.njsproj
 *.sln
 *.sw?
+
+# Self-hosted Supabase runtime state
+.runtime/
+.env
+supabase/functions/.env

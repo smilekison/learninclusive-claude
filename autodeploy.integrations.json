@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "integrations": {
+    "supabase": {
+      "autoProvision": true,
+      "domain": "supabase.smilekisan.com",
+      "siteUrl": "https://learn.smilekisan.com",
+      "migrations": "supabase/migrations",
+      "functions": "supabase/functions",
+      "functionSecrets": [
+        "OPENAI_API_KEY",
+        "ELEVENLABS_API_KEY",
+        "RESEND_API_KEY"
+      ],
+      "generatedEnv": [
+        "VITE_SUPABASE_URL",
+        "VITE_SUPABASE_PUBLISHABLE_KEY"
+      ]
+    }
+  }
+}

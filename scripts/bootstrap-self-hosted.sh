@@ -96,7 +96,7 @@ log "Applying LearnInclusive database migrations."
 POSTGRES_PASSWORD="$(grep "^POSTGRES_PASSWORD=" .env | cut -d= -f2-)"
 [ -n "$POSTGRES_PASSWORD" ] || die "POSTGRES_PASSWORD was not generated."
 DB_PASSWORD_ESCAPED="$(python3 -c 'import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=""))' "$POSTGRES_PASSWORD")"
-SUPABASE_NETWORK="$(docker inspect supabase-db --format "{{range $name, $network := .NetworkSettings.Networks}}$name{{end}}" 2>/dev/null || true)"
+SUPABASE_NETWORK="$(docker inspect supabase-db --format "{{range \$name, \$network := .NetworkSettings.Networks}}\$name{{end}}" 2>/dev/null || true)"
 [ -n "$SUPABASE_NETWORK" ] || SUPABASE_NETWORK="supabase_default"
 cd "$ROOT_DIR"
 npx --yes supabase@2.117.0 --network-id "$SUPABASE_NETWORK" --workdir "$ROOT_DIR" db push --db-url "postgresql://postgres:$DB_PASSWORD_ESCAPED@supabase-db:5432/postgres" --yes
@@ -116,11 +116,11 @@ server {
     location / {
         proxy_pass http://127.0.0.1:8000;
         proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_read_timeout 3600;
     }
@@ -132,7 +132,7 @@ systemctl reload nginx
 
 if ! certbot certificates 2>/dev/null | grep -q "Certificate Name: $SUPABASE_DOMAIN"; then
   log "Requesting the HTTPS certificate for Supabase."
-  certbot --nginx --non-interactive --agree-tos --register-unsafely-without-email -d "$SUPABASE_DOMAIN" --redirect
+  certbot --nginx --non-interactive --agree-tos --email "admin@$SUPABASE_DOMAIN" -d "$SUPABASE_DOMAIN" --redirect
 fi
 
 cd "$ROOT_DIR"

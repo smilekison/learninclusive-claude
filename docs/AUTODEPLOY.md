@@ -36,48 +36,55 @@ The check runs against the freshly cloned commit before the Docker image is buil
 
 ### Supabase deployment gate
 
+This deployment uses **self-hosted Supabase on the same Ubuntu server**, not the Supabase Cloud/Management API. There is therefore no `SUPABASE_ACCESS_TOKEN` and no cloud project-ref deployment.
+
 Enable **Run migrations before deploy** and use:
 
 ```text
 /usr/local/bin/autodeploy-migrate
 ```
 
-The production image contains the pinned Supabase CLI and the complete `supabase/` directory. The gate:
+The migration gate runs inside the freshly built image and receives access to the host Docker socket. It:
 
-1. authenticates to the Supabase Management API;
-2. links project `ittuorfjrmktmjwwmgad`;
-3. prints local/remote migration history;
-4. runs `supabase db push --dry-run`;
-5. applies only pending migrations with `supabase db push`;
-6. sets `APP_URL=https://learn.smilekisan.com`;
-7. deploys all Edge Functions with `--use-api`;
-8. lists the deployed functions.
+1. discovers the self-hosted Supabase Postgres and Edge Functions containers;
+2. joins the Supabase Docker network;
+3. runs `supabase migration list --db-url`;
+4. runs `supabase db push --db-url ... --dry-run`;
+5. applies only pending migrations with `supabase db push --db-url ...`;
+6. copies the committed Edge Functions into the self-hosted functions volume;
+7. restarts the self-hosted Edge Functions container.
 
-The command deliberately never runs `db reset --linked` and never uses `--include-seed` against production.
+Supabase documents `db push --db-url` for self-hosted databases, and self-hosted Edge Functions are updated by copying functions into the mounted functions directory and restarting the functions service.
+
+The migration gate deliberately never runs `db reset --linked` and never uses `--include-seed` against production.
 
 ### AutoDeploy environment variables
 
 Set these as protected/secret environment variables on the LearnInclusive target:
 
 ```text
-SUPABASE_PROJECT_ID=ittuorfjrmktmjwwmgad
-SUPABASE_ACCESS_TOKEN=<Supabase personal access token>
-SUPABASE_DB_PASSWORD=<Supabase database password>
+SUPABASE_SELF_HOSTED=true
+SUPABASE_DB_PASSWORD=<the POSTGRES_PASSWORD from your self-hosted Supabase .env>
+SUPABASE_DB_CONTAINER=supabase-db
+SUPABASE_FUNCTIONS_CONTAINER=supabase-edge-functions
+SUPABASE_DOCKER_NETWORK=supabase_default
+APP_URL=https://learn.smilekisan.com
 ```
 
-The public Vite/Supabase values do not need to be secret; the application already contains the Supabase project URL and publishable key.
+The database password must be the **actual password already used by your self-hosted Supabase installation**. Do not generate a new random password for AutoDeploy: changing the AutoDeploy value without changing PostgreSQL would make migrations fail. Supabase's self-hosted Docker setup stores `POSTGRES_PASSWORD` in its server-side `.env`.
 
-Do **not** put `SUPABASE_SERVICE_ROLE_KEY`, OpenAI keys, ElevenLabs keys, or Resend keys in the frontend environment. Those belong in Supabase Edge Function secrets.
+The public Vite/Supabase values do not need to be secret.
 
-The one-time Edge Function secrets are:
+Do **not** put `SUPABASE_SERVICE_ROLE_KEY`, OpenAI keys, ElevenLabs keys, or Resend keys in the frontend environment. Self-hosted Edge Function secrets belong in the Supabase functions service environment. Use a separate `.env.functions` on the Supabase host and do not commit it.
+
+Your self-hosted Supabase functions environment should contain:
 
 ```text
-OPENAI_API_KEY
-ELEVENLABS_API_KEY
-RESEND_API_KEY
+APP_URL=https://learn.smilekisan.com
+OPENAI_API_KEY=<your OpenAI API key>
+ELEVENLABS_API_KEY=<your ElevenLabs API key>
+RESEND_API_KEY=<your Resend API key>
 ```
-
-They remain stored in Supabase and are not redeployed from the frontend container.
 
 ## Deployment order
 

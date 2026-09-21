@@ -96,7 +96,7 @@ application uses self-hosted Supabase
 
 ## Automatic self-hosted Supabase
 
-This repository declares its Supabase dependency in `autodeploy.supabase.json`. The AutoDeploy deploy engine uses that declaration to provision the official self-hosted Supabase Docker stack on the same SSH host, configure:
+This repository declares its Supabase dependency in `autodeploy.integrations.json`. AutoDeploy's generic integration runner uses that declaration to provision the official self-hosted Supabase Docker stack on the same SSH host, configure:
 
 - `https://supabase.smilekisan.com`
 - `https://learn.smilekisan.com` as the Auth site URL

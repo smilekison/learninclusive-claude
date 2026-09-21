@@ -95,7 +95,7 @@ SUPABASE_NETWORK="$(docker inspect supabase-db --format '{{range $name, $network
 [ -n "$SUPABASE_NETWORK" ] || die "Could not determine the Supabase Docker network."
 
 cd "$ROOT_DIR"
-npx --yes supabase@2.117.0 db push --db-url "postgresql://postgres:$DB_PASSWORD_ESCAPED@supabase-db:5432/postgres" --yes
+npx --yes supabase@latest db push --db-url "postgresql://postgres:$DB_PASSWORD_ESCAPED@supabase-db:5432/postgres?sslmode=disable" --yes
 
 cd "$SUPABASE_DIR"
 sh run.sh recreate functions

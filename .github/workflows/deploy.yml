@@ -1,0 +1,126 @@
+name: Deploy LearnInclusive
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: learninclusive-production
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Production build
+        run: npm run build
+
+  deploy:
+    name: Deploy to production
+    needs: validate
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://learn.smilekisan.com
+
+    steps:
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/learninclusive_deploy"
+          chmod 600 "$HOME/.ssh/learninclusive_deploy"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 644 "$HOME/.ssh/known_hosts"
+
+      - name: Deploy on server
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+
+          ssh \
+            -i "$HOME/.ssh/learninclusive_deploy" \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            "$DEPLOY_USER@$DEPLOY_HOST" 'bash -s' <<'REMOTE'
+          set -Eeuo pipefail
+
+          APP_DIR="/opt/learninclusive"
+
+          cd "$APP_DIR"
+
+          echo "==> Syncing main branch"
+          git fetch --prune origin main
+          git reset --hard origin/main
+
+          test -f .env.production || {
+            echo "ERROR: $APP_DIR/.env.production is missing"
+            exit 1
+          }
+
+          echo "==> Building LearnInclusive"
+          docker compose \
+            -f docker-compose.yml \
+            -f docker-compose.production.yml \
+            --env-file .env.production \
+            build --pull
+
+          echo "==> Starting LearnInclusive"
+          docker compose \
+            -f docker-compose.yml \
+            -f docker-compose.production.yml \
+            --env-file .env.production \
+            up -d --remove-orphans
+
+          echo "==> Waiting for container health"
+          for i in $(seq 1 30); do
+            STATUS=$(docker inspect --format='{{.State.Health.Status}}' learninclusive-production 2>/dev/null || true)
+
+            if [ "$STATUS" = "healthy" ]; then
+              echo "LearnInclusive is healthy."
+              exit 0
+            fi
+
+            if [ "$STATUS" = "unhealthy" ]; then
+              echo "LearnInclusive became unhealthy."
+              docker logs --tail 100 learninclusive-production || true
+              exit 1
+            fi
+
+            sleep 2
+          done
+
+          echo "Timed out waiting for LearnInclusive health check."
+          docker ps --filter name=learninclusive-production
+          docker logs --tail 100 learninclusive-production || true
+          exit 1
+          REMOTE

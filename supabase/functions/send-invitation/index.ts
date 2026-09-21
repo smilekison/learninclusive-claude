@@ -210,7 +210,8 @@ const handler = async (req: Request): Promise<Response> => {
 
       if (inviteError) throw inviteError;
 
-      const inviteUrl = `${req.headers.get('origin') || 'http://localhost:8080'}/auth?invite=${token}`;
+      const appUrl = Deno.env.get('APP_URL') || 'https://learn.smilekisan.com';
+      const inviteUrl = `${appUrl.replace(/\/$/, '')}/auth?invite=${token}`;
 
       emailResponse = await resend.emails.send({
         from: "LMS System <onboarding@resend.dev>",

@@ -1,145 +1,127 @@
-# AutoDeploy production deployment
+# Production deployment
 
-LearnInclusive is deployed as a single AutoDeploy **SERVICE** target. GitHub is only the source repository; GitHub Actions is not used.
+LearnInclusive can be bootstrapped on a fresh Linux server with the official self-hosted Supabase Docker distribution.
 
-## AutoDeploy target
+## Fresh server
 
-Configure the target once:
+After cloning this repository:
 
-- Repository: `smilekison/learninclusive-claude`
-- Branch: `main`
-- Target type: `SERVICE`
-- Service directory: `.`
-- Dockerfile: `Dockerfile`
-- Container port: `80` (read from Dockerfile)
-- Domain: `learn.smilekisan.com`
-- Mark the service as the edge/public service.
-- Enable **auto-deploy on push**.
-- Enable **auto-rollback** if the target's rollback policy is desired.
-
-### Pre-deploy checks
-
-Enable **Run tests before deploy** and use:
-
-```text
-sh scripts/autodeploy-test.sh
+```bash
+sudo -E APP_DOMAIN=learn.smilekisan.com \
+  SUPABASE_DOMAIN=supabase.smilekisan.com \
+  ./scripts/bootstrap-self-hosted.sh
 ```
 
-This runs:
+The bootstrap script:
 
-1. `npm ci`
-2. `npm run lint`
-3. `npm test`
-4. `npm run build`
+1. Installs Docker/Compose prerequisites if missing.
+2. Downloads the official Supabase self-hosted Docker configuration.
+3. Generates Supabase secrets and API keys.
+4. Configures Supabase for `https://supabase.smilekisan.com`.
+5. Configures Auth redirects for `https://learn.smilekisan.com`.
+6. Installs this repository's Edge Functions into the Supabase functions volume.
+7. Applies `supabase/migrations` to the self-hosted Postgres database.
+8. Installs/configures the host Nginx reverse proxy.
+9. Requests the HTTPS certificate for the Supabase domain.
+10. Builds and starts the LearnInclusive frontend.
+11. Uses the generated Supabase publishable key when building the frontend.
 
-The check runs against the freshly cloned commit before the Docker image is built.
+Supabase's official Docker setup is used rather than a copied or hand-maintained replacement. The official documentation recommends Docker Compose for self-hosting and generates secure secrets during setup. citeturn0search1
 
-### Supabase deployment gate
+## DNS
 
-This deployment uses **self-hosted Supabase on the same Ubuntu server**, not the Supabase Cloud/Management API. There is therefore no `SUPABASE_ACCESS_TOKEN` and no cloud project-ref deployment.
-
-Enable **Run migrations before deploy** and use:
-
-```text
-/usr/local/bin/autodeploy-migrate
-```
-
-The migration gate runs inside the freshly built image and receives access to the host Docker socket. It:
-
-1. discovers the self-hosted Supabase Postgres and Edge Functions containers;
-2. joins the Supabase Docker network;
-3. runs `supabase migration list --db-url`;
-4. runs `supabase db push --db-url ... --dry-run`;
-5. applies only pending migrations with `supabase db push --db-url ...`;
-6. copies the committed Edge Functions into the self-hosted functions volume;
-7. restarts the self-hosted Edge Functions container.
-
-Supabase documents `db push --db-url` for self-hosted databases, and self-hosted Edge Functions are updated by copying functions into the mounted functions directory and restarting the functions service.
-
-The migration gate deliberately never runs `db reset --linked` and never uses `--include-seed` against production.
-
-### AutoDeploy environment variables
-
-Set these as protected/secret environment variables on the LearnInclusive target:
+Before running the bootstrap, both domains must resolve to the server:
 
 ```text
-SUPABASE_SELF_HOSTED=true
-SUPABASE_DB_PASSWORD=<the POSTGRES_PASSWORD from your self-hosted Supabase .env>
-SUPABASE_DB_CONTAINER=supabase-db
-SUPABASE_FUNCTIONS_CONTAINER=supabase-edge-functions
-SUPABASE_DOCKER_NETWORK=supabase_default
-APP_URL=https://learn.smilekisan.com
+learn.smilekisan.com     A     <server-ip>
+supabase.smilekisan.com  A     <server-ip>
 ```
 
-The database password must be the **actual password already used by your self-hosted Supabase installation**. Do not generate a new random password for AutoDeploy: changing the AutoDeploy value without changing PostgreSQL would make migrations fail. Supabase's self-hosted Docker setup stores `POSTGRES_PASSWORD` in its server-side `.env`.
+The Supabase API gateway stays bound to localhost and host Nginx terminates HTTPS. Supabase recommends a reverse proxy with HTTPS for production and requires WebSocket forwarding for Realtime. citeturn4search1
 
-The public Vite/Supabase values do not need to be secret.
+## Optional Edge Function secrets
 
-Do **not** put `SUPABASE_SERVICE_ROLE_KEY`, OpenAI keys, ElevenLabs keys, or Resend keys in the frontend environment. Self-hosted Edge Function secrets belong in the Supabase functions service environment. Use a separate `.env.functions` on the Supabase host and do not commit it.
-
-Your self-hosted Supabase functions environment should contain:
+The bootstrap accepts these environment variables:
 
 ```text
-APP_URL=https://learn.smilekisan.com
-OPENAI_API_KEY=<your OpenAI API key>
-ELEVENLABS_API_KEY=<your ElevenLabs API key>
-RESEND_API_KEY=<your Resend API key>
+OPENAI_API_KEY
+ELEVENLABS_API_KEY
+RESEND_API_KEY
 ```
 
-## Deployment order
+They are written only to the runtime's `.env.functions` file and are never committed to Git.
 
-AutoDeploy should therefore execute:
+For example:
+
+```bash
+sudo -E OPENAI_API_KEY='...' \
+  ELEVENLABS_API_KEY='...' \
+  RESEND_API_KEY='...' \
+  ./scripts/bootstrap-self-hosted.sh
+```
+
+## Local Docker Compose
+
+For a machine where Supabase is already available, the repository also provides:
+
+```bash
+cp .env.example .env
+# set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY
+docker compose up -d --build
+```
+
+The frontend image contains only the Vite build and Nginx. Supabase is deliberately not embedded inside that application image.
+
+## Runtime layout
 
 ```text
-GitHub main
-   ↓
-clone exact commit
-   ↓
-pre-deploy tests
-   ↓
-Docker build
-   ↓
-Supabase migration dry-run
-   ↓
-Supabase migration apply
-   ↓
-Edge Function deployment
-   ↓
-container health check
-   ↓
-traffic swap
-   ↓
-HTTPS health check
+Server
+├── LearnInclusive
+│   └── 127.0.0.1:18080
+│
+└── Self-hosted Supabase
+    ├── PostgreSQL
+    ├── Auth
+    ├── PostgREST
+    ├── Storage
+    ├── Realtime
+    ├── Edge Functions
+    └── Studio
 ```
 
-If tests, migration, function deployment, or health checks fail, the old application remains in service because the database/function gate runs before the application swap.
-
-## Database migration policy
-
-All production schema changes must be committed as timestamped files under:
-
-```text
-supabase/migrations/
-```
-
-Never use `supabase db reset --linked` for production and never use `supabase db push --include-seed` for production.
-
-If AutoDeploy reports a migration-history mismatch, stop and reconcile the remote migration history rather than forcing it. Use `supabase migration list` first and only use `supabase migration repair` when the actual database state is already known to match the intended migration.
-
-## Supabase Auth URL
-
-In the Supabase Dashboard, set the production Site URL to:
+The browser talks to:
 
 ```text
 https://learn.smilekisan.com
+        |
+        +--> https://supabase.smilekisan.com
 ```
 
-and add:
+The frontend no longer contains a fallback to the old Supabase Cloud project. Production builds fail if the self-hosted Supabase URL or publishable key is missing.
 
-```text
-https://learn.smilekisan.com/**
+## Updating the server
+
+Pull the repository and rerun the bootstrap script:
+
+```bash
+git pull
+sudo -E ./scripts/bootstrap-self-hosted.sh
 ```
 
-to the allowed redirect URLs.
+The Supabase installation lives under `.runtime/supabase`, outside Git. Its database/storage data and secrets therefore survive repository updates.
 
-The frontend uses `window.location.origin` for production auth/enrollment links, so no separate frontend URL update is needed for each deployment.
+For upstream Supabase updates, use the generated `update.sh` in the self-hosted Supabase runtime; Supabase documents this as the supported upgrade path. citeturn4search4
+
+## Security
+
+Never commit:
+
+- `.env`
+- `.env.functions`
+- Supabase generated secrets
+- `POSTGRES_PASSWORD`
+- `SUPABASE_SECRET_KEY`
+- `SERVICE_ROLE_KEY`
+- provider API keys
+
+The browser receives only the Supabase publishable key. Supabase documents the publishable key as the client-side credential and the secret key as server-side only. citeturn0search1

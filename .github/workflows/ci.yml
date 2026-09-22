@@ -21,3 +21,26 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+
+      - name: Build production Docker image
+        run: docker build --pull -t learninclusive-ci .
+
+      - name: Smoke test production Docker image
+        run: |
+          set -euo pipefail
+          docker run -d --name learninclusive-ci -p 18080:80 \
+            -e VITE_SUPABASE_URL=https://example.supabase.co \
+            -e VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_ci_test \
+            learninclusive-ci
+
+          trap 'docker rm -f learninclusive-ci >/dev/null 2>&1 || true' EXIT
+
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent --show-error http://127.0.0.1:18080/ >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          docker logs learninclusive-ci
+          exit 1

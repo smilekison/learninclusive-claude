@@ -21,7 +21,7 @@ echo "== LearnInclusive production deployment =="
 echo "Application URL: $SITE_URL"
 echo "Supabase URL:    $SUPABASE_PUBLIC_URL"
 
-./scripts/setup-supabase.sh
+sh ./scripts/setup-supabase.sh
 
 ENV_FILE="$ROOT_DIR/.runtime/learninclusive.env"
 if [ ! -s "$ENV_FILE" ]; then

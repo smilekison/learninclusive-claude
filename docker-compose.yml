@@ -3,10 +3,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: learninclusive
-    environment:
-      VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:?Set VITE_SUPABASE_URL}
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY:?Set VITE_SUPABASE_PUBLISHABLE_KEY}
     ports:
       - "127.0.0.1:${LEARNINCLUSIVE_HOST_PORT:-18080}:80"
     restart: unless-stopped

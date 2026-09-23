@@ -1,4 +1,9 @@
-# LearnInclusive production image
+# syntax=docker/dockerfile:1
+
+# LearnInclusive production image.
+# Supabase is consumed as repository-owned Docker services; no AutoDeploy
+# integration or host-level Supabase installation is required.
+
 FROM node:20-alpine AS build
 
 WORKDIR /app

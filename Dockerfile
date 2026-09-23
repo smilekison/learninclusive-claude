@@ -14,8 +14,8 @@ RUN npm ci --no-audit --no-fund
 COPY . .
 RUN npm run build
 
-# Bake public runtime configuration when the repository bootstrap has generated
-.env.production. This keeps deployment configuration inside LearnInclusive.
+# Bake public runtime configuration when the repository bootstrap has generated .env.production.
+# This keeps deployment configuration inside LearnInclusive.
 RUN if [ -f .env.production ]; then \
       SUPABASE_URL="$(awk -F= '$1=="VITE_SUPABASE_URL"{print substr($0,index($0,"=")+1)}' .env.production)"; \
       SUPABASE_KEY="$(awk -F= '$1=="VITE_SUPABASE_PUBLISHABLE_KEY"{print substr($0,index($0,"=")+1)}' .env.production)"; \

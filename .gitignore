@@ -31,3 +31,4 @@ supabase/.temp
 .runtime/
 .env
 supabase/functions/.env
+.env.production

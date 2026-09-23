@@ -47,7 +47,7 @@ if [ -d "$ROOT_DIR/supabase/functions" ]; then
 
   : > "$SUPABASE_DIR/.env.functions"
   for key in OPENAI_API_KEY ELEVENLABS_API_KEY RESEND_API_KEY; do
-    eval "value=${$key:-}"
+    value="$(printenv "$key" 2>/dev/null || true)"
     if [ -n "$value" ]; then
       printf '%s=%s\n' "$key" "$value" >> "$SUPABASE_DIR/.env.functions"
     fi
@@ -82,7 +82,15 @@ SUPABASE_NETWORK="$(docker inspect supabase-db --format '{{range $name, $network
 [ -n "$SUPABASE_NETWORK" ] || { echo "ERROR: Could not determine Supabase Docker network." >&2; exit 1; }
 
 if [ -d "$ROOT_DIR/supabase/migrations" ]; then
-  npx --yes supabase@latest db push --db-url "postgresql://postgres:$DB_PASSWORD_ESCAPED@supabase-db:5432/postgres?sslmode=disable" --yes
+  # Run the CLI in a transient container attached to the Supabase network.
+  # This keeps both the CLI and database access inside Docker; nothing is
+  # installed on the deployment host and the supabase-db hostname resolves.
+  docker run --rm \
+    --network "$SUPABASE_NETWORK" \
+    -v "$ROOT_DIR:/workspace" \
+    -w /workspace \
+    node:20-alpine \
+    sh -lc 'npx --yes supabase@latest db push --db-url "postgresql://postgres:'"$DB_PASSWORD_ESCAPED"'@supabase-db:5432/postgres?sslmode=disable" --yes'
 fi
 
 mkdir -p "$ROOT_DIR/.runtime"

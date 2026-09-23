@@ -1,43 +1,78 @@
 # Deployment
 
-LearnInclusive is a self-contained application repository. It does not require a specific deployment platform and contains no configuration for any external deployment engine.
+LearnInclusive is a self-contained application repository. It does not require a specific deployment platform.
 
-## Runtime architecture
+## Local development with Docker Desktop
 
-- The root `Dockerfile` builds the LearnInclusive web application.
-- `scripts/setup-supabase.sh` provisions the repository's self-hosted Supabase runtime using the official Supabase Docker distribution.
-- `supabase/` contains this application's migrations and Edge Functions.
+The recommended local workflow uses the Supabase CLI as a repository dependency. The CLI runs the complete local Supabase stack in Docker, so Supabase is not installed directly into Windows or Linux.
 
-Supabase is an application infrastructure dependency. A deployment system only needs a machine capable of running Docker and Docker Compose and executing the repository's deployment workflow. The deployment system must not contain LearnInclusive-specific Supabase configuration.
+### Windows 11
 
-## Production deployment
+1. Install Docker Desktop with WSL2 enabled.
+2. Install Node.js LTS.
+3. Clone this repository.
+4. Open PowerShell in the repository root.
+5. Run:
 
-Clone the repository, provide Docker Engine and Docker Compose v2, configure the public URLs, then run:
+```powershell
+.\scripts\start-local.ps1
+```
+
+The script runs Supabase through Docker Desktop, applies the repository's migrations/seed configuration, builds the LearnInclusive image, and starts it.
+
+### Linux
+
+Install Docker Engine/Compose v2 and Node.js LTS, then run:
+
+```bash
+./scripts/start-local.sh
+```
+
+The same repository-owned workflow is used; Supabase runs in Docker.
+
+### Local URLs
+
+- LearnInclusive: http://localhost:18080
+- Supabase API: http://127.0.0.1:54321
+- Supabase Studio: http://127.0.0.1:54323
+
+To stop the local Supabase stack:
+
+```bash
+npx supabase stop
+```
+
+The same command works from PowerShell.
+
+## Production / self-hosted server
+
+For a Linux server, the repository also contains `scripts/setup-supabase.sh`. It downloads the official self-hosted Supabase Docker distribution into the ignored `.runtime/` directory and starts the multi-container Supabase runtime.
 
 ```bash
 ./scripts/setup-supabase.sh
 docker compose --env-file .runtime/learninclusive.env up -d --build
 ```
 
-For a production installation, set the deployment-specific values before the Supabase setup:
+The root `Dockerfile` builds only the LearnInclusive web application. Supabase is intentionally a separate Docker workload because self-hosted Supabase is a multi-container system.
 
-```bash
-SUPABASE_PUBLIC_URL=https://supabase.example.com \
-API_EXTERNAL_URL=https://supabase.example.com \
-SITE_URL=https://learninclusive.example.com \
-PROXY_DOMAIN=supabase.example.com \
-./scripts/setup-supabase.sh
-```
+## Deployment-platform independence
 
-The deployment platform is intentionally not named here. GitHub Actions, GitLab CI/CD, a generic deployment service, or a manual Docker deployment can execute the same repository-owned workflow.
+A deployment platform can clone this repository and execute its standard Docker/Compose workflow. It does not need a LearnInclusive-specific plugin or Supabase integration.
 
-## Supabase
+The application repository owns:
 
-Supabase is not installed on the host and is not a deployment-platform plugin. The repository downloads the official self-hosted Supabase Docker distribution into the ignored `.runtime/` directory and starts it with Docker Compose. Application-specific migrations and Edge Functions remain in this repository.
+- Supabase configuration
+- database migrations
+- Edge Functions
+- application Docker image
+- local Docker workflow
+- self-hosted Supabase bootstrap
 
-The root application image does not contain the complete Supabase server stack because self-hosted Supabase is a multi-container runtime. Docker Compose is therefore the repository-owned deployment boundary for the application and its Supabase dependency.
+The deployment platform owns only generic deployment concerns such as cloning, building, starting containers, networking, secrets injection, and health checks.
 
-## Required application configuration
+There is no application dependency on a particular deployment platform.
+
+## Configuration
 
 The browser application uses:
 
@@ -45,9 +80,3 @@ The browser application uses:
 - `VITE_SUPABASE_PUBLISHABLE_KEY`
 
 Never put server-only Supabase credentials or Edge Function secrets in `VITE_*` variables.
-
-## Independence contract
-
-This repository must remain deployable without knowing the name, API, configuration schema, or installation state of the deployment platform.
-
-A deployment platform should treat this repository as a generic application workload and execute its standard Docker/Compose workflow. It must not require LearnInclusive-specific integrations or contain LearnInclusive-specific logic.

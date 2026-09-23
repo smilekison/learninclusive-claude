@@ -14,9 +14,9 @@ The recommended local workflow uses the Supabase CLI as a repository dependency.
 4. Open PowerShell in the repository root.
 5. Run:
 
-```powershell
-.\scripts\start-local.ps1
-```
+\`\`\`powershell
+.\\scripts\\start-local.ps1
+\`\`\`
 
 The script runs Supabase through Docker Desktop, applies the repository's migrations/seed configuration, builds the LearnInclusive image, and starts it.
 
@@ -24,9 +24,9 @@ The script runs Supabase through Docker Desktop, applies the repository's migrat
 
 Install Docker Engine/Compose v2 and Node.js LTS, then run:
 
-```bash
+\`\`\`bash
 ./scripts/start-local.sh
-```
+\`\`\`
 
 The same repository-owned workflow is used; Supabase runs in Docker.
 
@@ -38,22 +38,44 @@ The same repository-owned workflow is used; Supabase runs in Docker.
 
 To stop the local Supabase stack:
 
-```bash
+\`\`\`bash
 npx supabase stop
-```
+\`\`\`
 
 The same command works from PowerShell.
 
 ## Production / self-hosted server
 
-For a Linux server, the repository also contains `scripts/setup-supabase.sh`. It downloads the official self-hosted Supabase Docker distribution into the ignored `.runtime/` directory and starts the multi-container Supabase runtime.
+For production, use the repository-owned deployment wrapper. It provisions the official self-hosted Supabase Docker stack, reads the generated \`SUPABASE_PUBLISHABLE_KEY\`, writes the application environment file, and starts LearnInclusive.
 
-```bash
-./scripts/setup-supabase.sh
-docker compose --env-file .runtime/learninclusive.env up -d --build
-```
+### Linux
 
-The root `Dockerfile` builds only the LearnInclusive web application. Supabase is intentionally a separate Docker workload because self-hosted Supabase is a multi-container system.
+\`\`\`bash
+./scripts/deploy-production.sh
+\`\`\`
+
+By default this is configured for:
+
+- LearnInclusive: \`https://learn.smilekisan.com\`
+- Supabase API: \`https://supabase.smilekisan.com\`
+
+You can override the Supabase hostname if your reverse proxy uses a different public URL:
+
+\`\`\`bash
+SUPABASE_PUBLIC_URL=https://supabase.example.com \\
+SITE_URL=https://learn.smilekisan.com \\
+./scripts/deploy-production.sh
+\`\`\`
+
+### Windows / Docker Desktop
+
+\`\`\`powershell
+.\\scripts\\deploy-production.ps1
+\`\`\`
+
+The wrapper creates \`.runtime\\\\learninclusive.env\` from the repository-owned Supabase configuration. The publishable key is never committed to Git.
+
+The root \`Dockerfile\` builds only the LearnInclusive web application. Supabase is intentionally a separate Docker workload because self-hosted Supabase is a multi-container system.
 
 ## Deployment-platform independence
 
@@ -67,6 +89,7 @@ The application repository owns:
 - application Docker image
 - local Docker workflow
 - self-hosted Supabase bootstrap
+- production environment generation
 
 The deployment platform owns only generic deployment concerns such as cloning, building, starting containers, networking, secrets injection, and health checks.
 
@@ -76,7 +99,9 @@ There is no application dependency on a particular deployment platform.
 
 The browser application uses:
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- \`VITE_SUPABASE_URL\`
+- \`VITE_SUPABASE_PUBLISHABLE_KEY\`
 
-Never put server-only Supabase credentials or Edge Function secrets in `VITE_*` variables.
+The production wrapper obtains \`VITE_SUPABASE_PUBLISHABLE_KEY\` from the self-hosted Supabase \`.env\` instead of requiring a human to copy it manually. Supabase documents this key as the client-side publishable key for self-hosted deployments.
+
+Never put server-only Supabase credentials or Edge Function secrets in \`VITE_*\` variables.
